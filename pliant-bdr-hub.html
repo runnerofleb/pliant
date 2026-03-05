@@ -1,5 +1,391 @@
-import { useState, useEffect, useReducer } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pliant BDR Command Center</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080C14;
+    --card: rgba(255,255,255,0.025);
+    --card-border: rgba(255,255,255,0.06);
+    --accent: #00E5A0;
+    --accent2: #00B8D4;
+    --text: #D4D4D8;
+    --text-dim: #888;
+    --text-muted: #555;
+    --text-ghost: #333;
+    --purple: #8B5CF6;
+    --blue: #3B82F6;
+    --amber: #F59E0B;
+    --red: #FF5252;
+    --orange: #FF8A65;
+    --teal: #06D6A0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'Space Mono', monospace; }
 
+  /* Animations */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  .fade-up { animation: fadeUp 0.4s ease forwards; }
+  .stagger-1 { animation-delay: 0.05s; opacity: 0; }
+  .stagger-2 { animation-delay: 0.1s; opacity: 0; }
+  .stagger-3 { animation-delay: 0.15s; opacity: 0; }
+  .stagger-4 { animation-delay: 0.2s; opacity: 0; }
+
+  /* Top Bar */
+  .topbar {
+    background: linear-gradient(180deg, rgba(0,229,160,0.04) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(0,229,160,0.08);
+    padding: 14px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  }
+  .logo {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: var(--bg);
+    box-shadow: 0 0 24px rgba(0,229,160,0.25);
+  }
+  .level-ring {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .level-inner {
+    width: 30px; height: 30px; border-radius: 50%; background: #0D1117;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--accent);
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 0; padding: 0 24px;
+    background: rgba(0,0,0,0.25);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .tab {
+    padding: 13px 20px; background: none; border: none;
+    color: #444; font-size: 13px; font-weight: 600;
+    cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all 0.2s; white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tab:hover { color: #888; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Content */
+  .content { padding: 24px 20px; max-width: 1120px; margin: 0 auto; }
+
+  /* Cards */
+  .card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 16px; padding: 24px;
+  }
+  .card-sm { padding: 18px; }
+  .card-accent {
+    background: linear-gradient(135deg, rgba(0,229,160,0.05) 0%, rgba(0,184,212,0.03) 100%);
+    border-color: rgba(0,229,160,0.1);
+  }
+
+  /* Grid layouts */
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .grid-2-wide { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+
+  /* Buttons */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: var(--bg); border: none; border-radius: 10px;
+    padding: 10px 20px; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,229,160,0.25); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.04); color: #888;
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+    padding: 10px 20px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.07); color: #bbb; }
+  .btn-sm { padding: 6px 10px; font-size: 10px; }
+  .btn-counter {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    color: #888; font-size: 22px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace; line-height: 1;
+    transition: all 0.15s;
+  }
+  .btn-counter:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .btn-counter.hit { background: rgba(0,229,160,0.12); color: var(--accent); }
+  .btn-counter-sm { width: 42px; height: 28px; border-radius: 8px; font-size: 18px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); color: #444; }
+
+  /* Inputs */
+  .input, .select, .textarea {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 10px 14px; color: #E0E0E0;
+    font-size: 13px; font-family: 'DM Sans', sans-serif;
+    outline: none; width: 100%; transition: border-color 0.2s;
+  }
+  .input:focus, .select:focus, .textarea:focus { border-color: rgba(0,229,160,0.3); }
+  .textarea { min-height: 60px; resize: vertical; }
+  .select { cursor: pointer; -webkit-appearance: none; appearance: none; }
+  .label {
+    font-size: 10px; font-weight: 700; color: #555; margin-bottom: 4px;
+    display: block; font-family: 'Space Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+
+  /* Progress bar */
+  .bar-track { height: 5px; border-radius: 5px; background: rgba(255,255,255,0.05); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
+
+  /* Badge */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* Stage pill */
+  .stage-pill {
+    padding: 6px 14px; border-radius: 20px; border: 1px solid;
+    font-size: 11px; font-weight: 600; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+    background: transparent;
+  }
+  .stage-pill:hover { opacity: 0.8; }
+
+  /* Playbook sub-nav */
+  .pb-tab {
+    padding: 8px 16px; border-radius: 10px; font-size: 12px;
+    font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    border: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.02); color: #555;
+    transition: all 0.15s;
+  }
+  .pb-tab.active { background: rgba(0,229,160,0.08); border-color: rgba(0,229,160,0.18); color: var(--accent); }
+  .pb-tab:hover:not(.active) { background: rgba(255,255,255,0.04); }
+
+  /* Objection card */
+  .obj-card {
+    cursor: pointer; transition: all 0.2s;
+  }
+  .obj-card:hover { border-color: rgba(255,255,255,0.12); }
+
+  /* Prospect row */
+  .prospect-row { transition: all 0.15s; }
+  .prospect-row:hover { border-color: rgba(255,255,255,0.12); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 24px 0 32px;
+    border-top: 1px solid rgba(255,255,255,0.02);
+  }
+
+  /* Section visibility */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Form modal */
+  .form-card {
+    background: rgba(0,229,160,0.02);
+    border-color: rgba(0,229,160,0.12);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .topbar { padding: 12px 16px; }
+    .tabs { padding: 0 16px; }
+    .content { padding: 16px 14px; }
+    .card { padding: 16px; }
+    .card-sm { padding: 14px; }
+    .grid-2, .grid-3, .grid-2-wide { grid-template-columns: 1fr; }
+    .hide-mobile { display: none; }
+  }
+
+  /* Custom selection */
+  ::selection { background: rgba(0,229,160,0.25); color: #fff; }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0.015; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  body > * { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+<!-- ══ TOP BAR ══ -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="logo mono">P</div>
+    <div>
+      <div style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.3px">
+        PLIANT <span class="mono" style="color:var(--accent)">BDR</span><span style="color:#444;font-weight:400"> · Command Center</span>
+      </div>
+      <div class="mono" style="font-size:11px;color:#444" id="clock"></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div style="text-align:right">
+      <div class="mono" style="font-size:9px;color:#555;letter-spacing:1px">LEVEL <span id="level-text">1</span></div>
+      <div style="width:80px"><div class="bar-track"><div class="bar-fill" id="xp-bar" style="width:0%;background:var(--accent)"></div></div></div>
+      <div class="mono" style="font-size:9px;color:var(--accent);margin-top:2px"><span id="xp-text">0</span> XP</div>
+    </div>
+    <div class="level-ring" id="level-ring">
+      <div class="level-inner mono" id="level-num">1</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TABS ══ -->
+<div class="tabs" id="tabs">
+  <button class="tab active" data-tab="dashboard"><span style="margin-right:6px">⚡</span>Command Center</button>
+  <button class="tab" data-tab="pipeline"><span style="margin-right:6px">🎯</span>Pipeline</button>
+  <button class="tab" data-tab="callnotes"><span style="margin-right:6px">📞</span>Call Intel</button>
+  <button class="tab" data-tab="playbook"><span style="margin-right:6px">📖</span>Playbook</button>
+</div>
+
+<!-- ══ CONTENT ══ -->
+<div class="content">
+
+  <!-- ═══════ DASHBOARD ═══════ -->
+  <div class="section active" id="sec-dashboard">
+    <!-- Motivation -->
+    <div class="card card-sm card-accent fade-up" style="margin-bottom:20px;padding:18px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <span style="font-size:24px">🔥</span>
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:14px;color:var(--accent);font-weight:600;font-style:italic" id="quote"></div>
+      </div>
+      <div style="text-align:right">
+        <div class="mono" style="font-size:9px;color:#555;letter-spacing:1px">TODAY'S FOCUS</div>
+        <div style="font-size:13px;font-weight:700;color:#fff" id="today-focus"></div>
+      </div>
+    </div>
+
+    <!-- Activity Grid -->
+    <div class="grid-2 fade-up stagger-1" style="margin-bottom:20px" id="activity-grid"></div>
+
+    <!-- Stats Row -->
+    <div class="grid-3 fade-up stagger-2" style="margin-bottom:20px">
+      <!-- Daily Progress -->
+      <div class="card card-sm" style="text-align:center">
+        <div style="position:relative;width:90px;height:90px;margin:0 auto 10px">
+          <svg width="90" height="90" style="transform:rotate(-90deg)">
+            <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="7"/>
+            <circle cx="45" cy="45" r="38" fill="none" stroke="var(--blue)" stroke-width="7" stroke-linecap="round"
+              stroke-dasharray="238.76" id="progress-ring" style="transition:stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1)"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <span class="mono" style="font-size:22px;font-weight:700;color:#fff" id="total-pct">0%</span>
+          </div>
+        </div>
+        <div class="mono" style="font-size:10px;color:#555;letter-spacing:1px">DAILY PROGRESS</div>
+        <div style="font-size:12px;color:#888;margin-top:4px"><span id="goals-hit">0</span>/4 targets hit</div>
+      </div>
+      <!-- Weekly Meetings -->
+      <div class="card card-sm" style="text-align:center">
+        <div class="mono" style="font-size:9px;color:#555;margin-bottom:10px;letter-spacing:1px">WEEKLY MEETINGS</div>
+        <div style="display:flex;align-items:baseline;justify-content:center;gap:4px">
+          <span class="mono" style="font-size:38px;font-weight:700;color:#fff" id="weekly-booked">0</span>
+          <span style="font-size:16px;color:#444">/ <span id="weekly-target">15</span></span>
+        </div>
+        <div style="margin-top:8px"><div class="bar-track"><div class="bar-fill" id="weekly-bar" style="width:0%;background:var(--amber)"></div></div></div>
+        <button class="btn-ghost" style="margin-top:12px;padding:8px 16px;font-size:11px" onclick="bookWeekly()">+ Book Meeting</button>
+      </div>
+      <!-- Prospects -->
+      <div class="card card-sm" style="text-align:center">
+        <div class="mono" style="font-size:9px;color:#555;margin-bottom:10px;letter-spacing:1px">ACTIVE PROSPECTS</div>
+        <div class="mono" style="font-size:38px;font-weight:700;color:var(--purple)" id="prospect-count">0</div>
+        <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:8px" id="prospect-badges"></div>
+      </div>
+    </div>
+
+    <!-- Game Plan + Wins -->
+    <div class="grid-2-wide fade-up stagger-3" style="margin-bottom:20px">
+      <div class="card card-sm">
+        <div class="mono" style="font-size:10px;color:#555;margin-bottom:12px;letter-spacing:1px" id="gameplan-title"></div>
+        <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:12px" id="gameplan-focus"></div>
+        <div id="gameplan-tasks"></div>
+      </div>
+      <div class="card card-sm">
+        <div class="mono" style="font-size:10px;color:#555;margin-bottom:12px;letter-spacing:1px">🏆 TODAY'S WINS</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <input class="input" id="win-input" placeholder="Log a win..." style="flex:1" onkeydown="if(event.key==='Enter')addWin()">
+          <button class="btn-primary" style="padding:10px 16px" onclick="addWin()">+</button>
+        </div>
+        <div id="wins-list" style="max-height:180px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <div style="text-align:center" class="fade-up stagger-4">
+      <button class="btn-ghost" style="font-size:11px;padding:8px 20px" onclick="resetDaily()">↻ Reset Daily Counters</button>
+    </div>
+  </div>
+
+  <!-- ═══════ PIPELINE ═══════ -->
+  <div class="section" id="sec-pipeline">
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;align-items:center" id="pipeline-filters"></div>
+    <div class="card card-sm" style="margin-bottom:16px;padding:14px 18px;display:none" id="pipeline-visual">
+      <div style="display:flex;height:8px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.03)" id="pipeline-bar"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px" id="pipeline-labels"></div>
+    </div>
+    <div id="prospect-form-container"></div>
+    <div id="prospects-list"></div>
+  </div>
+
+  <!-- ═══════ CALL INTEL ═══════ -->
+  <div class="section" id="sec-callnotes">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn-primary" style="padding:8px 16px;font-size:12px" onclick="showNoteForm()">+ Log Call</button>
+      <input class="input" id="note-search" placeholder="Search notes..." style="max-width:300px" oninput="renderNotes()">
+    </div>
+    <div id="note-form-container"></div>
+    <div id="notes-list"></div>
+  </div>
+
+  <!-- ═══════ PLAYBOOK ═══════ -->
+  <div class="section" id="sec-playbook">
+    <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap" id="pb-tabs"></div>
+    <div id="pb-content"></div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="mono" style="font-size:9px;color:#222;letter-spacing:2px">PLIANT BDR COMMAND CENTER · BUILT TO WIN · TOP 1%</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════
 const STAGES = ["Researched", "Contacted", "Engaged", "Discovery", "Meeting Set", "Qualified"];
 const STAGE_COLORS = { "Researched": "#64748b", "Contacted": "#8B5CF6", "Engaged": "#3B82F6", "Discovery": "#F59E0B", "Meeting Set": "#00E5A0", "Qualified": "#06D6A0" };
 const PERSONAS = ["CFO", "VP Finance", "Head of Payments", "Controller", "Treasury", "CEO", "COO", "Other"];
@@ -40,410 +426,644 @@ const WEEKLY_FRAMEWORK = [
   { day: "Friday", focus: "Close the Week Strong", tasks: ["Final push to hit weekly target", "Update pipeline stages in CRM", "Weekly report to Head of Sales", "Reflect: what worked, what to improve"] },
 ];
 
-let _id = 0;
-const uid = () => `id_${++_id}_${Date.now()}`;
+const QUOTES = [
+  "Every 'no' gets you closer to 'yes'. Keep dialing.",
+  "Top 1% isn't talent — it's discipline when no one's watching.",
+  "Pipeline today = commission tomorrow.",
+  "Activity breeds luck. More calls = more opportunities.",
+  "You're not selling a product — you're solving a problem.",
+  "The best BDRs don't wait for motivation — they create it.",
+  "Speed to lead wins. Be first, be fast, be relentless.",
+  "You're building the US playbook. Make it legendary.",
+];
 
-const init = {
-  tab: "dashboard",
-  goals: {
-    calls: { target: 60, done: 0, label: "Cold Calls", icon: "📞" },
-    emails: { target: 40, done: 0, label: "Emails Sent", icon: "✉️" },
-    linkedin: { target: 25, done: 0, label: "LinkedIn Touches", icon: "🔗" },
-    meetings: { target: 3, done: 0, label: "Meetings Booked", icon: "📅" },
-  },
+const AE_MILESTONES = [
+  { m: "Hit Pipeline Targets (6+ months)", desc: "Consistently meet or exceed monthly outbound pipeline goals. Volume + quality.", color: "#00E5A0", active: true },
+  { m: "Proactive Development", desc: "Initiative in pipeline building, sales execution improvement, and market expertise.", color: "#3B82F6" },
+  { m: "Master the Product", desc: "Deep technical understanding of Pliant's API-first credit card solution and integration landscape.", color: "#8B5CF6" },
+  { m: "Certify in Discovery", desc: "Pass internal mock closing simulations. Handle objections independently.", color: "#F59E0B" },
+  { m: "AE Shadow Program", desc: "Shadow demos, manage smaller deal cycles, learn closing mechanics. Prove full-cycle ability.", color: "#EF4444" },
+];
+
+// ══════════════════════════════════════════════════════
+// STATE (localStorage-persisted)
+// ══════════════════════════════════════════════════════
+let _uid = Date.now();
+function uid() { return 'id_' + (++_uid); }
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('pliant_bdr_state');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return null;
+}
+
+function saveState() {
+  try { localStorage.setItem('pliant_bdr_state', JSON.stringify(state)); } catch(e) {}
+}
+
+const defaults = {
+  goals: { calls: { target: 60, done: 0 }, emails: { target: 40, done: 0 }, linkedin: { target: 25, done: 0 }, meetings: { target: 3, done: 0 } },
   weeklyMeetings: { target: 15, booked: 0 },
   prospects: [],
   notes: [],
   wins: [],
-  winInput: "",
   xp: 0,
+  pipelineFilter: "all",
+  lastResetDate: new Date().toDateString(),
 };
 
-function reducer(s, a) {
-  switch (a.type) {
-    case "TAB": return { ...s, tab: a.v };
-    case "INC": { const g = s.goals[a.v]; const d = g.done + 1; const hit = d === g.target && g.done < g.target; return { ...s, xp: s.xp + (hit ? 50 : 5), goals: { ...s.goals, [a.v]: { ...g, done: d } } }; }
-    case "DEC": { const g = s.goals[a.v]; return { ...s, goals: { ...s.goals, [a.v]: { ...g, done: Math.max(0, g.done - 1) } } }; }
-    case "ADD_P": return { ...s, prospects: [a.v, ...s.prospects], xp: s.xp + 10 };
-    case "UPD_P": return { ...s, prospects: s.prospects.map(p => p.id === a.v.id ? { ...p, ...a.v.d } : p) };
-    case "DEL_P": return { ...s, prospects: s.prospects.filter(p => p.id !== a.v) };
-    case "ADD_N": return { ...s, notes: [a.v, ...s.notes], xp: s.xp + 15 };
-    case "DEL_N": return { ...s, notes: s.notes.filter(n => n.id !== a.v) };
-    case "ADD_W": return s.winInput.trim() ? { ...s, wins: [...s.wins, { id: uid(), text: s.winInput.trim(), time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }], winInput: "", xp: s.xp + 20 } : s;
-    case "WIN_IN": return { ...s, winInput: a.v };
-    case "BOOK_W": return { ...s, weeklyMeetings: { ...s.weeklyMeetings, booked: s.weeklyMeetings.booked + 1 }, xp: s.xp + 30 };
-    case "SET_T": return { ...s, goals: { ...s.goals, [a.v.k]: { ...s.goals[a.v.k], target: Math.max(1, a.v.t) } } };
-    case "RESET": return { ...s, goals: Object.fromEntries(Object.entries(s.goals).map(([k, v]) => [k, { ...v, done: 0 }])), wins: [], winInput: "" };
-    default: return s;
+const goalMeta = {
+  calls: { label: "Cold Calls", icon: "📞" },
+  emails: { label: "Emails Sent", icon: "✉️" },
+  linkedin: { label: "LinkedIn Touches", icon: "🔗" },
+  meetings: { label: "Meetings Booked", icon: "📅" },
+};
+
+let state = loadState() || { ...defaults };
+// Ensure all keys exist
+for (let k in defaults) { if (!(k in state)) state[k] = defaults[k]; }
+
+// Auto-reset daily counters if new day
+if (state.lastResetDate !== new Date().toDateString()) {
+  state.goals = defaults.goals;
+  state.wins = [];
+  state.lastResetDate = new Date().toDateString();
+  saveState();
+}
+
+let activeTab = 'dashboard';
+let pbSection = 'objections';
+let expandedObj = null;
+let expandedDisc = 0;
+let showingProspectForm = false;
+let editingProspectId = null;
+let showingNoteForm = false;
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function esc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+function $(id) { return document.getElementById(id); }
+
+function makeBadge(text, color) {
+  return `<span class="badge" style="background:${color}18;color:${color}">${esc(text)}</span>`;
+}
+
+function makeBar(value, max, color) {
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  return `<div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>`;
+}
+
+function getLevel() { return Math.floor(state.xp / 200) + 1; }
+function getXpMod() { return state.xp % 200; }
+
+function getDayOfWeek() { return new Date().toLocaleDateString("en-US", { weekday: "long" }); }
+function getTodayFramework() { return WEEKLY_FRAMEWORK.find(d => d.day === getDayOfWeek()) || WEEKLY_FRAMEWORK[0]; }
+
+function getByStage() {
+  return STAGES.reduce((a, s) => { a[s] = state.prospects.filter(p => p.stage === s).length; return a; }, {});
+}
+
+function addXP(amount) {
+  state.xp += amount;
+  saveState();
+  updateTopBar();
+}
+
+// ══════════════════════════════════════════════════════
+// CLOCK
+// ══════════════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  $('clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' · ' +
+    now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+setInterval(updateClock, 30000);
+updateClock();
+
+// ══════════════════════════════════════════════════════
+// TOP BAR
+// ══════════════════════════════════════════════════════
+function updateTopBar() {
+  const level = getLevel();
+  const xpMod = getXpMod();
+  $('level-text').textContent = level;
+  $('level-num').textContent = level;
+  $('xp-text').textContent = state.xp;
+  $('xp-bar').style.width = (xpMod / 200 * 100) + '%';
+  $('level-ring').style.background = `conic-gradient(#00E5A0 ${xpMod/200*360}deg, rgba(255,255,255,0.04) 0deg)`;
+}
+
+// ══════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    activeTab = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    $('sec-' + activeTab).classList.add('active');
+    renderCurrentTab();
+  });
+});
+
+function renderCurrentTab() {
+  if (activeTab === 'dashboard') renderDashboard();
+  else if (activeTab === 'pipeline') renderPipeline();
+  else if (activeTab === 'callnotes') renderNotes();
+  else if (activeTab === 'playbook') renderPlaybook();
+}
+
+// ══════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════
+function renderDashboard() {
+  // Quote
+  const qi = Math.floor(new Date().getMinutes() / 4) % QUOTES.length;
+  $('quote').textContent = '"' + QUOTES[qi] + '"';
+
+  // Today's framework
+  const fw = getTodayFramework();
+  $('today-focus').textContent = fw.focus;
+  $('gameplan-title').textContent = '📋 ' + fw.day.toUpperCase() + "'S GAME PLAN";
+  $('gameplan-focus').textContent = fw.focus;
+  $('gameplan-tasks').innerHTML = fw.tasks.map(t =>
+    `<div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:#222;font-size:6px;margin-top:7px">●</span><span style="font-size:13px;color:#888">${esc(t)}</span></div>`
+  ).join('');
+
+  // Activity grid
+  let gridHtml = '';
+  for (const [k, g] of Object.entries(state.goals)) {
+    const meta = goalMeta[k];
+    const hit = g.done >= g.target;
+    gridHtml += `
+      <div class="card card-sm" style="position:relative;overflow:hidden;border-color:${hit ? 'rgba(0,229,160,0.2)' : 'rgba(255,255,255,0.06)'};background:${hit ? 'rgba(0,229,160,0.03)' : 'rgba(255,255,255,0.02)'}">
+        ${hit ? '<div class="mono" style="position:absolute;top:8px;right:12px;font-size:9px;color:var(--accent);font-weight:700;letter-spacing:1px">✓ HIT</div>' : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="mono" style="font-size:10px;color:#555;margin-bottom:6px;letter-spacing:0.5px">${meta.icon} ${meta.label.toUpperCase()}</div>
+            <div style="display:flex;align-items:baseline;gap:4px">
+              <span class="mono" style="font-size:34px;font-weight:700;color:${hit ? 'var(--accent)' : '#fff'};line-height:1">${g.done}</span>
+              <span style="font-size:14px;color:#444">/ ${g.target}</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn-counter ${hit ? 'hit' : ''}" onclick="incGoal('${k}')">+</button>
+            <button class="btn-counter btn-counter-sm" onclick="decGoal('${k}')">−</button>
+          </div>
+        </div>
+        <div style="margin-top:14px">${makeBar(g.done, g.target, hit ? '#00E5A0' : '#3B82F6')}</div>
+      </div>`;
+  }
+  $('activity-grid').innerHTML = gridHtml;
+
+  // Progress ring
+  const totalPct = Math.round(Object.values(state.goals).reduce((a, g) => a + Math.min(g.done / g.target, 1), 0) / 4 * 100);
+  const circ = 2 * Math.PI * 38;
+  const offset = circ - (Math.min(totalPct, 100) / 100) * circ;
+  const ring = $('progress-ring');
+  ring.setAttribute('stroke-dashoffset', offset);
+  ring.setAttribute('stroke', totalPct >= 100 ? '#00E5A0' : '#3B82F6');
+  $('total-pct').textContent = totalPct + '%';
+  $('goals-hit').textContent = Object.values(state.goals).filter(g => g.done >= g.target).length;
+
+  // Weekly
+  $('weekly-booked').textContent = state.weeklyMeetings.booked;
+  $('weekly-booked').style.color = state.weeklyMeetings.booked >= state.weeklyMeetings.target ? '#00E5A0' : '#fff';
+  $('weekly-bar').style.width = Math.min((state.weeklyMeetings.booked / state.weeklyMeetings.target) * 100, 100) + '%';
+
+  // Prospects summary
+  $('prospect-count').textContent = state.prospects.length;
+  const bs = getByStage();
+  $('prospect-badges').innerHTML = STAGES.slice(0, 4).map(s => makeBadge(bs[s] || '0', STAGE_COLORS[s])).join('');
+
+  // Wins
+  renderWins();
+}
+
+function renderWins() {
+  const list = $('wins-list');
+  if (state.wins.length === 0) {
+    list.innerHTML = '<div style="font-size:12px;color:#333;font-style:italic">No wins yet. Go get some!</div>';
+    return;
+  }
+  list.innerHTML = state.wins.map(w =>
+    `<div style="display:flex;gap:8px;margin-bottom:8px;padding:8px 10px;background:rgba(0,229,160,0.03);border-radius:8px">
+      <span style="color:var(--accent);font-size:12px">✓</span>
+      <div style="flex:1"><div style="font-size:13px;color:#bbb">${esc(w.text)}</div><div class="mono" style="font-size:9px;color:#444">${esc(w.time)}</div></div>
+    </div>`
+  ).join('');
+}
+
+function incGoal(k) {
+  state.goals[k].done++;
+  const hit = state.goals[k].done === state.goals[k].target;
+  state.xp += hit ? 50 : 5;
+  saveState();
+  renderDashboard();
+  updateTopBar();
+}
+
+function decGoal(k) {
+  state.goals[k].done = Math.max(0, state.goals[k].done - 1);
+  saveState();
+  renderDashboard();
+}
+
+function bookWeekly() {
+  state.weeklyMeetings.booked++;
+  state.xp += 30;
+  saveState();
+  renderDashboard();
+  updateTopBar();
+}
+
+function addWin() {
+  const input = $('win-input');
+  const text = input.value.trim();
+  if (!text) return;
+  state.wins.push({ id: uid(), text, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+  state.xp += 20;
+  input.value = '';
+  saveState();
+  renderWins();
+  updateTopBar();
+}
+
+function resetDaily() {
+  if (!confirm('Reset all daily counters and wins?')) return;
+  for (let k in state.goals) state.goals[k].done = 0;
+  state.wins = [];
+  state.lastResetDate = new Date().toDateString();
+  saveState();
+  renderDashboard();
+}
+
+// ══════════════════════════════════════════════════════
+// PIPELINE
+// ══════════════════════════════════════════════════════
+function renderPipeline() {
+  const bs = getByStage();
+
+  // Filters
+  let fHtml = `<button class="btn-primary" style="padding:8px 16px;font-size:12px;margin-right:8px" onclick="showProspectForm()">+ Add Prospect</button>`;
+  ['all', ...STAGES].forEach(st => {
+    const active = state.pipelineFilter === st;
+    const color = st === 'all' ? '#00E5A0' : STAGE_COLORS[st];
+    const count = st === 'all' ? state.prospects.length : (bs[st] || 0);
+    fHtml += `<button class="stage-pill" style="border-color:${active ? color : 'rgba(255,255,255,0.06)'};background:${active ? color + '12' : 'transparent'};color:${active ? color : '#555'}" onclick="setPipelineFilter('${st}')">${st === 'all' ? 'All' : st} (${count})</button>`;
+  });
+  $('pipeline-filters').innerHTML = fHtml;
+
+  // Visual bar
+  const visual = $('pipeline-visual');
+  if (state.prospects.length > 0) {
+    visual.style.display = 'block';
+    $('pipeline-bar').innerHTML = STAGES.map(st => {
+      const pct = (bs[st] || 0) / state.prospects.length * 100;
+      return pct > 0 ? `<div style="width:${pct}%;background:${STAGE_COLORS[st]};transition:width 0.4s"></div>` : '';
+    }).join('');
+    $('pipeline-labels').innerHTML = STAGES.map(st =>
+      `<div class="mono" style="font-size:8px;color:#444;text-align:center"><span style="color:${STAGE_COLORS[st]};font-weight:700">${bs[st] || 0}</span> ${st.split(' ')[0]}</div>`
+    ).join('');
+  } else {
+    visual.style.display = 'none';
+  }
+
+  // Prospect form
+  if (showingProspectForm) {
+    renderProspectForm();
+  } else {
+    $('prospect-form-container').innerHTML = '';
+  }
+
+  // Prospect list
+  const filtered = state.pipelineFilter === 'all' ? state.prospects : state.prospects.filter(p => p.stage === state.pipelineFilter);
+  if (filtered.length === 0 && !showingProspectForm) {
+    $('prospects-list').innerHTML = `<div class="card" style="text-align:center;padding:48px"><div style="font-size:32px;margin-bottom:8px">🎯</div><div style="font-size:14px;color:#555">No prospects yet. Start building your pipeline!</div></div>`;
+    return;
+  }
+
+  $('prospects-list').innerHTML = filtered.map(p => {
+    const si = STAGES.indexOf(p.stage);
+    return `<div class="card card-sm prospect-row" style="margin-bottom:10px;display:flex;align-items:flex-start;gap:14px">
+      <div style="width:4px;height:50px;border-radius:4px;background:${STAGE_COLORS[p.stage]};flex-shrink:0;margin-top:4px"></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:15px;font-weight:700;color:#fff">${esc(p.company)}</span>
+          ${makeBadge(p.stage, STAGE_COLORS[p.stage])}
+          ${p.industry ? makeBadge(p.industry, '#555') : ''}
+        </div>
+        ${p.contact ? `<div style="font-size:13px;color:#888;margin-top:4px">${esc(p.contact)}${p.title ? ' · ' + esc(p.title) : ''}${p.persona ? ' · ' + esc(p.persona) : ''}</div>` : ''}
+        ${p.email ? `<div style="font-size:11px;color:#444;margin-top:2px">${esc(p.email)}${p.phone ? ' · ' + esc(p.phone) : ''}</div>` : ''}
+        ${p.notes ? `<div style="font-size:12px;color:#555;margin-top:6px;font-style:italic">${esc(p.notes)}</div>` : ''}
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        ${si < STAGES.length - 1 ? `<button class="btn-ghost btn-sm" onclick="advanceProspect('${p.id}')" title="Advance">➜</button>` : ''}
+        <button class="btn-ghost btn-sm" onclick="editProspect('${p.id}')">✎</button>
+        <button class="btn-ghost btn-sm" style="color:#FF5252;border-color:rgba(255,82,82,0.15)" onclick="deleteProspect('${p.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderProspectForm() {
+  const p = editingProspectId ? state.prospects.find(x => x.id === editingProspectId) : null;
+  const vals = p || { company: '', contact: '', title: '', persona: '', industry: '', stage: 'Researched', email: '', phone: '', notes: '' };
+
+  $('prospect-form-container').innerHTML = `
+    <div class="card form-card" style="margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:16px">${editingProspectId ? 'Edit Prospect' : 'Add New Prospect'}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label class="label">Company *</label><input class="input" id="pf-company" value="${esc(vals.company)}" placeholder="Acme Corp"></div>
+        <div><label class="label">Contact</label><input class="input" id="pf-contact" value="${esc(vals.contact)}" placeholder="Jane Smith"></div>
+        <div><label class="label">Title</label><input class="input" id="pf-title" value="${esc(vals.title)}" placeholder="VP of Finance"></div>
+        <div><label class="label">Persona</label><select class="select" id="pf-persona"><option value="">Select...</option>${PERSONAS.map(x => `<option ${vals.persona === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+        <div><label class="label">Industry</label><select class="select" id="pf-industry"><option value="">Select...</option>${INDUSTRIES.map(x => `<option ${vals.industry === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+        <div><label class="label">Stage</label><select class="select" id="pf-stage">${STAGES.map(x => `<option ${vals.stage === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+        <div><label class="label">Email</label><input class="input" id="pf-email" value="${esc(vals.email)}" placeholder="jane@acme.com"></div>
+        <div><label class="label">Phone</label><input class="input" id="pf-phone" value="${esc(vals.phone)}" placeholder="+1 555-0123"></div>
+      </div>
+      <div style="margin-top:12px"><label class="label">Notes</label><textarea class="input textarea" id="pf-notes" placeholder="Triggers, context, research notes...">${esc(vals.notes)}</textarea></div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn-primary" onclick="saveProspect()">${editingProspectId ? 'Update' : 'Add Prospect'}</button>
+        <button class="btn-ghost" onclick="cancelProspectForm()">Cancel</button>
+      </div>
+    </div>`;
+}
+
+function showProspectForm() {
+  showingProspectForm = true;
+  editingProspectId = null;
+  renderPipeline();
+}
+
+function cancelProspectForm() {
+  showingProspectForm = false;
+  editingProspectId = null;
+  renderPipeline();
+}
+
+function saveProspect() {
+  const company = $('pf-company').value.trim();
+  if (!company) return;
+  const data = {
+    company,
+    contact: $('pf-contact').value.trim(),
+    title: $('pf-title').value.trim(),
+    persona: $('pf-persona').value,
+    industry: $('pf-industry').value,
+    stage: $('pf-stage').value,
+    email: $('pf-email').value.trim(),
+    phone: $('pf-phone').value.trim(),
+    notes: $('pf-notes').value.trim(),
+  };
+  if (editingProspectId) {
+    const p = state.prospects.find(x => x.id === editingProspectId);
+    if (p) Object.assign(p, data);
+  } else {
+    state.prospects.unshift({ id: uid(), ...data, createdAt: new Date().toLocaleDateString() });
+    state.xp += 10;
+    updateTopBar();
+  }
+  showingProspectForm = false;
+  editingProspectId = null;
+  saveState();
+  renderPipeline();
+}
+
+function editProspect(id) {
+  editingProspectId = id;
+  showingProspectForm = true;
+  renderPipeline();
+}
+
+function deleteProspect(id) {
+  const p = state.prospects.find(x => x.id === id);
+  if (!confirm('Delete ' + (p ? p.company : 'this prospect') + '?')) return;
+  state.prospects = state.prospects.filter(x => x.id !== id);
+  saveState();
+  renderPipeline();
+}
+
+function advanceProspect(id) {
+  const p = state.prospects.find(x => x.id === id);
+  if (!p) return;
+  const si = STAGES.indexOf(p.stage);
+  if (si < STAGES.length - 1) p.stage = STAGES[si + 1];
+  saveState();
+  renderPipeline();
+}
+
+function setPipelineFilter(f) {
+  state.pipelineFilter = f;
+  saveState();
+  renderPipeline();
+}
+
+// ══════════════════════════════════════════════════════
+// CALL INTEL
+// ══════════════════════════════════════════════════════
+function renderNotes() {
+  const search = ($('note-search') || {}).value || '';
+  const filtered = search
+    ? state.notes.filter(n => [n.company, n.contact, n.summary, n.nextSteps].some(f => (f || '').toLowerCase().includes(search.toLowerCase())))
+    : state.notes;
+
+  if (showingNoteForm) {
+    renderNoteForm();
+  } else {
+    $('note-form-container').innerHTML = '';
+  }
+
+  const sentColors = { "Very Positive": "#00E5A0", "Positive": "#06D6A0", "Neutral": "#F59E0B", "Skeptical": "#FF8A65", "Not Interested": "#FF5252" };
+
+  if (filtered.length === 0 && !showingNoteForm) {
+    $('notes-list').innerHTML = `<div class="card" style="text-align:center;padding:48px"><div style="font-size:32px;margin-bottom:8px">📞</div><div style="font-size:14px;color:#555">No call notes yet. Start logging conversations!</div></div>`;
+    return;
+  }
+
+  $('notes-list').innerHTML = filtered.map(n => `
+    <div class="card card-sm" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:700;color:#fff">${esc(n.company || 'Unknown')}</span>
+            ${n.contact ? `<span style="font-size:12px;color:#777">· ${esc(n.contact)}</span>` : ''}
+            ${makeBadge(n.sentiment, sentColors[n.sentiment] || '#F59E0B')}
+          </div>
+          <div class="mono" style="font-size:9px;color:#444;margin-top:4px">${esc(n.timestamp)}</div>
+        </div>
+        <button class="btn-ghost btn-sm" style="color:#FF5252;border-color:rgba(255,82,82,0.1)" onclick="deleteNote('${n.id}')">✕</button>
+      </div>
+      <div style="font-size:13px;color:#aaa;margin-top:10px;line-height:1.6">${esc(n.summary)}</div>
+      ${n.nextSteps ? `<div style="margin-top:10px;padding:8px 12px;background:rgba(59,130,246,0.05);border-radius:8px;border-left:3px solid #3B82F6">
+        <div class="mono" style="font-size:9px;color:#3B82F6;margin-bottom:4px;letter-spacing:1px">NEXT STEPS</div>
+        <div style="font-size:12px;color:#888">${esc(n.nextSteps)}</div>
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderNoteForm() {
+  $('note-form-container').innerHTML = `
+    <div class="card form-card" style="margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:16px">Log Call Notes</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div><label class="label">Company</label><input class="input" id="nf-company" placeholder="Acme Corp"></div>
+        <div><label class="label">Contact</label><input class="input" id="nf-contact" placeholder="Jane Smith"></div>
+        <div><label class="label">Sentiment</label><select class="select" id="nf-sentiment">
+          ${["Very Positive", "Positive", "Neutral", "Skeptical", "Not Interested"].map(x => `<option>${x}</option>`).join('')}
+        </select></div>
+      </div>
+      <div style="margin-top:12px"><label class="label">Summary</label><textarea class="input textarea" id="nf-summary" style="min-height:80px" placeholder="Key takeaways, pain points, objections..."></textarea></div>
+      <div style="margin-top:12px"><label class="label">Next Steps</label><textarea class="input textarea" id="nf-next" style="min-height:50px" placeholder="Follow-up actions..."></textarea></div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn-primary" onclick="saveNote()">Save Note</button>
+        <button class="btn-ghost" onclick="cancelNoteForm()">Cancel</button>
+      </div>
+    </div>`;
+}
+
+function showNoteForm() { showingNoteForm = true; renderNotes(); }
+function cancelNoteForm() { showingNoteForm = false; renderNotes(); }
+
+function saveNote() {
+  const summary = $('nf-summary').value.trim();
+  if (!summary) return;
+  state.notes.unshift({
+    id: uid(),
+    company: $('nf-company').value.trim(),
+    contact: $('nf-contact').value.trim(),
+    sentiment: $('nf-sentiment').value,
+    summary,
+    nextSteps: $('nf-next').value.trim(),
+    timestamp: new Date().toLocaleString(),
+  });
+  state.xp += 15;
+  showingNoteForm = false;
+  saveState();
+  renderNotes();
+  updateTopBar();
+}
+
+function deleteNote(id) {
+  if (!confirm('Delete this note?')) return;
+  state.notes = state.notes.filter(n => n.id !== id);
+  saveState();
+  renderNotes();
+}
+
+// ══════════════════════════════════════════════════════
+// PLAYBOOK
+// ══════════════════════════════════════════════════════
+function renderPlaybook() {
+  const sections = [
+    { id: 'objections', l: 'Objection Handling', i: '🛡️' },
+    { id: 'discovery', l: 'Discovery Questions', i: '🔍' },
+    { id: 'value', l: 'Value Props', i: '💎' },
+    { id: 'weekly', l: 'Weekly Framework', i: '📅' },
+    { id: 'promotion', l: 'AE Track', i: '🚀' },
+  ];
+
+  $('pb-tabs').innerHTML = sections.map(s =>
+    `<button class="pb-tab ${pbSection === s.id ? 'active' : ''}" onclick="setPbSection('${s.id}')">${s.i} ${s.l}</button>`
+  ).join('');
+
+  const content = $('pb-content');
+
+  if (pbSection === 'objections') {
+    content.innerHTML = `
+      <div class="mono" style="font-size:10px;color:#555;margin-bottom:16px;letter-spacing:1px">🛡️ ${OBJECTION_BANK.length} BATTLE-TESTED RESPONSES</div>
+      ${OBJECTION_BANK.map((o, i) => `
+        <div class="card card-sm obj-card" style="margin-bottom:8px;border-color:${expandedObj === i ? 'rgba(0,229,160,0.12)' : 'rgba(255,255,255,0.05)'};background:${expandedObj === i ? 'rgba(0,229,160,0.02)' : 'rgba(255,255,255,0.015)'}" onclick="toggleObj(${i})">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div style="font-size:13px;font-weight:600;color:#FF8A65">"${esc(o.objection)}"</div>
+            <span style="color:#444;font-size:14px;transform:${expandedObj === i ? 'rotate(180deg)' : 'none'};transition:transform 0.2s;flex-shrink:0;margin-left:8px">▾</span>
+          </div>
+          ${expandedObj === i ? `<div style="margin-top:12px;padding:12px 14px;background:rgba(0,229,160,0.03);border-radius:10px;border-left:3px solid #00E5A0">
+            <div class="mono" style="font-size:9px;color:var(--accent);margin-bottom:6px;letter-spacing:1px">YOUR RESPONSE</div>
+            <div style="font-size:13px;color:#bbb;line-height:1.7">${esc(o.response)}</div>
+          </div>` : ''}
+        </div>
+      `).join('')}`;
+  }
+
+  else if (pbSection === 'discovery') {
+    content.innerHTML = `
+      <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+        ${DISCOVERY_QUESTIONS.map((c, i) => `<button class="stage-pill" style="border-color:${expandedDisc === i ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.06)'};background:${expandedDisc === i ? 'rgba(139,92,246,0.08)' : 'transparent'};color:${expandedDisc === i ? '#8B5CF6' : '#555'}" onclick="setDiscCat(${i})">${c.category}</button>`).join('')}
+      </div>
+      <div style="font-size:14px;font-weight:700;color:#8B5CF6;margin-bottom:14px">${DISCOVERY_QUESTIONS[expandedDisc].category}</div>
+      ${DISCOVERY_QUESTIONS[expandedDisc].questions.map((q, i) => `
+        <div class="card card-sm" style="margin-bottom:8px;display:flex;gap:12px;align-items:flex-start">
+          <span class="mono" style="color:#8B5CF6;font-weight:700;font-size:12px;flex-shrink:0">${i + 1}</span>
+          <span style="font-size:13px;color:#bbb;line-height:1.6">${esc(q)}</span>
+        </div>
+      `).join('')}`;
+  }
+
+  else if (pbSection === 'value') {
+    content.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+      ${VALUE_PROPS.map(v => `
+        <div class="card card-sm" style="border-left:3px solid ${v.color}">
+          <div style="font-size:13px;font-weight:700;color:${v.color};margin-bottom:8px">${esc(v.title)}</div>
+          <div style="font-size:12px;color:#888;line-height:1.6">${esc(v.detail)}</div>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  else if (pbSection === 'weekly') {
+    const dow = getDayOfWeek();
+    content.innerHTML = WEEKLY_FRAMEWORK.map(day => {
+      const isT = day.day === dow;
+      return `<div class="card card-sm" style="margin-bottom:10px;border-color:${isT ? 'rgba(0,229,160,0.18)' : 'rgba(255,255,255,0.05)'};background:${isT ? 'rgba(0,229,160,0.025)' : 'rgba(255,255,255,0.015)'}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:14px;font-weight:700;color:${isT ? 'var(--accent)' : '#fff'}">${day.day}</span>
+            ${isT ? makeBadge('TODAY', '#00E5A0') : ''}
+          </div>
+          ${makeBadge(day.focus, '#F59E0B')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          ${day.tasks.map(t => `<div style="font-size:12px;color:#777;display:flex;gap:6px;align-items:flex-start"><span style="color:#222;font-size:6px;margin-top:7px">●</span>${esc(t)}</div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  else if (pbSection === 'promotion') {
+    content.innerHTML = `
+      <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(0,229,160,0.05) 0%,rgba(139,92,246,0.03) 100%);border-color:rgba(0,229,160,0.1)">
+        <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px">🚀 Path to Account Executive</div>
+        <div style="font-size:13px;color:#888">Performance-based promotion in <span style="color:var(--accent);font-weight:700">6–12 months</span></div>
+        <div style="font-size:12px;color:#555;margin-top:4px">OTE: $90k–$110k · 70/30 Base/Bonus · Accelerators on target</div>
+      </div>
+      ${AE_MILESTONES.map((x, i) => `
+        <div class="card card-sm" style="margin-bottom:10px;display:flex;gap:14px;align-items:flex-start">
+          <div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;background:${x.active ? x.color + '18' : 'rgba(255,255,255,0.03)'};border:2px solid ${x.active ? x.color : 'rgba(255,255,255,0.08)'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${x.color}" class="mono">${i + 1}</div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:${x.active ? x.color : '#777'}">${esc(x.m)}</div>
+            <div style="font-size:12px;color:#555;margin-top:4px;line-height:1.5">${esc(x.desc)}</div>
+          </div>
+        </div>
+      `).join('')}`;
   }
 }
 
-const C = { background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: 24 };
-const Cc = { ...C, padding: 18 };
-const Bp = { background: "linear-gradient(135deg, #00E5A0, #00B8D4)", color: "#080C14", border: "none", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const Bg = { background: "rgba(255,255,255,0.04)", color: "#888", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const In = { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", color: "#E0E0E0", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" };
-const Lb = { fontSize: 10, fontWeight: 700, color: "#555", marginBottom: 4, display: "block", fontFamily: "'Space Mono', monospace", textTransform: "uppercase", letterSpacing: 0.8 };
+function setPbSection(s) { pbSection = s; renderPlaybook(); }
+function toggleObj(i) { expandedObj = expandedObj === i ? null : i; renderPlaybook(); }
+function setDiscCat(i) { expandedDisc = i; renderPlaybook(); }
 
-function Ring({ pct, size = 90, stroke = 7, color = "#00E5A0" }) {
-  const r = (size - stroke) / 2, c = 2 * Math.PI * r, o = c - (Math.min(pct, 100) / 100) * c;
-  return (<svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}><circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={stroke} /><circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={o} style={{ transition: "stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1)" }} /></svg>);
-}
-
-function Bar({ v, m, color = "#00E5A0" }) {
-  return (<div style={{ height: 5, borderRadius: 5, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}><div style={{ height: "100%", width: `${m > 0 ? Math.min((v/m)*100, 100) : 0}%`, background: color, borderRadius: 5, transition: "width 0.4s" }} /></div>);
-}
-
-function Bdg({ children, color = "#00E5A0" }) {
-  return (<span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, background: `${color}18`, color, letterSpacing: 0.5, fontFamily: "'Space Mono', monospace" }}>{children}</span>);
-}
-
-export default function App() {
-  const [s, d] = useReducer(reducer, init);
-  const [time, setTime] = useState(new Date());
-  const [showPF, setShowPF] = useState(false);
-  const [showNF, setShowNF] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [pFilter, setPFilter] = useState("all");
-  const [pbSec, setPbSec] = useState("objections");
-  const [expObj, setExpObj] = useState(null);
-  const [expDisc, setExpDisc] = useState(0);
-  const [nSearch, setNSearch] = useState("");
-
-  const emptyP = { company: "", contact: "", title: "", persona: "", industry: "", stage: "Researched", email: "", phone: "", notes: "" };
-  const [pf, setPf] = useState(emptyP);
-  const emptyN = { company: "", contact: "", summary: "", nextSteps: "", sentiment: "Neutral" };
-  const [nf, setNf] = useState(emptyN);
-
-  useEffect(() => { const t = setInterval(() => setTime(new Date()), 30000); return () => clearInterval(t); }, []);
-
-  const totalPct = Math.round(Object.values(s.goals).reduce((a, g) => a + Math.min(g.done / g.target, 1), 0) / 4 * 100);
-  const level = Math.floor(s.xp / 200) + 1;
-  const xpMod = s.xp % 200;
-  const goalsHit = Object.values(s.goals).filter(g => g.done >= g.target).length;
-  const dow = time.toLocaleDateString("en-US", { weekday: "long" });
-  const todayFW = WEEKLY_FRAMEWORK.find(d => d.day === dow) || WEEKLY_FRAMEWORK[0];
-  const quotes = ["Every 'no' gets you closer to 'yes'. Keep dialing.", "Top 1% isn't talent — it's discipline when no one's watching.", "Pipeline today = commission tomorrow.", "Activity breeds luck. More calls = more opportunities.", "You're not selling a product — you're solving a problem.", "The best BDRs don't wait for motivation — they create it.", "Speed to lead wins. Be first, be fast, be relentless.", "You're building the US playbook. Make it legendary."];
-  const qi = Math.floor(time.getMinutes() / 4) % quotes.length;
-  const byStage = STAGES.reduce((a, st) => { a[st] = s.prospects.filter(p => p.stage === st).length; return a; }, {});
-  const filtP = pFilter === "all" ? s.prospects : s.prospects.filter(p => p.stage === pFilter);
-  const filtN = nSearch ? s.notes.filter(n => [n.company, n.contact, n.summary, n.nextSteps].some(f => (f || "").toLowerCase().includes(nSearch.toLowerCase()))) : s.notes;
-
-  function saveP() { if (!pf.company.trim()) return; if (editId) d({ type: "UPD_P", v: { id: editId, d: { ...pf } } }); else d({ type: "ADD_P", v: { id: uid(), ...pf, createdAt: new Date().toLocaleDateString() } }); setPf(emptyP); setShowPF(false); setEditId(null); }
-  function saveN() { if (!nf.summary.trim()) return; d({ type: "ADD_N", v: { id: uid(), ...nf, timestamp: new Date().toLocaleString() } }); setNf(emptyN); setShowNF(false); }
-
-  const tabs = [{ id: "dashboard", l: "Command Center", i: "⚡" }, { id: "pipeline", l: "Pipeline", i: "🎯" }, { id: "callnotes", l: "Call Intel", i: "📞" }, { id: "playbook", l: "Playbook", i: "📖" }];
-
-  return (
-    <div style={{ minHeight: "100vh", background: "#080C14", fontFamily: "'DM Sans', sans-serif", color: "#D4D4D8" }}>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-
-      {/* TOP BAR */}
-      <div style={{ background: "linear-gradient(180deg, rgba(0,229,160,0.04) 0%, transparent 100%)", borderBottom: "1px solid rgba(0,229,160,0.08)", padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(24px)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #00E5A0, #00B8D4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: "#080C14", fontFamily: "'Space Mono', monospace", boxShadow: "0 0 24px rgba(0,229,160,0.25)" }}>P</div>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", letterSpacing: -0.3 }}>PLIANT <span style={{ color: "#00E5A0", fontFamily: "'Space Mono', monospace" }}>BDR</span><span style={{ color: "#444", fontWeight: 400 }}> · Command Center</span></div>
-            <div style={{ fontSize: 11, color: "#444", fontFamily: "'Space Mono', monospace" }}>{time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {time.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</div>
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 9, color: "#555", fontFamily: "'Space Mono', monospace", letterSpacing: 1 }}>LEVEL {level}</div>
-            <div style={{ width: 80 }}><Bar v={xpMod} m={200} /></div>
-            <div style={{ fontSize: 9, color: "#00E5A0", fontFamily: "'Space Mono', monospace", marginTop: 2 }}>{s.xp} XP</div>
-          </div>
-          <div style={{ width: 38, height: 38, borderRadius: "50%", background: `conic-gradient(#00E5A0 ${xpMod/200*360}deg, rgba(255,255,255,0.04) 0deg)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#0D1117", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#00E5A0", fontFamily: "'Space Mono', monospace" }}>{level}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* TABS */}
-      <div style={{ display: "flex", gap: 0, padding: "0 24px", background: "rgba(0,0,0,0.25)", borderBottom: "1px solid rgba(255,255,255,0.04)", overflowX: "auto" }}>
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => d({ type: "TAB", v: t.id })} style={{ padding: "13px 20px", background: "none", border: "none", color: s.tab === t.id ? "#00E5A0" : "#444", fontSize: 13, fontWeight: 600, cursor: "pointer", borderBottom: s.tab === t.id ? "2px solid #00E5A0" : "2px solid transparent", transition: "all 0.2s", whiteSpace: "nowrap", fontFamily: "'DM Sans', sans-serif" }}>
-            <span style={{ marginRight: 6 }}>{t.i}</span>{t.l}
-          </button>
-        ))}
-      </div>
-
-      <div style={{ padding: "24px 20px", maxWidth: 1120, margin: "0 auto" }}>
-
-        {/* ══════ DASHBOARD ══════ */}
-        {s.tab === "dashboard" && (<div>
-          {/* Motivation */}
-          <div style={{ ...C, marginBottom: 20, padding: "18px 24px", background: "linear-gradient(135deg, rgba(0,229,160,0.05) 0%, rgba(0,184,212,0.03) 100%)", borderColor: "rgba(0,229,160,0.1)", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 24 }}>🔥</span>
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ fontSize: 14, color: "#00E5A0", fontWeight: 600, fontStyle: "italic" }}>"{quotes[qi]}"</div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 9, color: "#555", fontFamily: "'Space Mono', monospace", letterSpacing: 1 }}>TODAY'S FOCUS</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{todayFW.focus}</div>
-            </div>
-          </div>
-
-          {/* Activity Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, marginBottom: 20 }}>
-            {Object.entries(s.goals).map(([k, g]) => {
-              const pct = Math.min(Math.round((g.done / g.target) * 100), 100);
-              const hit = g.done >= g.target;
-              return (
-                <div key={k} style={{ ...Cc, position: "relative", overflow: "hidden", borderColor: hit ? "rgba(0,229,160,0.2)" : "rgba(255,255,255,0.06)", background: hit ? "rgba(0,229,160,0.03)" : "rgba(255,255,255,0.02)" }}>
-                  {hit && <div style={{ position: "absolute", top: 8, right: 12, fontSize: 9, color: "#00E5A0", fontFamily: "'Space Mono', monospace", fontWeight: 700, letterSpacing: 1 }}>✓ HIT</div>}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div>
-                      <div style={{ fontSize: 10, color: "#555", fontFamily: "'Space Mono', monospace", marginBottom: 6, letterSpacing: 0.5 }}>{g.icon} {g.label.toUpperCase()}</div>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                        <span style={{ fontSize: 34, fontWeight: 700, color: hit ? "#00E5A0" : "#fff", fontFamily: "'Space Mono', monospace", lineHeight: 1 }}>{g.done}</span>
-                        <span style={{ fontSize: 14, color: "#444" }}>/ {g.target}</span>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <button onClick={() => d({ type: "INC", v: k })} style={{ width: 42, height: 42, borderRadius: 10, background: hit ? "rgba(0,229,160,0.12)" : "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: hit ? "#00E5A0" : "#888", fontSize: 22, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Space Mono'", lineHeight: 1 }}>+</button>
-                      <button onClick={() => d({ type: "DEC", v: k })} style={{ width: 42, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", color: "#444", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Space Mono'", lineHeight: 1 }}>−</button>
-                    </div>
-                  </div>
-                  <div style={{ marginTop: 14 }}><Bar v={g.done} m={g.target} color={hit ? "#00E5A0" : "#3B82F6"} /></div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Stats Row */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 20 }}>
-            <div style={{ ...Cc, textAlign: "center" }}>
-              <div style={{ position: "relative", width: 90, height: 90, margin: "0 auto 10px" }}>
-                <Ring pct={totalPct} color={totalPct >= 100 ? "#00E5A0" : "#3B82F6"} />
-                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 22, fontWeight: 700, color: "#fff", fontFamily: "'Space Mono'" }}>{totalPct}%</span>
-                </div>
-              </div>
-              <div style={{ fontSize: 10, color: "#555", fontFamily: "'Space Mono'", letterSpacing: 1 }}>DAILY PROGRESS</div>
-              <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>{goalsHit}/4 targets hit</div>
-            </div>
-            <div style={{ ...Cc, textAlign: "center" }}>
-              <div style={{ fontSize: 9, color: "#555", fontFamily: "'Space Mono'", marginBottom: 10, letterSpacing: 1 }}>WEEKLY MEETINGS</div>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 4 }}>
-                <span style={{ fontSize: 38, fontWeight: 700, color: s.weeklyMeetings.booked >= s.weeklyMeetings.target ? "#00E5A0" : "#fff", fontFamily: "'Space Mono'" }}>{s.weeklyMeetings.booked}</span>
-                <span style={{ fontSize: 16, color: "#444" }}>/ {s.weeklyMeetings.target}</span>
-              </div>
-              <div style={{ marginTop: 8 }}><Bar v={s.weeklyMeetings.booked} m={s.weeklyMeetings.target} color="#F59E0B" /></div>
-              <button onClick={() => d({ type: "BOOK_W" })} style={{ ...Bg, marginTop: 12, padding: "8px 16px", fontSize: 11 }}>+ Book Meeting</button>
-            </div>
-            <div style={{ ...Cc, textAlign: "center" }}>
-              <div style={{ fontSize: 9, color: "#555", fontFamily: "'Space Mono'", marginBottom: 10, letterSpacing: 1 }}>ACTIVE PROSPECTS</div>
-              <div style={{ fontSize: 38, fontWeight: 700, color: "#8B5CF6", fontFamily: "'Space Mono'" }}>{s.prospects.length}</div>
-              <div style={{ display: "flex", gap: 4, justifyContent: "center", flexWrap: "wrap", marginTop: 8 }}>
-                {STAGES.slice(0, 4).map(st => <Bdg key={st} color={STAGE_COLORS[st]}>{byStage[st] || 0}</Bdg>)}
-              </div>
-            </div>
-          </div>
-
-          {/* Game Plan + Wins */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14, marginBottom: 20 }}>
-            <div style={Cc}>
-              <div style={{ fontSize: 10, color: "#555", fontFamily: "'Space Mono'", marginBottom: 12, letterSpacing: 1 }}>📋 {todayFW.day.toUpperCase()}'S GAME PLAN</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#00E5A0", marginBottom: 12 }}>{todayFW.focus}</div>
-              {todayFW.tasks.map((t, i) => (<div key={i} style={{ display: "flex", gap: 8, marginBottom: 8 }}><span style={{ color: "#2a2a2a", fontSize: 6, marginTop: 7 }}>●</span><span style={{ fontSize: 13, color: "#888" }}>{t}</span></div>))}
-            </div>
-            <div style={Cc}>
-              <div style={{ fontSize: 10, color: "#555", fontFamily: "'Space Mono'", marginBottom: 12, letterSpacing: 1 }}>🏆 TODAY'S WINS</div>
-              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                <input value={s.winInput} onChange={e => d({ type: "WIN_IN", v: e.target.value })} onKeyDown={e => e.key === "Enter" && d({ type: "ADD_W" })} placeholder="Log a win..." style={{ ...In, flex: 1 }} />
-                <button onClick={() => d({ type: "ADD_W" })} style={{ ...Bp, padding: "10px 16px" }}>+</button>
-              </div>
-              <div style={{ maxHeight: 180, overflowY: "auto" }}>
-                {s.wins.length === 0 && <div style={{ fontSize: 12, color: "#333", fontStyle: "italic" }}>No wins yet. Go get some!</div>}
-                {s.wins.map(w => (<div key={w.id} style={{ display: "flex", gap: 8, marginBottom: 8, padding: "8px 10px", background: "rgba(0,229,160,0.03)", borderRadius: 8 }}><span style={{ color: "#00E5A0", fontSize: 12 }}>✓</span><div style={{ flex: 1 }}><div style={{ fontSize: 13, color: "#bbb" }}>{w.text}</div><div style={{ fontSize: 9, color: "#444", fontFamily: "'Space Mono'" }}>{w.time}</div></div></div>))}
-              </div>
-            </div>
-          </div>
-          <div style={{ textAlign: "center" }}><button onClick={() => { if (confirm("Reset daily counters and wins?")) d({ type: "RESET" }); }} style={{ ...Bg, fontSize: 11, padding: "8px 20px" }}>↻ Reset Daily Counters</button></div>
-        </div>)}
-
-        {/* ══════ PIPELINE ══════ */}
-        {s.tab === "pipeline" && (<div>
-          <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-            <button onClick={() => setShowPF(true)} style={{ ...Bp, padding: "8px 16px", fontSize: 12, marginRight: 8 }}>+ Add Prospect</button>
-            {["all", ...STAGES].map(st => (
-              <button key={st} onClick={() => setPFilter(st)} style={{ padding: "6px 14px", borderRadius: 20, border: "1px solid", borderColor: pFilter === st ? (st === "all" ? "#00E5A0" : STAGE_COLORS[st]) : "rgba(255,255,255,0.06)", background: pFilter === st ? `${st === "all" ? "#00E5A0" : STAGE_COLORS[st]}12` : "transparent", color: pFilter === st ? (st === "all" ? "#00E5A0" : STAGE_COLORS[st]) : "#555", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'" }}>{st === "all" ? `All (${s.prospects.length})` : `${st} (${byStage[st] || 0})`}</button>
-            ))}
-          </div>
-
-          {s.prospects.length > 0 && (<div style={{ ...Cc, marginBottom: 16, padding: "14px 18px" }}>
-            <div style={{ display: "flex", height: 8, borderRadius: 8, overflow: "hidden", background: "rgba(255,255,255,0.03)" }}>
-              {STAGES.map(st => { const p = s.prospects.length > 0 ? ((byStage[st] || 0) / s.prospects.length) * 100 : 0; return p > 0 ? <div key={st} style={{ width: `${p}%`, background: STAGE_COLORS[st], transition: "width 0.4s" }} /> : null; })}
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>{STAGES.map(st => (<div key={st} style={{ fontSize: 8, color: "#444", fontFamily: "'Space Mono'", textAlign: "center" }}><span style={{ color: STAGE_COLORS[st], fontWeight: 700 }}>{byStage[st] || 0}</span> {st.split(" ")[0]}</div>))}</div>
-          </div>)}
-
-          {showPF && (<div style={{ ...C, marginBottom: 16, borderColor: "rgba(0,229,160,0.12)", background: "rgba(0,229,160,0.02)" }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 16 }}>{editId ? "Edit Prospect" : "Add New Prospect"}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div><label style={Lb}>Company *</label><input style={In} value={pf.company} onChange={e => setPf(p => ({ ...p, company: e.target.value }))} placeholder="Acme Corp" /></div>
-              <div><label style={Lb}>Contact</label><input style={In} value={pf.contact} onChange={e => setPf(p => ({ ...p, contact: e.target.value }))} placeholder="Jane Smith" /></div>
-              <div><label style={Lb}>Title</label><input style={In} value={pf.title} onChange={e => setPf(p => ({ ...p, title: e.target.value }))} placeholder="VP of Finance" /></div>
-              <div><label style={Lb}>Persona</label><select style={In} value={pf.persona} onChange={e => setPf(p => ({ ...p, persona: e.target.value }))}><option value="">Select...</option>{PERSONAS.map(x => <option key={x}>{x}</option>)}</select></div>
-              <div><label style={Lb}>Industry</label><select style={In} value={pf.industry} onChange={e => setPf(p => ({ ...p, industry: e.target.value }))}><option value="">Select...</option>{INDUSTRIES.map(x => <option key={x}>{x}</option>)}</select></div>
-              <div><label style={Lb}>Stage</label><select style={In} value={pf.stage} onChange={e => setPf(p => ({ ...p, stage: e.target.value }))}>{STAGES.map(x => <option key={x}>{x}</option>)}</select></div>
-              <div><label style={Lb}>Email</label><input style={In} value={pf.email} onChange={e => setPf(p => ({ ...p, email: e.target.value }))} placeholder="jane@acme.com" /></div>
-              <div><label style={Lb}>Phone</label><input style={In} value={pf.phone} onChange={e => setPf(p => ({ ...p, phone: e.target.value }))} placeholder="+1 555-0123" /></div>
-            </div>
-            <div style={{ marginTop: 12 }}><label style={Lb}>Notes</label><textarea style={{ ...In, minHeight: 60, resize: "vertical" }} value={pf.notes} onChange={e => setPf(p => ({ ...p, notes: e.target.value }))} placeholder="Triggers, context, research notes..." /></div>
-            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-              <button onClick={saveP} style={Bp}>{editId ? "Update" : "Add Prospect"}</button>
-              <button onClick={() => { setShowPF(false); setEditId(null); setPf(emptyP); }} style={Bg}>Cancel</button>
-            </div>
-          </div>)}
-
-          {filtP.length === 0 && <div style={{ ...C, textAlign: "center", padding: 48 }}><div style={{ fontSize: 32, marginBottom: 8 }}>🎯</div><div style={{ fontSize: 14, color: "#555" }}>No prospects yet. Start building your pipeline!</div></div>}
-          {filtP.map(p => (
-            <div key={p.id} style={{ ...Cc, marginBottom: 10, display: "flex", alignItems: "flex-start", gap: 14 }}>
-              <div style={{ width: 4, height: 50, borderRadius: 4, background: STAGE_COLORS[p.stage], flexShrink: 0, marginTop: 4 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{p.company}</span>
-                  <Bdg color={STAGE_COLORS[p.stage]}>{p.stage}</Bdg>
-                  {p.industry && <Bdg color="#555">{p.industry}</Bdg>}
-                </div>
-                {p.contact && <div style={{ fontSize: 13, color: "#888", marginTop: 4 }}>{p.contact}{p.title ? ` · ${p.title}` : ""}{p.persona ? ` · ${p.persona}` : ""}</div>}
-                {p.email && <div style={{ fontSize: 11, color: "#444", marginTop: 2 }}>{p.email}{p.phone ? ` · ${p.phone}` : ""}</div>}
-                {p.notes && <div style={{ fontSize: 12, color: "#555", marginTop: 6, fontStyle: "italic" }}>{p.notes}</div>}
-              </div>
-              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                {STAGES.indexOf(p.stage) < STAGES.length - 1 && <button onClick={() => d({ type: "UPD_P", v: { id: p.id, d: { stage: STAGES[STAGES.indexOf(p.stage) + 1] } } })} style={{ ...Bg, padding: "6px 10px", fontSize: 10 }} title="Advance">➜</button>}
-                <button onClick={() => { setEditId(p.id); setPf({ company: p.company, contact: p.contact || "", title: p.title || "", persona: p.persona || "", industry: p.industry || "", stage: p.stage, email: p.email || "", phone: p.phone || "", notes: p.notes || "" }); setShowPF(true); }} style={{ ...Bg, padding: "6px 10px", fontSize: 10 }}>✎</button>
-                <button onClick={() => { if (confirm(`Delete ${p.company}?`)) d({ type: "DEL_P", v: p.id }); }} style={{ ...Bg, padding: "6px 10px", fontSize: 10, color: "#FF5252", borderColor: "rgba(255,82,82,0.15)" }}>✕</button>
-              </div>
-            </div>
-          ))}
-        </div>)}
-
-        {/* ══════ CALL INTEL ══════ */}
-        {s.tab === "callnotes" && (<div>
-          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-            <button onClick={() => setShowNF(true)} style={{ ...Bp, padding: "8px 16px", fontSize: 12 }}>+ Log Call</button>
-            <input value={nSearch} onChange={e => setNSearch(e.target.value)} placeholder="Search notes..." style={{ ...In, maxWidth: 300 }} />
-          </div>
-
-          {showNF && (<div style={{ ...C, marginBottom: 16, borderColor: "rgba(0,229,160,0.12)", background: "rgba(0,229,160,0.02)" }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 16 }}>Log Call Notes</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-              <div><label style={Lb}>Company</label><input style={In} value={nf.company} onChange={e => setNf(n => ({ ...n, company: e.target.value }))} /></div>
-              <div><label style={Lb}>Contact</label><input style={In} value={nf.contact} onChange={e => setNf(n => ({ ...n, contact: e.target.value }))} /></div>
-              <div><label style={Lb}>Sentiment</label><select style={In} value={nf.sentiment} onChange={e => setNf(n => ({ ...n, sentiment: e.target.value }))}>{["Very Positive", "Positive", "Neutral", "Skeptical", "Not Interested"].map(x => <option key={x}>{x}</option>)}</select></div>
-            </div>
-            <div style={{ marginTop: 12 }}><label style={Lb}>Summary</label><textarea style={{ ...In, minHeight: 80, resize: "vertical" }} value={nf.summary} onChange={e => setNf(n => ({ ...n, summary: e.target.value }))} placeholder="Key takeaways, pain points, objections..." /></div>
-            <div style={{ marginTop: 12 }}><label style={Lb}>Next Steps</label><textarea style={{ ...In, minHeight: 50, resize: "vertical" }} value={nf.nextSteps} onChange={e => setNf(n => ({ ...n, nextSteps: e.target.value }))} placeholder="Follow-up actions..." /></div>
-            <div style={{ display: "flex", gap: 10, marginTop: 14 }}><button onClick={saveN} style={Bp}>Save Note</button><button onClick={() => { setShowNF(false); setNf(emptyN); }} style={Bg}>Cancel</button></div>
-          </div>)}
-
-          {filtN.length === 0 && <div style={{ ...C, textAlign: "center", padding: 48 }}><div style={{ fontSize: 32, marginBottom: 8 }}>📞</div><div style={{ fontSize: 14, color: "#555" }}>No call notes yet. Start logging conversations!</div></div>}
-          {filtN.map(n => {
-            const sc = { "Very Positive": "#00E5A0", "Positive": "#06D6A0", "Neutral": "#F59E0B", "Skeptical": "#FF8A65", "Not Interested": "#FF5252" };
-            return (<div key={n.id} style={{ ...Cc, marginBottom: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{n.company || "Unknown"}</span>
-                    {n.contact && <span style={{ fontSize: 12, color: "#777" }}>· {n.contact}</span>}
-                    <Bdg color={sc[n.sentiment] || "#F59E0B"}>{n.sentiment}</Bdg>
-                  </div>
-                  <div style={{ fontSize: 9, color: "#444", fontFamily: "'Space Mono'", marginTop: 4 }}>{n.timestamp}</div>
-                </div>
-                <button onClick={() => { if (confirm("Delete?")) d({ type: "DEL_N", v: n.id }); }} style={{ ...Bg, padding: "4px 8px", fontSize: 10, color: "#FF5252", borderColor: "rgba(255,82,82,0.1)" }}>✕</button>
-              </div>
-              <div style={{ fontSize: 13, color: "#aaa", marginTop: 10, lineHeight: 1.6 }}>{n.summary}</div>
-              {n.nextSteps && (<div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(59,130,246,0.05)", borderRadius: 8, borderLeft: "3px solid #3B82F6" }}>
-                <div style={{ fontSize: 9, color: "#3B82F6", fontFamily: "'Space Mono'", marginBottom: 4, letterSpacing: 1 }}>NEXT STEPS</div>
-                <div style={{ fontSize: 12, color: "#888" }}>{n.nextSteps}</div>
-              </div>)}
-            </div>);
-          })}
-        </div>)}
-
-        {/* ══════ PLAYBOOK ══════ */}
-        {s.tab === "playbook" && (<div>
-          <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
-            {[{ id: "objections", l: "Objection Handling", i: "🛡️" }, { id: "discovery", l: "Discovery Questions", i: "🔍" }, { id: "value", l: "Value Props", i: "💎" }, { id: "weekly", l: "Weekly Framework", i: "📅" }, { id: "promotion", l: "AE Track", i: "🚀" }].map(x => (
-              <button key={x.id} onClick={() => setPbSec(x.id)} style={{ padding: "8px 16px", borderRadius: 10, background: pbSec === x.id ? "rgba(0,229,160,0.08)" : "rgba(255,255,255,0.02)", border: `1px solid ${pbSec === x.id ? "rgba(0,229,160,0.18)" : "rgba(255,255,255,0.05)"}`, color: pbSec === x.id ? "#00E5A0" : "#555", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'" }}>{x.i} {x.l}</button>
-            ))}
-          </div>
-
-          {/* Objections */}
-          {pbSec === "objections" && (<div>
-            <div style={{ fontSize: 10, color: "#555", fontFamily: "'Space Mono'", marginBottom: 16, letterSpacing: 1 }}>🛡️ {OBJECTION_BANK.length} BATTLE-TESTED RESPONSES</div>
-            {OBJECTION_BANK.map((o, i) => (<div key={i} onClick={() => setExpObj(expObj === i ? null : i)} style={{ ...Cc, marginBottom: 8, cursor: "pointer", borderColor: expObj === i ? "rgba(0,229,160,0.12)" : "rgba(255,255,255,0.05)", background: expObj === i ? "rgba(0,229,160,0.02)" : "rgba(255,255,255,0.015)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#FF8A65" }}>"{o.objection}"</div>
-                <span style={{ color: "#444", fontSize: 14, transform: expObj === i ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0, marginLeft: 8 }}>▾</span>
-              </div>
-              {expObj === i && (<div style={{ marginTop: 12, padding: "12px 14px", background: "rgba(0,229,160,0.03)", borderRadius: 10, borderLeft: "3px solid #00E5A0" }}>
-                <div style={{ fontSize: 9, color: "#00E5A0", fontFamily: "'Space Mono'", marginBottom: 6, letterSpacing: 1 }}>YOUR RESPONSE</div>
-                <div style={{ fontSize: 13, color: "#bbb", lineHeight: 1.7 }}>{o.response}</div>
-              </div>)}
-            </div>))}
-          </div>)}
-
-          {/* Discovery */}
-          {pbSec === "discovery" && (<div>
-            <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
-              {DISCOVERY_QUESTIONS.map((c, i) => (<button key={i} onClick={() => setExpDisc(i)} style={{ padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer", background: expDisc === i ? "rgba(139,92,246,0.08)" : "transparent", border: `1px solid ${expDisc === i ? "rgba(139,92,246,0.25)" : "rgba(255,255,255,0.06)"}`, color: expDisc === i ? "#8B5CF6" : "#555", fontFamily: "'DM Sans'" }}>{c.category}</button>))}
-            </div>
-            {DISCOVERY_QUESTIONS[expDisc] && (<div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#8B5CF6", marginBottom: 14 }}>{DISCOVERY_QUESTIONS[expDisc].category}</div>
-              {DISCOVERY_QUESTIONS[expDisc].questions.map((q, i) => (<div key={i} style={{ ...Cc, marginBottom: 8, display: "flex", gap: 12, alignItems: "flex-start" }}>
-                <span style={{ color: "#8B5CF6", fontFamily: "'Space Mono'", fontWeight: 700, fontSize: 12, flexShrink: 0 }}>{i + 1}</span>
-                <span style={{ fontSize: 13, color: "#bbb", lineHeight: 1.6 }}>{q}</span>
-              </div>))}
-            </div>)}
-          </div>)}
-
-          {/* Value Props */}
-          {pbSec === "value" && (<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
-            {VALUE_PROPS.map((v, i) => (<div key={i} style={{ ...Cc, borderLeft: `3px solid ${v.color}` }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: v.color, marginBottom: 8 }}>{v.title}</div>
-              <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6 }}>{v.detail}</div>
-            </div>))}
-          </div>)}
-
-          {/* Weekly */}
-          {pbSec === "weekly" && (<div>
-            {WEEKLY_FRAMEWORK.map((day, i) => { const isT = day.day === dow; return (<div key={i} style={{ ...Cc, marginBottom: 10, borderColor: isT ? "rgba(0,229,160,0.18)" : "rgba(255,255,255,0.05)", background: isT ? "rgba(0,229,160,0.025)" : "rgba(255,255,255,0.015)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 14, fontWeight: 700, color: isT ? "#00E5A0" : "#fff" }}>{day.day}</span>{isT && <Bdg color="#00E5A0">TODAY</Bdg>}</div>
-                <Bdg color="#F59E0B">{day.focus}</Bdg>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>{day.tasks.map((t, j) => (<div key={j} style={{ fontSize: 12, color: "#777", display: "flex", gap: 6, alignItems: "flex-start" }}><span style={{ color: "#222", fontSize: 6, marginTop: 7 }}>●</span>{t}</div>))}</div>
-            </div>); })}
-          </div>)}
-
-          {/* AE Track */}
-          {pbSec === "promotion" && (<div>
-            <div style={{ ...C, marginBottom: 16, background: "linear-gradient(135deg, rgba(0,229,160,0.05) 0%, rgba(139,92,246,0.03) 100%)", borderColor: "rgba(0,229,160,0.1)" }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 6 }}>🚀 Path to Account Executive</div>
-              <div style={{ fontSize: 13, color: "#888" }}>Performance-based promotion in <span style={{ color: "#00E5A0", fontWeight: 700 }}>6–12 months</span></div>
-              <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>OTE: $90k–$110k · 70/30 Base/Bonus · Accelerators on target</div>
-            </div>
-            {[
-              { m: "Hit Pipeline Targets (6+ months)", desc: "Consistently meet or exceed monthly outbound pipeline goals. Volume + quality.", color: "#00E5A0", active: true },
-              { m: "Proactive Development", desc: "Initiative in pipeline building, sales execution improvement, and market expertise.", color: "#3B82F6" },
-              { m: "Master the Product", desc: "Deep technical understanding of Pliant's API-first credit card solution and integration landscape.", color: "#8B5CF6" },
-              { m: "Certify in Discovery", desc: "Pass internal mock closing simulations. Handle objections independently.", color: "#F59E0B" },
-              { m: "AE Shadow Program", desc: "Shadow demos, manage smaller deal cycles, learn closing mechanics. Prove full-cycle ability.", color: "#EF4444" },
-            ].map((x, i) => (<div key={i} style={{ ...Cc, marginBottom: 10, display: "flex", gap: 14, alignItems: "flex-start" }}>
-              <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: x.active ? `${x.color}18` : "rgba(255,255,255,0.03)", border: `2px solid ${x.active ? x.color : "rgba(255,255,255,0.08)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: x.color, fontFamily: "'Space Mono'" }}>{i + 1}</div>
-              <div><div style={{ fontSize: 14, fontWeight: 700, color: x.active ? x.color : "#777" }}>{x.m}</div><div style={{ fontSize: 12, color: "#555", marginTop: 4, lineHeight: 1.5 }}>{x.desc}</div></div>
-            </div>))}
-          </div>)}
-        </div>)}
-      </div>
-
-      <div style={{ textAlign: "center", padding: "24px 0 32px", borderTop: "1px solid rgba(255,255,255,0.02)" }}>
-        <div style={{ fontSize: 9, color: "#222", fontFamily: "'Space Mono'", letterSpacing: 2 }}>PLIANT BDR COMMAND CENTER · BUILT TO WIN · TOP 1%</div>
-      </div>
-    </div>
-  );
-}
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+updateTopBar();
+renderDashboard();
+</script>
+</body>
+</html>
