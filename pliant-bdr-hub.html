@@ -1,0 +1,449 @@
+import { useState, useEffect, useReducer } from "react";
+
+const STAGES = ["Researched", "Contacted", "Engaged", "Discovery", "Meeting Set", "Qualified"];
+const STAGE_COLORS = { "Researched": "#64748b", "Contacted": "#8B5CF6", "Engaged": "#3B82F6", "Discovery": "#F59E0B", "Meeting Set": "#00E5A0", "Qualified": "#06D6A0" };
+const PERSONAS = ["CFO", "VP Finance", "Head of Payments", "Controller", "Treasury", "CEO", "COO", "Other"];
+const INDUSTRIES = ["Travel & Hospitality", "SaaS / Tech", "Fleet & Logistics", "Financial Services", "ERP / Software", "Banking", "E-Commerce", "Other"];
+
+const OBJECTION_BANK = [
+  { objection: "We already have corporate cards", response: "That's great — most of our clients did too. The difference is Pliant's API-first approach lets you automate card issuance, set granular controls, and embed payments directly into your workflows. We don't replace your bank — we give you programmable infrastructure your current cards can't offer." },
+  { objection: "We're not looking to switch right now", response: "Totally understand. Most of our best customers weren't actively looking either. What typically gets their attention is when they realize how much manual work goes into reconciliation and expense management that could be automated. Would it be worth a 15-minute look to see if that resonates?" },
+  { objection: "What makes Pliant different from Brex/Ramp?", response: "Great question. Brex and Ramp are expense management tools with cards attached. Pliant is payment infrastructure — API-first, so companies can programmatically issue cards, set dynamic limits, and embed our rails into their own products via white-label. We serve both direct enterprise clients AND platforms that want to offer cards to their customers." },
+  { objection: "Send me an email / I need to think about it", response: "Of course — I'll send something over. Just so I can make it relevant: what's the biggest pain point you're dealing with around corporate payments right now? That way I can include a specific example of how we've solved that for similar companies." },
+  { objection: "I don't have time right now", response: "Completely respect that. I'll be brief — 30 seconds. We help finance teams at [industry] companies automate corporate card management and cut reconciliation time by 80%. If that sounds remotely interesting, I'd love 15 minutes that work better. What does Thursday look like?" },
+  { objection: "We're too small for this", response: "That's exactly when our clients get the most value. Pliant scales with you — start with a handful of virtual cards and grow to thousands. Companies that set up smart payment infrastructure early avoid the painful migration later. Want to see how a company your size uses us?" },
+  { objection: "Is Pliant available in the US?", response: "Yes! We're actively launching in the US right now. We support 30+ countries and 11 currencies through our Visa partnership. As a founding US client, you'd get white-glove onboarding and direct access to our product team." },
+  { objection: "Our ERP handles payments", response: "That's a sweet spot for us. Pliant integrates directly into ERP systems — we have partners that embed our card-issuing capabilities right into their workflows. Instead of replacing your ERP, we supercharge its payment layer." },
+];
+
+const DISCOVERY_QUESTIONS = [
+  { category: "Current State", questions: ["How are you currently managing corporate card issuance and controls?", "Walk me through your monthly reconciliation process — how many hours does that take?", "How many corporate cards do you have in circulation right now?", "What does your current approval workflow look like for new card requests?"] },
+  { category: "Pain & Impact", questions: ["What's the biggest headache your finance team deals with around corporate spending?", "When was the last time a payment issue caused a real business problem?", "How much time does your team spend on manual expense categorization?", "What happens when you need to issue a card urgently — like for a last-minute business trip?"] },
+  { category: "Future State", questions: ["If you could wave a magic wand, what would your ideal payment infrastructure look like?", "Are you evaluating any embedded finance or card-as-a-service solutions?", "What would it mean for your team if reconciliation was fully automated?", "How important is multi-currency support over the next 12 months?"] },
+  { category: "Decision Process", questions: ["Besides yourself, who else would evaluate a solution like this?", "What's your timeline for making changes to payment infrastructure?", "Is there budget allocated for improving corporate payment processes?", "What would need to be true for you to move forward with a pilot?"] },
+];
+
+const VALUE_PROPS = [
+  { title: "API-First Architecture", detail: "Programmatic card issuance, dynamic limits, real-time webhooks. Not a card with an app — it's payment infrastructure.", color: "#8B5CF6" },
+  { title: "Embedded Finance / White-Label", detail: "Partners launch their own branded card programs using Pliant's rails. CaaS for platforms, ERPs, and banks.", color: "#3B82F6" },
+  { title: "11 Currencies, 30+ Countries", detail: "Visa-powered, EMI-licensed. Global from day one with local card issuance.", color: "#00E5A0" },
+  { title: "Real-Time Spend Controls", detail: "Limits per card, per merchant category, per time window. Granular control without bottlenecks.", color: "#F59E0B" },
+  { title: "Automated Reconciliation", detail: "Every transaction maps to the right cost center automatically. Integrates with major ERPs and accounting tools.", color: "#EF4444" },
+  { title: "4,000+ Businesses Trust Pliant", detail: "Proven in Europe, now conquering the US. Clients range from startups to enterprise finance teams.", color: "#06D6A0" },
+];
+
+const WEEKLY_FRAMEWORK = [
+  { day: "Monday", focus: "Pipeline Building", tasks: ["Review & refresh target account list", "Research 20 new prospects", "Set the week's outbound sequences", "Sync with Head of Sales on priorities"] },
+  { day: "Tuesday", focus: "Heavy Calling Block", tasks: ["Power hour: 25+ dials before noon", "Follow up on warm leads", "Second calling block: 20+ afternoon", "Log all activity + update CRM"] },
+  { day: "Wednesday", focus: "Multi-Channel Blitz", tasks: ["LinkedIn outreach (15+ connections)", "Send tailored email sequences", "Call prospects who opened emails", "AE Shadow session"] },
+  { day: "Thursday", focus: "Discovery & Qualification", tasks: ["Run scheduled discovery calls", "Deep research for Friday's prospects", "A/B test new messaging angles", "Practice objection handling"] },
+  { day: "Friday", focus: "Close the Week Strong", tasks: ["Final push to hit weekly target", "Update pipeline stages in CRM", "Weekly report to Head of Sales", "Reflect: what worked, what to improve"] },
+];
+
+let _id = 0;
+const uid = () => `id_${++_id}_${Date.now()}`;
+
+const init = {
+  tab: "dashboard",
+  goals: {
+    calls: { target: 60, done: 0, label: "Cold Calls", icon: "📞" },
+    emails: { target: 40, done: 0, label: "Emails Sent", icon: "✉️" },
+    linkedin: { target: 25, done: 0, label: "LinkedIn Touches", icon: "🔗" },
+    meetings: { target: 3, done: 0, label: "Meetings Booked", icon: "📅" },
+  },
+  weeklyMeetings: { target: 15, booked: 0 },
+  prospects: [],
+  notes: [],
+  wins: [],
+  winInput: "",
+  xp: 0,
+};
+
+function reducer(s, a) {
+  switch (a.type) {
+    case "TAB": return { ...s, tab: a.v };
+    case "INC": { const g = s.goals[a.v]; const d = g.done + 1; const hit = d === g.target && g.done < g.target; return { ...s, xp: s.xp + (hit ? 50 : 5), goals: { ...s.goals, [a.v]: { ...g, done: d } } }; }
+    case "DEC": { const g = s.goals[a.v]; return { ...s, goals: { ...s.goals, [a.v]: { ...g, done: Math.max(0, g.done - 1) } } }; }
+    case "ADD_P": return { ...s, prospects: [a.v, ...s.prospects], xp: s.xp + 10 };
+    case "UPD_P": return { ...s, prospects: s.prospects.map(p => p.id === a.v.id ? { ...p, ...a.v.d } : p) };
+    case "DEL_P": return { ...s, prospects: s.prospects.filter(p => p.id !== a.v) };
+    case "ADD_N": return { ...s, notes: [a.v, ...s.notes], xp: s.xp + 15 };
+    case "DEL_N": return { ...s, notes: s.notes.filter(n => n.id !== a.v) };
+    case "ADD_W": return s.winInput.trim() ? { ...s, wins: [...s.wins, { id: uid(), text: s.winInput.trim(), time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }], winInput: "", xp: s.xp + 20 } : s;
+    case "WIN_IN": return { ...s, winInput: a.v };
+    case "BOOK_W": return { ...s, weeklyMeetings: { ...s.weeklyMeetings, booked: s.weeklyMeetings.booked + 1 }, xp: s.xp + 30 };
+    case "SET_T": return { ...s, goals: { ...s.goals, [a.v.k]: { ...s.goals[a.v.k], target: Math.max(1, a.v.t) } } };
+    case "RESET": return { ...s, goals: Object.fromEntries(Object.entries(s.goals).map(([k, v]) => [k, { ...v, done: 0 }])), wins: [], winInput: "" };
+    default: return s;
+  }
+}
+
+const C = { background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: 24 };
+const Cc = { ...C, padding: 18 };
+const Bp = { background: "linear-gradient(135deg, #00E5A0, #00B8D4)", color: "#080C14", border: "none", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
+const Bg = { background: "rgba(255,255,255,0.04)", color: "#888", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "10px 20px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
+const In = { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", color: "#E0E0E0", fontSize: 13, fontFamily: "'DM Sans', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" };
+const Lb = { fontSize: 10, fontWeight: 700, color: "#555", marginBottom: 4, display: "block", fontFamily: "'Space Mono', monospace", textTransform: "uppercase", letterSpacing: 0.8 };
+
+function Ring({ pct, size = 90, stroke = 7, color = "#00E5A0" }) {
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r, o = c - (Math.min(pct, 100) / 100) * c;
+  return (<svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}><circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={stroke} /><circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={o} style={{ transition: "stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1)" }} /></svg>);
+}
+
+function Bar({ v, m, color = "#00E5A0" }) {
+  return (<div style={{ height: 5, borderRadius: 5, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}><div style={{ height: "100%", width: `${m > 0 ? Math.min((v/m)*100, 100) : 0}%`, background: color, borderRadius: 5, transition: "width 0.4s" }} /></div>);
+}
+
+function Bdg({ children, color = "#00E5A0" }) {
+  return (<span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 20, fontSize: 10, fontWeight: 700, background: `${color}18`, color, letterSpacing: 0.5, fontFamily: "'Space Mono', monospace" }}>{children}</span>);
+}
+
+export default function App() {
+  const [s, d] = useReducer(reducer, init);
+  const [time, setTime] = useState(new Date());
+  const [showPF, setShowPF] = useState(false);
+  const [showNF, setShowNF] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [pFilter, setPFilter] = useState("all");
+  const [pbSec, setPbSec] = useState("objections");
+  const [expObj, setExpObj] = useState(null);
+  const [expDisc, setExpDisc] = useState(0);
+  const [nSearch, setNSearch] = useState("");
+
+  const emptyP = { company: "", contact: "", title: "", persona: "", industry: "", stage: "Researched", email: "", phone: "", notes: "" };
+  const [pf, setPf] = useState(emptyP);
+  const emptyN = { company: "", contact: "", summary: "", nextSteps: "", sentiment: "Neutral" };
+  const [nf, setNf] = useState(emptyN);
+
+  useEffect(() => { const t = setInterval(() => setTime(new Date()), 30000); return () => clearInterval(t); }, []);
+
+  const totalPct = Math.round(Object.values(s.goals).reduce((a, g) => a + Math.min(g.done / g.target, 1), 0) / 4 * 100);
+  const level = Math.floor(s.xp / 200) + 1;
+  const xpMod = s.xp % 200;
+  const goalsHit = Object.values(s.goals).filter(g => g.done >= g.target).length;
+  const dow = time.toLocaleDateString("en-US", { weekday: "long" });
+  const todayFW = WEEKLY_FRAMEWORK.find(d => d.day === dow) || WEEKLY_FRAMEWORK[0];
+  const quotes = ["Every 'no' gets you closer to 'yes'. Keep dialing.", "Top 1% isn't talent — it's discipline when no one's watching.", "Pipeline today = commission tomorrow.", "Activity breeds luck. More calls = more opportunities.", "You're not selling a product — you're solving a problem.", "The best BDRs don't wait for motivation — they create it.", "Speed to lead wins. Be first, be fast, be relentless.", "You're building the US playbook. Make it legendary."];
+  const qi = Math.floor(time.getMinutes() / 4) % quotes.length;
+  const byStage = STAGES.reduce((a, st) => { a[st] = s.prospects.filter(p => p.stage === st).length; return a; }, {});
+  const filtP = pFilter === "all" ? s.prospects : s.prospects.filter(p => p.stage === pFilter);
+  const filtN = nSearch ? s.notes.filter(n => [n.company, n.contact, n.summary, n.nextSteps].some(f => (f || "").toLowerCase().includes(nSearch.toLowerCase()))) : s.notes;
+
+  function saveP() { if (!pf.company.trim()) return; if (editId) d({ type: "UPD_P", v: { id: editId, d: { ...pf } } }); else d({ type: "ADD_P", v: { id: uid(), ...pf, createdAt: new Date().toLocaleDateString() } }); setPf(emptyP); setShowPF(false); setEditId(null); }
+  function saveN() { if (!nf.summary.trim()) return; d({ type: "ADD_N", v: { id: uid(), ...nf, timestamp: new Date().toLocaleString() } }); setNf(emptyN); setShowNF(false); }
+
+  const tabs = [{ id: "dashboard", l: "Command Center", i: "⚡" }, { id: "pipeline", l: "Pipeline", i: "🎯" }, { id: "callnotes", l: "Call Intel", i: "📞" }, { id: "playbook", l: "Playbook", i: "📖" }];
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#080C14", fontFamily: "'DM Sans', sans-serif", color: "#D4D4D8" }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+      {/* TOP BAR */}
+      <div style={{ background: "linear-gradient(180deg, rgba(0,229,160,0.04) 0%, transparent 100%)", borderBottom: "1px solid rgba(0,229,160,0.08)", padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(24px)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: "linear-gradient(135deg, #00E5A0, #00B8D4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: "#080C14", fontFamily: "'Space Mono', monospace", boxShadow: "0 0 24px rgba(0,229,160,0.25)" }}>P</div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", letterSpacing: -0.3 }}>PLIANT <span style={{ color: "#00E5A0", fontFamily: "'Space Mono', monospace" }}>BDR</span><span style={{ color: "#444", fontWeight: 400 }}> · Command Center</span></div>
+            <div style={{ fontSize: 11, color: "#444", fontFamily: "'Space Mono', monospace" }}>{time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {time.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 9, color: "#555", fontFamily: "'Space Mono', monospace", letterSpacing: 1 }}>LEVEL {level}</div>
+            <div style={{ width: 80 }}><Bar v={xpMod} m={200} /></div>
+            <div style={{ fontSize: 9, color: "#00E5A0", fontFamily: "'Space Mono', monospace", marginTop: 2 }}>{s.xp} XP</div>
+          </div>
+          <div style={{ width: 38, height: 38, borderRadius: "50%", background: `conic-gradient(#00E5A0 ${xpMod/200*360}deg, rgba(255,255,255,0.04) 0deg)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#0D1117", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#00E5A0", fontFamily: "'Space Mono', monospace" }}>{level}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* TABS */}
+      <div style={{ display: "flex", gap: 0, padding: "0 24px", background: "rgba(0,0,0,0.25)", borderBottom: "1px solid rgba(255,255,255,0.04)", overflowX: "auto" }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => d({ type: "TAB", v: t.id })} style={{ padding: "13px 20px", background: "none", border: "none", color: s.tab === t.id ? "#00E5A0" : "#444", fontSize: 13, fontWeight: 600, cursor: "pointer", borderBottom: s.tab === t.id ? "2px solid #00E5A0" : "2px solid transparent", transition: "all 0.2s", whiteSpace: "nowrap", fontFamily: "'DM Sans', sans-serif" }}>
+            <span style={{ marginRight: 6 }}>{t.i}</span>{t.l}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: "24px 20px", maxWidth: 1120, margin: "0 auto" }}>
+
+        {/* ══════ DASHBOARD ══════ */}
+        {s.tab === "dashboard" && (<div>
+          {/* Motivation */}
+          <div style={{ ...C, marginBottom: 20, padding: "18px 24px", background: "linear-gradient(135deg, rgba(0,229,160,0.05) 0%, rgba(0,184,212,0.03) 100%)", borderColor: "rgba(0,229,160,0.1)", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 24 }}>🔥</span>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ fontSize: 14, color: "#00E5A0", fontWeight: 600, fontStyle: "italic" }}>"{quotes[qi]}"</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 9, color: "#555", fontFamily: "'Space Mono', monospace", letterSpacing: 1 }}>TODAY'S FOCUS</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{todayFW.focus}</div>
+            </div>
+          </div>
+
+          {/* Activity Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, marginBottom: 20 }}>
+            {Object.entries(s.goals).map(([k, g]) => {
+              const pct = Math.min(Math.round((g.done / g.target) * 100), 100);
+              const hit = g.done >= g.target;
+              return (
+                <div key={k} style={{ ...Cc, position: "relative", overflow: "hidden", borderColor: hit ? "rgba(0,229,160,0.2)" : "rgba(255,255,255,0.06)", background: hit ? "rgba(0,229,160,0.03)" : "rgba(255,255,255,0.02)" }}>
+                  {hit && <div style={{ position: "absolute", top: 8, right: 12, fontSize: 9, color: "#00E5A0", fontFamily: "'Space Mono', monospace", fontWeight: 700, letterSpacing: 1 }}>✓ HIT</div>}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: "#555", fontFamily: "'Space Mono', monospace", marginBottom: 6, letterSpacing: 0.5 }}>{g.icon} {g.label.toUpperCase()}</div>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                        <span style={{ fontSize: 34, fontWeight: 700, color: hit ? "#00E5A0" : "#fff", fontFamily: "'Space Mono', monospace", lineHeight: 1 }}>{g.done}</span>
+                        <span style={{ fontSize: 14, color: "#444" }}>/ {g.target}</span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <button onClick={() => d({ type: "INC", v: k })} style={{ width: 42, height: 42, borderRadius: 10, background: hit ? "rgba(0,229,160,0.12)" : "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: hit ? "#00E5A0" : "#888", fontSize: 22, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Space Mono'", lineHeight: 1 }}>+</button>
+                      <button onClick={() => d({ type: "DEC", v: k })} style={{ width: 42, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", color: "#444", fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Space Mono'", lineHeight: 1 }}>−</button>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: 14 }}><Bar v={g.done} m={g.target} color={hit ? "#00E5A0" : "#3B82F6"} /></div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Stats Row */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 20 }}>
+            <div style={{ ...Cc, textAlign: "center" }}>
+              <div style={{ position: "relative", width: 90, height: 90, margin: "0 auto 10px" }}>
+                <Ring pct={totalPct} color={totalPct >= 100 ? "#00E5A0" : "#3B82F6"} />
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 22, fontWeight: 700, color: "#fff", fontFamily: "'Space Mono'" }}>{totalPct}%</span>
+                </div>
+              </div>
+              <div style={{ fontSize: 10, color: "#555", fontFamily: "'Space Mono'", letterSpacing: 1 }}>DAILY PROGRESS</div>
+              <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>{goalsHit}/4 targets hit</div>
+            </div>
+            <div style={{ ...Cc, textAlign: "center" }}>
+              <div style={{ fontSize: 9, color: "#555", fontFamily: "'Space Mono'", marginBottom: 10, letterSpacing: 1 }}>WEEKLY MEETINGS</div>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 4 }}>
+                <span style={{ fontSize: 38, fontWeight: 700, color: s.weeklyMeetings.booked >= s.weeklyMeetings.target ? "#00E5A0" : "#fff", fontFamily: "'Space Mono'" }}>{s.weeklyMeetings.booked}</span>
+                <span style={{ fontSize: 16, color: "#444" }}>/ {s.weeklyMeetings.target}</span>
+              </div>
+              <div style={{ marginTop: 8 }}><Bar v={s.weeklyMeetings.booked} m={s.weeklyMeetings.target} color="#F59E0B" /></div>
+              <button onClick={() => d({ type: "BOOK_W" })} style={{ ...Bg, marginTop: 12, padding: "8px 16px", fontSize: 11 }}>+ Book Meeting</button>
+            </div>
+            <div style={{ ...Cc, textAlign: "center" }}>
+              <div style={{ fontSize: 9, color: "#555", fontFamily: "'Space Mono'", marginBottom: 10, letterSpacing: 1 }}>ACTIVE PROSPECTS</div>
+              <div style={{ fontSize: 38, fontWeight: 700, color: "#8B5CF6", fontFamily: "'Space Mono'" }}>{s.prospects.length}</div>
+              <div style={{ display: "flex", gap: 4, justifyContent: "center", flexWrap: "wrap", marginTop: 8 }}>
+                {STAGES.slice(0, 4).map(st => <Bdg key={st} color={STAGE_COLORS[st]}>{byStage[st] || 0}</Bdg>)}
+              </div>
+            </div>
+          </div>
+
+          {/* Game Plan + Wins */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14, marginBottom: 20 }}>
+            <div style={Cc}>
+              <div style={{ fontSize: 10, color: "#555", fontFamily: "'Space Mono'", marginBottom: 12, letterSpacing: 1 }}>📋 {todayFW.day.toUpperCase()}'S GAME PLAN</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#00E5A0", marginBottom: 12 }}>{todayFW.focus}</div>
+              {todayFW.tasks.map((t, i) => (<div key={i} style={{ display: "flex", gap: 8, marginBottom: 8 }}><span style={{ color: "#2a2a2a", fontSize: 6, marginTop: 7 }}>●</span><span style={{ fontSize: 13, color: "#888" }}>{t}</span></div>))}
+            </div>
+            <div style={Cc}>
+              <div style={{ fontSize: 10, color: "#555", fontFamily: "'Space Mono'", marginBottom: 12, letterSpacing: 1 }}>🏆 TODAY'S WINS</div>
+              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                <input value={s.winInput} onChange={e => d({ type: "WIN_IN", v: e.target.value })} onKeyDown={e => e.key === "Enter" && d({ type: "ADD_W" })} placeholder="Log a win..." style={{ ...In, flex: 1 }} />
+                <button onClick={() => d({ type: "ADD_W" })} style={{ ...Bp, padding: "10px 16px" }}>+</button>
+              </div>
+              <div style={{ maxHeight: 180, overflowY: "auto" }}>
+                {s.wins.length === 0 && <div style={{ fontSize: 12, color: "#333", fontStyle: "italic" }}>No wins yet. Go get some!</div>}
+                {s.wins.map(w => (<div key={w.id} style={{ display: "flex", gap: 8, marginBottom: 8, padding: "8px 10px", background: "rgba(0,229,160,0.03)", borderRadius: 8 }}><span style={{ color: "#00E5A0", fontSize: 12 }}>✓</span><div style={{ flex: 1 }}><div style={{ fontSize: 13, color: "#bbb" }}>{w.text}</div><div style={{ fontSize: 9, color: "#444", fontFamily: "'Space Mono'" }}>{w.time}</div></div></div>))}
+              </div>
+            </div>
+          </div>
+          <div style={{ textAlign: "center" }}><button onClick={() => { if (confirm("Reset daily counters and wins?")) d({ type: "RESET" }); }} style={{ ...Bg, fontSize: 11, padding: "8px 20px" }}>↻ Reset Daily Counters</button></div>
+        </div>)}
+
+        {/* ══════ PIPELINE ══════ */}
+        {s.tab === "pipeline" && (<div>
+          <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+            <button onClick={() => setShowPF(true)} style={{ ...Bp, padding: "8px 16px", fontSize: 12, marginRight: 8 }}>+ Add Prospect</button>
+            {["all", ...STAGES].map(st => (
+              <button key={st} onClick={() => setPFilter(st)} style={{ padding: "6px 14px", borderRadius: 20, border: "1px solid", borderColor: pFilter === st ? (st === "all" ? "#00E5A0" : STAGE_COLORS[st]) : "rgba(255,255,255,0.06)", background: pFilter === st ? `${st === "all" ? "#00E5A0" : STAGE_COLORS[st]}12` : "transparent", color: pFilter === st ? (st === "all" ? "#00E5A0" : STAGE_COLORS[st]) : "#555", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'" }}>{st === "all" ? `All (${s.prospects.length})` : `${st} (${byStage[st] || 0})`}</button>
+            ))}
+          </div>
+
+          {s.prospects.length > 0 && (<div style={{ ...Cc, marginBottom: 16, padding: "14px 18px" }}>
+            <div style={{ display: "flex", height: 8, borderRadius: 8, overflow: "hidden", background: "rgba(255,255,255,0.03)" }}>
+              {STAGES.map(st => { const p = s.prospects.length > 0 ? ((byStage[st] || 0) / s.prospects.length) * 100 : 0; return p > 0 ? <div key={st} style={{ width: `${p}%`, background: STAGE_COLORS[st], transition: "width 0.4s" }} /> : null; })}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>{STAGES.map(st => (<div key={st} style={{ fontSize: 8, color: "#444", fontFamily: "'Space Mono'", textAlign: "center" }}><span style={{ color: STAGE_COLORS[st], fontWeight: 700 }}>{byStage[st] || 0}</span> {st.split(" ")[0]}</div>))}</div>
+          </div>)}
+
+          {showPF && (<div style={{ ...C, marginBottom: 16, borderColor: "rgba(0,229,160,0.12)", background: "rgba(0,229,160,0.02)" }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 16 }}>{editId ? "Edit Prospect" : "Add New Prospect"}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div><label style={Lb}>Company *</label><input style={In} value={pf.company} onChange={e => setPf(p => ({ ...p, company: e.target.value }))} placeholder="Acme Corp" /></div>
+              <div><label style={Lb}>Contact</label><input style={In} value={pf.contact} onChange={e => setPf(p => ({ ...p, contact: e.target.value }))} placeholder="Jane Smith" /></div>
+              <div><label style={Lb}>Title</label><input style={In} value={pf.title} onChange={e => setPf(p => ({ ...p, title: e.target.value }))} placeholder="VP of Finance" /></div>
+              <div><label style={Lb}>Persona</label><select style={In} value={pf.persona} onChange={e => setPf(p => ({ ...p, persona: e.target.value }))}><option value="">Select...</option>{PERSONAS.map(x => <option key={x}>{x}</option>)}</select></div>
+              <div><label style={Lb}>Industry</label><select style={In} value={pf.industry} onChange={e => setPf(p => ({ ...p, industry: e.target.value }))}><option value="">Select...</option>{INDUSTRIES.map(x => <option key={x}>{x}</option>)}</select></div>
+              <div><label style={Lb}>Stage</label><select style={In} value={pf.stage} onChange={e => setPf(p => ({ ...p, stage: e.target.value }))}>{STAGES.map(x => <option key={x}>{x}</option>)}</select></div>
+              <div><label style={Lb}>Email</label><input style={In} value={pf.email} onChange={e => setPf(p => ({ ...p, email: e.target.value }))} placeholder="jane@acme.com" /></div>
+              <div><label style={Lb}>Phone</label><input style={In} value={pf.phone} onChange={e => setPf(p => ({ ...p, phone: e.target.value }))} placeholder="+1 555-0123" /></div>
+            </div>
+            <div style={{ marginTop: 12 }}><label style={Lb}>Notes</label><textarea style={{ ...In, minHeight: 60, resize: "vertical" }} value={pf.notes} onChange={e => setPf(p => ({ ...p, notes: e.target.value }))} placeholder="Triggers, context, research notes..." /></div>
+            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+              <button onClick={saveP} style={Bp}>{editId ? "Update" : "Add Prospect"}</button>
+              <button onClick={() => { setShowPF(false); setEditId(null); setPf(emptyP); }} style={Bg}>Cancel</button>
+            </div>
+          </div>)}
+
+          {filtP.length === 0 && <div style={{ ...C, textAlign: "center", padding: 48 }}><div style={{ fontSize: 32, marginBottom: 8 }}>🎯</div><div style={{ fontSize: 14, color: "#555" }}>No prospects yet. Start building your pipeline!</div></div>}
+          {filtP.map(p => (
+            <div key={p.id} style={{ ...Cc, marginBottom: 10, display: "flex", alignItems: "flex-start", gap: 14 }}>
+              <div style={{ width: 4, height: 50, borderRadius: 4, background: STAGE_COLORS[p.stage], flexShrink: 0, marginTop: 4 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{p.company}</span>
+                  <Bdg color={STAGE_COLORS[p.stage]}>{p.stage}</Bdg>
+                  {p.industry && <Bdg color="#555">{p.industry}</Bdg>}
+                </div>
+                {p.contact && <div style={{ fontSize: 13, color: "#888", marginTop: 4 }}>{p.contact}{p.title ? ` · ${p.title}` : ""}{p.persona ? ` · ${p.persona}` : ""}</div>}
+                {p.email && <div style={{ fontSize: 11, color: "#444", marginTop: 2 }}>{p.email}{p.phone ? ` · ${p.phone}` : ""}</div>}
+                {p.notes && <div style={{ fontSize: 12, color: "#555", marginTop: 6, fontStyle: "italic" }}>{p.notes}</div>}
+              </div>
+              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                {STAGES.indexOf(p.stage) < STAGES.length - 1 && <button onClick={() => d({ type: "UPD_P", v: { id: p.id, d: { stage: STAGES[STAGES.indexOf(p.stage) + 1] } } })} style={{ ...Bg, padding: "6px 10px", fontSize: 10 }} title="Advance">➜</button>}
+                <button onClick={() => { setEditId(p.id); setPf({ company: p.company, contact: p.contact || "", title: p.title || "", persona: p.persona || "", industry: p.industry || "", stage: p.stage, email: p.email || "", phone: p.phone || "", notes: p.notes || "" }); setShowPF(true); }} style={{ ...Bg, padding: "6px 10px", fontSize: 10 }}>✎</button>
+                <button onClick={() => { if (confirm(`Delete ${p.company}?`)) d({ type: "DEL_P", v: p.id }); }} style={{ ...Bg, padding: "6px 10px", fontSize: 10, color: "#FF5252", borderColor: "rgba(255,82,82,0.15)" }}>✕</button>
+              </div>
+            </div>
+          ))}
+        </div>)}
+
+        {/* ══════ CALL INTEL ══════ */}
+        {s.tab === "callnotes" && (<div>
+          <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+            <button onClick={() => setShowNF(true)} style={{ ...Bp, padding: "8px 16px", fontSize: 12 }}>+ Log Call</button>
+            <input value={nSearch} onChange={e => setNSearch(e.target.value)} placeholder="Search notes..." style={{ ...In, maxWidth: 300 }} />
+          </div>
+
+          {showNF && (<div style={{ ...C, marginBottom: 16, borderColor: "rgba(0,229,160,0.12)", background: "rgba(0,229,160,0.02)" }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 16 }}>Log Call Notes</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+              <div><label style={Lb}>Company</label><input style={In} value={nf.company} onChange={e => setNf(n => ({ ...n, company: e.target.value }))} /></div>
+              <div><label style={Lb}>Contact</label><input style={In} value={nf.contact} onChange={e => setNf(n => ({ ...n, contact: e.target.value }))} /></div>
+              <div><label style={Lb}>Sentiment</label><select style={In} value={nf.sentiment} onChange={e => setNf(n => ({ ...n, sentiment: e.target.value }))}>{["Very Positive", "Positive", "Neutral", "Skeptical", "Not Interested"].map(x => <option key={x}>{x}</option>)}</select></div>
+            </div>
+            <div style={{ marginTop: 12 }}><label style={Lb}>Summary</label><textarea style={{ ...In, minHeight: 80, resize: "vertical" }} value={nf.summary} onChange={e => setNf(n => ({ ...n, summary: e.target.value }))} placeholder="Key takeaways, pain points, objections..." /></div>
+            <div style={{ marginTop: 12 }}><label style={Lb}>Next Steps</label><textarea style={{ ...In, minHeight: 50, resize: "vertical" }} value={nf.nextSteps} onChange={e => setNf(n => ({ ...n, nextSteps: e.target.value }))} placeholder="Follow-up actions..." /></div>
+            <div style={{ display: "flex", gap: 10, marginTop: 14 }}><button onClick={saveN} style={Bp}>Save Note</button><button onClick={() => { setShowNF(false); setNf(emptyN); }} style={Bg}>Cancel</button></div>
+          </div>)}
+
+          {filtN.length === 0 && <div style={{ ...C, textAlign: "center", padding: 48 }}><div style={{ fontSize: 32, marginBottom: 8 }}>📞</div><div style={{ fontSize: 14, color: "#555" }}>No call notes yet. Start logging conversations!</div></div>}
+          {filtN.map(n => {
+            const sc = { "Very Positive": "#00E5A0", "Positive": "#06D6A0", "Neutral": "#F59E0B", "Skeptical": "#FF8A65", "Not Interested": "#FF5252" };
+            return (<div key={n.id} style={{ ...Cc, marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{n.company || "Unknown"}</span>
+                    {n.contact && <span style={{ fontSize: 12, color: "#777" }}>· {n.contact}</span>}
+                    <Bdg color={sc[n.sentiment] || "#F59E0B"}>{n.sentiment}</Bdg>
+                  </div>
+                  <div style={{ fontSize: 9, color: "#444", fontFamily: "'Space Mono'", marginTop: 4 }}>{n.timestamp}</div>
+                </div>
+                <button onClick={() => { if (confirm("Delete?")) d({ type: "DEL_N", v: n.id }); }} style={{ ...Bg, padding: "4px 8px", fontSize: 10, color: "#FF5252", borderColor: "rgba(255,82,82,0.1)" }}>✕</button>
+              </div>
+              <div style={{ fontSize: 13, color: "#aaa", marginTop: 10, lineHeight: 1.6 }}>{n.summary}</div>
+              {n.nextSteps && (<div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(59,130,246,0.05)", borderRadius: 8, borderLeft: "3px solid #3B82F6" }}>
+                <div style={{ fontSize: 9, color: "#3B82F6", fontFamily: "'Space Mono'", marginBottom: 4, letterSpacing: 1 }}>NEXT STEPS</div>
+                <div style={{ fontSize: 12, color: "#888" }}>{n.nextSteps}</div>
+              </div>)}
+            </div>);
+          })}
+        </div>)}
+
+        {/* ══════ PLAYBOOK ══════ */}
+        {s.tab === "playbook" && (<div>
+          <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
+            {[{ id: "objections", l: "Objection Handling", i: "🛡️" }, { id: "discovery", l: "Discovery Questions", i: "🔍" }, { id: "value", l: "Value Props", i: "💎" }, { id: "weekly", l: "Weekly Framework", i: "📅" }, { id: "promotion", l: "AE Track", i: "🚀" }].map(x => (
+              <button key={x.id} onClick={() => setPbSec(x.id)} style={{ padding: "8px 16px", borderRadius: 10, background: pbSec === x.id ? "rgba(0,229,160,0.08)" : "rgba(255,255,255,0.02)", border: `1px solid ${pbSec === x.id ? "rgba(0,229,160,0.18)" : "rgba(255,255,255,0.05)"}`, color: pbSec === x.id ? "#00E5A0" : "#555", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans'" }}>{x.i} {x.l}</button>
+            ))}
+          </div>
+
+          {/* Objections */}
+          {pbSec === "objections" && (<div>
+            <div style={{ fontSize: 10, color: "#555", fontFamily: "'Space Mono'", marginBottom: 16, letterSpacing: 1 }}>🛡️ {OBJECTION_BANK.length} BATTLE-TESTED RESPONSES</div>
+            {OBJECTION_BANK.map((o, i) => (<div key={i} onClick={() => setExpObj(expObj === i ? null : i)} style={{ ...Cc, marginBottom: 8, cursor: "pointer", borderColor: expObj === i ? "rgba(0,229,160,0.12)" : "rgba(255,255,255,0.05)", background: expObj === i ? "rgba(0,229,160,0.02)" : "rgba(255,255,255,0.015)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#FF8A65" }}>"{o.objection}"</div>
+                <span style={{ color: "#444", fontSize: 14, transform: expObj === i ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0, marginLeft: 8 }}>▾</span>
+              </div>
+              {expObj === i && (<div style={{ marginTop: 12, padding: "12px 14px", background: "rgba(0,229,160,0.03)", borderRadius: 10, borderLeft: "3px solid #00E5A0" }}>
+                <div style={{ fontSize: 9, color: "#00E5A0", fontFamily: "'Space Mono'", marginBottom: 6, letterSpacing: 1 }}>YOUR RESPONSE</div>
+                <div style={{ fontSize: 13, color: "#bbb", lineHeight: 1.7 }}>{o.response}</div>
+              </div>)}
+            </div>))}
+          </div>)}
+
+          {/* Discovery */}
+          {pbSec === "discovery" && (<div>
+            <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+              {DISCOVERY_QUESTIONS.map((c, i) => (<button key={i} onClick={() => setExpDisc(i)} style={{ padding: "6px 14px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer", background: expDisc === i ? "rgba(139,92,246,0.08)" : "transparent", border: `1px solid ${expDisc === i ? "rgba(139,92,246,0.25)" : "rgba(255,255,255,0.06)"}`, color: expDisc === i ? "#8B5CF6" : "#555", fontFamily: "'DM Sans'" }}>{c.category}</button>))}
+            </div>
+            {DISCOVERY_QUESTIONS[expDisc] && (<div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#8B5CF6", marginBottom: 14 }}>{DISCOVERY_QUESTIONS[expDisc].category}</div>
+              {DISCOVERY_QUESTIONS[expDisc].questions.map((q, i) => (<div key={i} style={{ ...Cc, marginBottom: 8, display: "flex", gap: 12, alignItems: "flex-start" }}>
+                <span style={{ color: "#8B5CF6", fontFamily: "'Space Mono'", fontWeight: 700, fontSize: 12, flexShrink: 0 }}>{i + 1}</span>
+                <span style={{ fontSize: 13, color: "#bbb", lineHeight: 1.6 }}>{q}</span>
+              </div>))}
+            </div>)}
+          </div>)}
+
+          {/* Value Props */}
+          {pbSec === "value" && (<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+            {VALUE_PROPS.map((v, i) => (<div key={i} style={{ ...Cc, borderLeft: `3px solid ${v.color}` }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: v.color, marginBottom: 8 }}>{v.title}</div>
+              <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6 }}>{v.detail}</div>
+            </div>))}
+          </div>)}
+
+          {/* Weekly */}
+          {pbSec === "weekly" && (<div>
+            {WEEKLY_FRAMEWORK.map((day, i) => { const isT = day.day === dow; return (<div key={i} style={{ ...Cc, marginBottom: 10, borderColor: isT ? "rgba(0,229,160,0.18)" : "rgba(255,255,255,0.05)", background: isT ? "rgba(0,229,160,0.025)" : "rgba(255,255,255,0.015)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}><span style={{ fontSize: 14, fontWeight: 700, color: isT ? "#00E5A0" : "#fff" }}>{day.day}</span>{isT && <Bdg color="#00E5A0">TODAY</Bdg>}</div>
+                <Bdg color="#F59E0B">{day.focus}</Bdg>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>{day.tasks.map((t, j) => (<div key={j} style={{ fontSize: 12, color: "#777", display: "flex", gap: 6, alignItems: "flex-start" }}><span style={{ color: "#222", fontSize: 6, marginTop: 7 }}>●</span>{t}</div>))}</div>
+            </div>); })}
+          </div>)}
+
+          {/* AE Track */}
+          {pbSec === "promotion" && (<div>
+            <div style={{ ...C, marginBottom: 16, background: "linear-gradient(135deg, rgba(0,229,160,0.05) 0%, rgba(139,92,246,0.03) 100%)", borderColor: "rgba(0,229,160,0.1)" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 6 }}>🚀 Path to Account Executive</div>
+              <div style={{ fontSize: 13, color: "#888" }}>Performance-based promotion in <span style={{ color: "#00E5A0", fontWeight: 700 }}>6–12 months</span></div>
+              <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>OTE: $90k–$110k · 70/30 Base/Bonus · Accelerators on target</div>
+            </div>
+            {[
+              { m: "Hit Pipeline Targets (6+ months)", desc: "Consistently meet or exceed monthly outbound pipeline goals. Volume + quality.", color: "#00E5A0", active: true },
+              { m: "Proactive Development", desc: "Initiative in pipeline building, sales execution improvement, and market expertise.", color: "#3B82F6" },
+              { m: "Master the Product", desc: "Deep technical understanding of Pliant's API-first credit card solution and integration landscape.", color: "#8B5CF6" },
+              { m: "Certify in Discovery", desc: "Pass internal mock closing simulations. Handle objections independently.", color: "#F59E0B" },
+              { m: "AE Shadow Program", desc: "Shadow demos, manage smaller deal cycles, learn closing mechanics. Prove full-cycle ability.", color: "#EF4444" },
+            ].map((x, i) => (<div key={i} style={{ ...Cc, marginBottom: 10, display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: x.active ? `${x.color}18` : "rgba(255,255,255,0.03)", border: `2px solid ${x.active ? x.color : "rgba(255,255,255,0.08)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: x.color, fontFamily: "'Space Mono'" }}>{i + 1}</div>
+              <div><div style={{ fontSize: 14, fontWeight: 700, color: x.active ? x.color : "#777" }}>{x.m}</div><div style={{ fontSize: 12, color: "#555", marginTop: 4, lineHeight: 1.5 }}>{x.desc}</div></div>
+            </div>))}
+          </div>)}
+        </div>)}
+      </div>
+
+      <div style={{ textAlign: "center", padding: "24px 0 32px", borderTop: "1px solid rgba(255,255,255,0.02)" }}>
+        <div style={{ fontSize: 9, color: "#222", fontFamily: "'Space Mono'", letterSpacing: 2 }}>PLIANT BDR COMMAND CENTER · BUILT TO WIN · TOP 1%</div>
+      </div>
+    </div>
+  );
+}
