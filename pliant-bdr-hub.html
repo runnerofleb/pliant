@@ -5,1065 +5,989 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pliant BDR Command Center</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #080C14;
+    --bg: #06090F;
+    --surface: #0C1018;
     --card: rgba(255,255,255,0.025);
     --card-border: rgba(255,255,255,0.06);
     --accent: #00E5A0;
     --accent2: #00B8D4;
-    --text: #D4D4D8;
-    --text-dim: #888;
-    --text-muted: #555;
-    --text-ghost: #333;
     --purple: #8B5CF6;
     --blue: #3B82F6;
     --amber: #F59E0B;
-    --red: #FF5252;
-    --orange: #FF8A65;
+    --red: #EF4444;
+    --orange: #F97316;
     --teal: #06D6A0;
+    --text: #E2E8F0;
+    --dim: #94A3B8;
+    --muted: #475569;
+    --ghost: #1E293B;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    background: var(--bg);
-    font-family: 'DM Sans', 'Segoe UI', sans-serif;
-    color: var(--text);
-    min-height: 100vh;
+    background: var(--bg); color: var(--text);
+    font-family: 'Outfit', sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .mono { font-family: 'Space Mono', monospace; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  body::before {
+    content:''; position:fixed; inset:0; opacity:0.018; z-index:0; pointer-events:none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  body > * { position:relative; z-index:1; }
+  ::selection { background:rgba(0,229,160,0.2); }
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.07); border-radius:3px; }
 
-  /* Animations */
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-  .fade-up { animation: fadeUp 0.4s ease forwards; }
-  .stagger-1 { animation-delay: 0.05s; opacity: 0; }
-  .stagger-2 { animation-delay: 0.1s; opacity: 0; }
-  .stagger-3 { animation-delay: 0.15s; opacity: 0; }
-  .stagger-4 { animation-delay: 0.2s; opacity: 0; }
-
-  /* Top Bar */
-  .topbar {
+  /* ── GLOBAL TOP BAR ── */
+  .g-topbar {
     background: linear-gradient(180deg, rgba(0,229,160,0.04) 0%, transparent 100%);
     border-bottom: 1px solid rgba(0,229,160,0.08);
-    padding: 14px 24px;
-    display: flex; justify-content: space-between; align-items: center;
-    position: sticky; top: 0; z-index: 100;
-    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    padding: 12px 24px; display:flex; justify-content:space-between; align-items:center;
+    position:sticky; top:0; z-index:200;
+    backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
   }
-  .logo {
-    width: 40px; height: 40px; border-radius: 12px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 700; color: var(--bg);
-    box-shadow: 0 0 24px rgba(0,229,160,0.25);
+  .g-logo {
+    width:38px; height:38px; border-radius:11px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex; align-items:center; justify-content:center;
+    font-size:17px; font-weight:800; color:var(--bg);
+    box-shadow:0 0 20px rgba(0,229,160,0.25);
   }
-  .level-ring {
-    width: 38px; height: 38px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+  .g-nav { display:flex; gap:4px; }
+  .g-nav-btn {
+    padding:8px 18px; border-radius:8px; font-size:12px; font-weight:600;
+    cursor:pointer; border:1px solid transparent; background:none;
+    color:var(--muted); font-family:'Outfit',sans-serif; transition:all 0.15s;
   }
-  .level-inner {
-    width: 30px; height: 30px; border-radius: 50%; background: #0D1117;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: var(--accent);
+  .g-nav-btn:hover { color:var(--dim); background:rgba(255,255,255,0.03); }
+  .g-nav-btn.active {
+    color:var(--accent); background:rgba(0,229,160,0.06);
+    border-color:rgba(0,229,160,0.12);
+  }
+  .g-xp-ring {
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .g-xp-inner {
+    width:26px; height:26px; border-radius:50%; background:#0D1117;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; color:var(--accent);
   }
 
-  /* Tabs */
-  .tabs {
-    display: flex; gap: 0; padding: 0 24px;
-    background: rgba(0,0,0,0.25);
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    overflow-x: auto; -webkit-overflow-scrolling: touch;
-  }
-  .tab {
-    padding: 13px 20px; background: none; border: none;
-    color: #444; font-size: 13px; font-weight: 600;
-    cursor: pointer; border-bottom: 2px solid transparent;
-    transition: all 0.2s; white-space: nowrap;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .tab:hover { color: #888; }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  /* ── PAGE CONTAINERS ── */
+  .page { display:none; }
+  .page.active { display:block; }
 
-  /* Content */
-  .content { padding: 24px 20px; max-width: 1120px; margin: 0 auto; }
+  /* ═══════════════════════════════════════════════════
+     COMMAND CENTER STYLES
+     ═══════════════════════════════════════════════════ */
+  .cc-tabs {
+    display:flex; gap:0; padding:0 24px;
+    background:rgba(0,0,0,0.25); border-bottom:1px solid rgba(255,255,255,0.04);
+    overflow-x:auto;
+  }
+  .cc-tab {
+    padding:12px 18px; background:none; border:none;
+    color:#444; font-size:13px; font-weight:600;
+    cursor:pointer; border-bottom:2px solid transparent;
+    transition:all 0.2s; white-space:nowrap; font-family:'Outfit',sans-serif;
+  }
+  .cc-tab:hover { color:#888; }
+  .cc-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .cc-content { padding:24px 20px; max-width:1120px; margin:0 auto; }
+  .cc-section { display:none; }
+  .cc-section.active { display:block; }
 
   /* Cards */
-  .card {
-    background: var(--card); border: 1px solid var(--card-border);
-    border-radius: 16px; padding: 24px;
-  }
-  .card-sm { padding: 18px; }
-  .card-accent {
-    background: linear-gradient(135deg, rgba(0,229,160,0.05) 0%, rgba(0,184,212,0.03) 100%);
-    border-color: rgba(0,229,160,0.1);
-  }
-
-  /* Grid layouts */
-  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
-  .grid-2-wide { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .card { background:var(--card); border:1px solid var(--card-border); border-radius:14px; padding:24px; }
+  .card-sm { padding:18px; }
+  .card-accent { background:linear-gradient(135deg,rgba(0,229,160,0.05) 0%,rgba(0,184,212,0.03) 100%); border-color:rgba(0,229,160,0.1); }
+  .form-card { background:rgba(0,229,160,0.02); border-color:rgba(0,229,160,0.12); }
+  .grid-2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
+  .grid-2w { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
 
   /* Buttons */
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: var(--bg); border: none; border-radius: 10px;
-    padding: 10px 20px; font-size: 13px; font-weight: 700;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: transform 0.15s, box-shadow 0.15s;
+  .btn-p {
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:var(--bg); border:none; border-radius:10px;
+    padding:10px 20px; font-size:13px; font-weight:700;
+    cursor:pointer; font-family:'Outfit',sans-serif;
+    transition:transform 0.15s,box-shadow 0.15s;
   }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,229,160,0.25); }
-  .btn-ghost {
-    background: rgba(255,255,255,0.04); color: #888;
-    border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
-    padding: 10px 20px; font-size: 13px; font-weight: 600;
-    cursor: pointer; font-family: 'DM Sans', sans-serif;
-    transition: all 0.15s;
+  .btn-p:hover { transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,229,160,0.25); }
+  .btn-g {
+    background:rgba(255,255,255,0.04); color:#888;
+    border:1px solid rgba(255,255,255,0.08); border-radius:10px;
+    padding:10px 20px; font-size:13px; font-weight:600;
+    cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.15s;
   }
-  .btn-ghost:hover { background: rgba(255,255,255,0.07); color: #bbb; }
-  .btn-sm { padding: 6px 10px; font-size: 10px; }
-  .btn-counter {
-    width: 42px; height: 42px; border-radius: 10px;
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-    color: #888; font-size: 22px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Space Mono', monospace; line-height: 1;
-    transition: all 0.15s;
+  .btn-g:hover { background:rgba(255,255,255,0.07); color:#bbb; }
+  .btn-sm { padding:6px 10px; font-size:10px; }
+  .btn-ctr {
+    width:42px; height:42px; border-radius:10px;
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);
+    color:#888; font-size:22px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono',monospace; line-height:1; transition:all 0.15s;
   }
-  .btn-counter:hover { background: rgba(255,255,255,0.1); color: #fff; }
-  .btn-counter.hit { background: rgba(0,229,160,0.12); color: var(--accent); }
-  .btn-counter-sm { width: 42px; height: 28px; border-radius: 8px; font-size: 18px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); color: #444; }
+  .btn-ctr:hover { background:rgba(255,255,255,0.1); color:#fff; }
+  .btn-ctr.hit { background:rgba(0,229,160,0.12); color:var(--accent); }
+  .btn-ctr-sm { width:42px; height:28px; border-radius:8px; font-size:18px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); color:#444; }
 
   /* Inputs */
-  .input, .select, .textarea {
-    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px; padding: 10px 14px; color: #E0E0E0;
-    font-size: 13px; font-family: 'DM Sans', sans-serif;
-    outline: none; width: 100%; transition: border-color 0.2s;
+  .inp {
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1);
+    border-radius:10px; padding:10px 14px; color:#E0E0E0;
+    font-size:13px; font-family:'Outfit',sans-serif;
+    outline:none; width:100%; transition:border-color 0.2s;
   }
-  .input:focus, .select:focus, .textarea:focus { border-color: rgba(0,229,160,0.3); }
-  .textarea { min-height: 60px; resize: vertical; }
-  .select { cursor: pointer; -webkit-appearance: none; appearance: none; }
-  .label {
-    font-size: 10px; font-weight: 700; color: #555; margin-bottom: 4px;
-    display: block; font-family: 'Space Mono', monospace;
-    text-transform: uppercase; letter-spacing: 0.8px;
+  .inp:focus { border-color:rgba(0,229,160,0.3); }
+  .txtarea { min-height:60px; resize:vertical; }
+  .lbl {
+    font-size:10px; font-weight:700; color:#555; margin-bottom:4px;
+    display:block; font-family:'JetBrains Mono',monospace;
+    text-transform:uppercase; letter-spacing:0.8px;
   }
-
-  /* Progress bar */
-  .bar-track { height: 5px; border-radius: 5px; background: rgba(255,255,255,0.05); overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
-
-  /* Badge */
+  .bar-track { height:5px; border-radius:5px; background:rgba(255,255,255,0.05); overflow:hidden; }
+  .bar-fill { height:100%; border-radius:5px; transition:width 0.4s ease; }
   .badge {
-    display: inline-block; padding: 3px 10px; border-radius: 20px;
-    font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
-    font-family: 'Space Mono', monospace;
+    display:inline-block; padding:3px 10px; border-radius:20px;
+    font-size:10px; font-weight:700; letter-spacing:0.5px;
+    font-family:'JetBrains Mono',monospace;
   }
-
-  /* Stage pill */
   .stage-pill {
-    padding: 6px 14px; border-radius: 20px; border: 1px solid;
-    font-size: 11px; font-weight: 600; cursor: pointer;
-    font-family: 'DM Sans', sans-serif; transition: all 0.15s;
-    background: transparent;
+    padding:6px 14px; border-radius:20px; border:1px solid;
+    font-size:11px; font-weight:600; cursor:pointer;
+    font-family:'Outfit',sans-serif; transition:all 0.15s; background:transparent;
   }
-  .stage-pill:hover { opacity: 0.8; }
-
-  /* Playbook sub-nav */
   .pb-tab {
-    padding: 8px 16px; border-radius: 10px; font-size: 12px;
-    font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
-    border: 1px solid rgba(255,255,255,0.05);
-    background: rgba(255,255,255,0.02); color: #555;
-    transition: all 0.15s;
+    padding:8px 16px; border-radius:10px; font-size:12px;
+    font-weight:600; cursor:pointer; font-family:'Outfit',sans-serif;
+    border:1px solid rgba(255,255,255,0.05);
+    background:rgba(255,255,255,0.02); color:#555; transition:all 0.15s;
   }
-  .pb-tab.active { background: rgba(0,229,160,0.08); border-color: rgba(0,229,160,0.18); color: var(--accent); }
-  .pb-tab:hover:not(.active) { background: rgba(255,255,255,0.04); }
+  .pb-tab.active { background:rgba(0,229,160,0.08); border-color:rgba(0,229,160,0.18); color:var(--accent); }
+  .footer { text-align:center; padding:24px 0 32px; border-top:1px solid rgba(255,255,255,0.02); }
 
-  /* Objection card */
-  .obj-card {
-    cursor: pointer; transition: all 0.2s;
+  /* ═══════════════════════════════════════════════════
+     PRESENTATION STYLES
+     ═══════════════════════════════════════════════════ */
+  #page-presentation { overflow:hidden; }
+  #page-presentation.active { display:flex; flex-direction:column; height:calc(100vh - 56px); }
+
+  .p-viewport { flex:1; position:relative; overflow:hidden; }
+  .p-slide {
+    position:absolute; inset:0; padding:48px 64px;
+    display:flex; flex-direction:column; justify-content:center;
+    opacity:0; transform:translateX(60px);
+    transition:opacity 0.5s ease, transform 0.5s ease;
+    pointer-events:none; overflow-y:auto;
   }
-  .obj-card:hover { border-color: rgba(255,255,255,0.12); }
+  .p-slide.active { opacity:1; transform:translateX(0); pointer-events:auto; }
+  .p-slide.exit-left { opacity:0; transform:translateX(-60px); }
 
-  /* Prospect row */
-  .prospect-row { transition: all 0.15s; }
-  .prospect-row:hover { border-color: rgba(255,255,255,0.12); }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
-
-  /* Footer */
-  .footer {
-    text-align: center; padding: 24px 0 32px;
-    border-top: 1px solid rgba(255,255,255,0.02);
+  .p-bottom {
+    padding:14px 32px; display:flex; justify-content:space-between; align-items:center;
+    border-top:1px solid var(--card-border); flex-shrink:0; background:rgba(0,0,0,0.3);
   }
-
-  /* Section visibility */
-  .section { display: none; }
-  .section.active { display: block; }
-
-  /* Form modal */
-  .form-card {
-    background: rgba(0,229,160,0.02);
-    border-color: rgba(0,229,160,0.12);
+  .p-nav {
+    padding:10px 24px; border-radius:10px; font-size:13px; font-weight:600;
+    cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.15s; border:none;
   }
-
-  /* Responsive */
-  @media (max-width: 640px) {
-    .topbar { padding: 12px 16px; }
-    .tabs { padding: 0 16px; }
-    .content { padding: 16px 14px; }
-    .card { padding: 16px; }
-    .card-sm { padding: 14px; }
-    .grid-2, .grid-3, .grid-2-wide { grid-template-columns: 1fr; }
-    .hide-mobile { display: none; }
+  .p-nav.pri { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:var(--bg); }
+  .p-nav.pri:hover { box-shadow:0 4px 20px rgba(0,229,160,0.3); transform:translateY(-1px); }
+  .p-nav.gho { background:rgba(255,255,255,0.04); color:var(--dim); border:1px solid var(--card-border); }
+  .p-nav.gho:hover { background:rgba(255,255,255,0.08); color:#fff; }
+  .p-nav:disabled { opacity:0.3; cursor:not-allowed; transform:none; box-shadow:none; }
+  .dots { display:flex; gap:6px; align-items:center; }
+  .dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--ghost); transition:all 0.3s; cursor:pointer;
   }
+  .dot.active { background:var(--accent); width:24px; border-radius:4px; }
+  .dot.visited { background:rgba(0,229,160,0.3); }
 
-  /* Custom selection */
-  ::selection { background: rgba(0,229,160,0.25); color: #fff; }
+  .p-num { font-size:11px; color:var(--muted); letter-spacing:2px; margin-bottom:12px; }
+  .p-title { font-size:42px; font-weight:800; line-height:1.15; margin-bottom:8px; letter-spacing:-1px; }
+  .p-sub { font-size:18px; color:var(--dim); font-weight:400; margin-bottom:36px; line-height:1.5; }
+  .accent { color:var(--accent); }
+  .accent-p { color:var(--purple); }
+  .accent-b { color:var(--blue); }
+  .accent-a { color:var(--amber); }
 
-  /* Noise texture overlay */
-  body::before {
-    content: '';
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    opacity: 0.015; z-index: 0; pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  .p-cols { display:grid; gap:32px; }
+  .p-cols-2 { grid-template-columns:1fr 1fr; }
+  .p-cols-60 { grid-template-columns:3fr 2fr; }
+  .p-cols-3 { grid-template-columns:1fr 1fr 1fr; }
+
+  .p-flow { display:flex; align-items:flex-start; gap:16px; margin-bottom:20px; }
+  .p-flow-num {
+    width:36px; height:36px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700;
   }
-  body > * { position: relative; z-index: 1; }
+  .p-flow h4 { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .p-flow p { font-size:13px; color:var(--dim); line-height:1.5; }
+
+  .script-block {
+    background:rgba(0,229,160,0.03); border:1px solid rgba(0,229,160,0.1);
+    border-radius:12px; padding:20px; margin-bottom:12px; border-left:3px solid var(--accent);
+  }
+  .script-lbl { font-size:10px; font-weight:700; color:var(--accent); letter-spacing:1.5px; margin-bottom:8px; }
+  .script-txt { font-size:14px; color:#CBD5E1; line-height:1.7; }
+  .script-txt em { color:var(--accent); font-style:normal; font-weight:600; }
+
+  .email-block {
+    background:rgba(59,130,246,0.03); border:1px solid rgba(59,130,246,0.1);
+    border-radius:12px; padding:20px; margin-bottom:12px; border-left:3px solid var(--blue);
+  }
+  .email-lbl { font-size:10px; font-weight:700; color:var(--blue); letter-spacing:1.5px; margin-bottom:8px; }
+  .email-fld { font-size:12px; color:var(--muted); margin-bottom:4px; }
+  .email-fld strong { color:var(--dim); }
+  .email-body { font-size:13px; color:#CBD5E1; line-height:1.7; margin-top:10px; }
+
+  .hl-box {
+    background:linear-gradient(135deg,rgba(0,229,160,0.06),rgba(0,184,212,0.03));
+    border:1px solid rgba(0,229,160,0.12); border-radius:14px; padding:24px;
+  }
+  .tag {
+    display:inline-block; padding:4px 12px; border-radius:20px;
+    font-size:11px; font-weight:600; letter-spacing:0.5px;
+  }
+  .metric-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 0; border-bottom:1px solid var(--card-border);
+  }
+  .metric-row:last-child { border-bottom:none; }
+  .metric-nm { font-size:14px; color:var(--dim); }
+  .metric-val { font-size:16px; font-weight:700; }
+
+  .kbd-hint { position:fixed; bottom:60px; right:32px; font-size:11px; color:var(--muted); z-index:10; display:none; }
+  .kbd { display:inline-block; padding:2px 8px; border-radius:4px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); font-size:10px; margin:0 2px; }
+
+  @media(max-width:768px) {
+    .p-slide { padding:24px 16px; }
+    .p-title { font-size:26px; }
+    .p-cols-2,.p-cols-3,.p-cols-60,.grid-2,.grid-3,.grid-2w { grid-template-columns:1fr; }
+    .g-topbar { padding:10px 14px; }
+    .cc-content { padding:16px 12px; }
+    .p-bottom { padding:10px 16px; }
+    .g-nav-btn { padding:6px 12px; font-size:11px; }
+    .hide-m { display:none !important; }
+  }
 </style>
 </head>
 <body>
 
-<!-- ══ TOP BAR ══ -->
-<div class="topbar">
-  <div style="display:flex;align-items:center;gap:14px">
-    <div class="logo mono">P</div>
+<!-- ══════════════ GLOBAL TOP BAR ══════════════ -->
+<div class="g-topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="g-logo mono">P</div>
     <div>
-      <div style="font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.3px">
-        PLIANT <span class="mono" style="color:var(--accent)">BDR</span><span style="color:#444;font-weight:400"> · Command Center</span>
+      <div style="font-size:14px;font-weight:700;color:#fff;letter-spacing:-0.3px">
+        PLIANT <span class="mono" style="color:var(--accent)">BDR</span>
       </div>
-      <div class="mono" style="font-size:11px;color:#444" id="clock"></div>
+      <div class="mono" style="font-size:10px;color:var(--muted)" id="g-clock"></div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:16px">
-    <div style="text-align:right">
-      <div class="mono" style="font-size:9px;color:#555;letter-spacing:1px">LEVEL <span id="level-text">1</span></div>
-      <div style="width:80px"><div class="bar-track"><div class="bar-fill" id="xp-bar" style="width:0%;background:var(--accent)"></div></div></div>
-      <div class="mono" style="font-size:9px;color:var(--accent);margin-top:2px"><span id="xp-text">0</span> XP</div>
+  <div class="g-nav">
+    <button class="g-nav-btn active" onclick="showPage('hub')">⚡ Command Center</button>
+    <button class="g-nav-btn" onclick="showPage('presentation')">📊 Presentation</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="text-align:right" class="hide-m">
+      <div class="mono" style="font-size:9px;color:#555;letter-spacing:1px">LEVEL <span id="g-lvl">1</span></div>
+      <div style="width:70px"><div class="bar-track"><div class="bar-fill" id="g-xp-bar" style="width:0%;background:var(--accent)"></div></div></div>
+      <div class="mono" style="font-size:9px;color:var(--accent);margin-top:2px"><span id="g-xp">0</span> XP</div>
     </div>
-    <div class="level-ring" id="level-ring">
-      <div class="level-inner mono" id="level-num">1</div>
-    </div>
+    <div class="g-xp-ring" id="g-ring"><div class="g-xp-inner mono" id="g-ring-num">1</div></div>
   </div>
 </div>
 
-<!-- ══ TABS ══ -->
-<div class="tabs" id="tabs">
-  <button class="tab active" data-tab="dashboard"><span style="margin-right:6px">⚡</span>Command Center</button>
-  <button class="tab" data-tab="pipeline"><span style="margin-right:6px">🎯</span>Pipeline</button>
-  <button class="tab" data-tab="callnotes"><span style="margin-right:6px">📞</span>Call Intel</button>
-  <button class="tab" data-tab="playbook"><span style="margin-right:6px">📖</span>Playbook</button>
+<!-- ══════════════ PAGE: COMMAND CENTER ══════════════ -->
+<div class="page active" id="page-hub">
+  <!-- Sub-tabs -->
+  <div class="cc-tabs" id="cc-tabs">
+    <button class="cc-tab active" data-cctab="dashboard">⚡ Dashboard</button>
+    <button class="cc-tab" data-cctab="pipeline">🎯 Pipeline</button>
+    <button class="cc-tab" data-cctab="callnotes">📞 Call Intel</button>
+    <button class="cc-tab" data-cctab="playbook">📖 Playbook</button>
+  </div>
+  <div class="cc-content">
+    <div class="cc-section active" id="ccs-dashboard"></div>
+    <div class="cc-section" id="ccs-pipeline"></div>
+    <div class="cc-section" id="ccs-callnotes"></div>
+    <div class="cc-section" id="ccs-playbook"></div>
+  </div>
+  <div class="footer"><div class="mono" style="font-size:9px;color:#1a1a1a;letter-spacing:2px">PLIANT BDR COMMAND CENTER · BUILT TO WIN · TOP 1%</div></div>
 </div>
 
-<!-- ══ CONTENT ══ -->
-<div class="content">
+<!-- ══════════════ PAGE: PRESENTATION ══════════════ -->
+<div class="page" id="page-presentation">
+  <div class="p-viewport" id="p-viewport">
 
-  <!-- ═══════ DASHBOARD ═══════ -->
-  <div class="section active" id="sec-dashboard">
-    <!-- Motivation -->
-    <div class="card card-sm card-accent fade-up" style="margin-bottom:20px;padding:18px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-      <span style="font-size:24px">🔥</span>
-      <div style="flex:1;min-width:200px">
-        <div style="font-size:14px;color:var(--accent);font-weight:600;font-style:italic" id="quote"></div>
-      </div>
-      <div style="text-align:right">
-        <div class="mono" style="font-size:9px;color:#555;letter-spacing:1px">TODAY'S FOCUS</div>
-        <div style="font-size:13px;font-weight:700;color:#fff" id="today-focus"></div>
-      </div>
-    </div>
-
-    <!-- Activity Grid -->
-    <div class="grid-2 fade-up stagger-1" style="margin-bottom:20px" id="activity-grid"></div>
-
-    <!-- Stats Row -->
-    <div class="grid-3 fade-up stagger-2" style="margin-bottom:20px">
-      <!-- Daily Progress -->
-      <div class="card card-sm" style="text-align:center">
-        <div style="position:relative;width:90px;height:90px;margin:0 auto 10px">
-          <svg width="90" height="90" style="transform:rotate(-90deg)">
-            <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="7"/>
-            <circle cx="45" cy="45" r="38" fill="none" stroke="var(--blue)" stroke-width="7" stroke-linecap="round"
-              stroke-dasharray="238.76" id="progress-ring" style="transition:stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1)"/>
-          </svg>
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
-            <span class="mono" style="font-size:22px;font-weight:700;color:#fff" id="total-pct">0%</span>
+    <!-- SLIDE 0: TITLE -->
+    <div class="p-slide active" data-ps="0">
+      <div style="max-width:720px">
+        <div class="mono p-num">PLIANT · BDR FINAL STAGE EXERCISE</div>
+        <h1 class="p-title" style="font-size:52px">How I'll Build Pliant's<br><span class="accent">US Pipeline</span> from Scratch</h1>
+        <p class="p-sub" style="margin-bottom:40px">A repeatable system for generating qualified opportunities<br>for the AE team to close.</p>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--bg)">Y</div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#fff">[Your Name]</div>
+            <div style="font-size:13px;color:var(--dim)">BDR Candidate · Pliant US Founding Team</div>
           </div>
         </div>
-        <div class="mono" style="font-size:10px;color:#555;letter-spacing:1px">DAILY PROGRESS</div>
-        <div style="font-size:12px;color:#888;margin-top:4px"><span id="goals-hit">0</span>/4 targets hit</div>
-      </div>
-      <!-- Weekly Meetings -->
-      <div class="card card-sm" style="text-align:center">
-        <div class="mono" style="font-size:9px;color:#555;margin-bottom:10px;letter-spacing:1px">WEEKLY MEETINGS</div>
-        <div style="display:flex;align-items:baseline;justify-content:center;gap:4px">
-          <span class="mono" style="font-size:38px;font-weight:700;color:#fff" id="weekly-booked">0</span>
-          <span style="font-size:16px;color:#444">/ <span id="weekly-target">15</span></span>
-        </div>
-        <div style="margin-top:8px"><div class="bar-track"><div class="bar-fill" id="weekly-bar" style="width:0%;background:var(--amber)"></div></div></div>
-        <button class="btn-ghost" style="margin-top:12px;padding:8px 16px;font-size:11px" onclick="bookWeekly()">+ Book Meeting</button>
-      </div>
-      <!-- Prospects -->
-      <div class="card card-sm" style="text-align:center">
-        <div class="mono" style="font-size:9px;color:#555;margin-bottom:10px;letter-spacing:1px">ACTIVE PROSPECTS</div>
-        <div class="mono" style="font-size:38px;font-weight:700;color:var(--purple)" id="prospect-count">0</div>
-        <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:8px" id="prospect-badges"></div>
       </div>
     </div>
 
-    <!-- Game Plan + Wins -->
-    <div class="grid-2-wide fade-up stagger-3" style="margin-bottom:20px">
-      <div class="card card-sm">
-        <div class="mono" style="font-size:10px;color:#555;margin-bottom:12px;letter-spacing:1px" id="gameplan-title"></div>
-        <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:12px" id="gameplan-focus"></div>
-        <div id="gameplan-tasks"></div>
-      </div>
-      <div class="card card-sm">
-        <div class="mono" style="font-size:10px;color:#555;margin-bottom:12px;letter-spacing:1px">🏆 TODAY'S WINS</div>
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <input class="input" id="win-input" placeholder="Log a win..." style="flex:1" onkeydown="if(event.key==='Enter')addWin()">
-          <button class="btn-primary" style="padding:10px 16px" onclick="addWin()">+</button>
-        </div>
-        <div id="wins-list" style="max-height:180px;overflow-y:auto"></div>
-      </div>
-    </div>
-
-    <div style="text-align:center" class="fade-up stagger-4">
-      <button class="btn-ghost" style="font-size:11px;padding:8px 20px" onclick="resetDaily()">↻ Reset Daily Counters</button>
-    </div>
-  </div>
-
-  <!-- ═══════ PIPELINE ═══════ -->
-  <div class="section" id="sec-pipeline">
-    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;align-items:center" id="pipeline-filters"></div>
-    <div class="card card-sm" style="margin-bottom:16px;padding:14px 18px;display:none" id="pipeline-visual">
-      <div style="display:flex;height:8px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.03)" id="pipeline-bar"></div>
-      <div style="display:flex;justify-content:space-between;margin-top:8px" id="pipeline-labels"></div>
-    </div>
-    <div id="prospect-form-container"></div>
-    <div id="prospects-list"></div>
-  </div>
-
-  <!-- ═══════ CALL INTEL ═══════ -->
-  <div class="section" id="sec-callnotes">
-    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-      <button class="btn-primary" style="padding:8px 16px;font-size:12px" onclick="showNoteForm()">+ Log Call</button>
-      <input class="input" id="note-search" placeholder="Search notes..." style="max-width:300px" oninput="renderNotes()">
-    </div>
-    <div id="note-form-container"></div>
-    <div id="notes-list"></div>
-  </div>
-
-  <!-- ═══════ PLAYBOOK ═══════ -->
-  <div class="section" id="sec-playbook">
-    <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap" id="pb-tabs"></div>
-    <div id="pb-content"></div>
-  </div>
-
-</div>
-
-<div class="footer">
-  <div class="mono" style="font-size:9px;color:#222;letter-spacing:2px">PLIANT BDR COMMAND CENTER · BUILT TO WIN · TOP 1%</div>
-</div>
-
-<script>
-// ══════════════════════════════════════════════════════
-// DATA
-// ══════════════════════════════════════════════════════
-const STAGES = ["Researched", "Contacted", "Engaged", "Discovery", "Meeting Set", "Qualified"];
-const STAGE_COLORS = { "Researched": "#64748b", "Contacted": "#8B5CF6", "Engaged": "#3B82F6", "Discovery": "#F59E0B", "Meeting Set": "#00E5A0", "Qualified": "#06D6A0" };
-const PERSONAS = ["CFO", "VP Finance", "Head of Payments", "Controller", "Treasury", "CEO", "COO", "Other"];
-const INDUSTRIES = ["Travel & Hospitality", "SaaS / Tech", "Fleet & Logistics", "Financial Services", "ERP / Software", "Banking", "E-Commerce", "Other"];
-
-const OBJECTION_BANK = [
-  { objection: "We already have corporate cards", response: "That's great — most of our clients did too. The difference is Pliant's API-first approach lets you automate card issuance, set granular controls, and embed payments directly into your workflows. We don't replace your bank — we give you programmable infrastructure your current cards can't offer." },
-  { objection: "We're not looking to switch right now", response: "Totally understand. Most of our best customers weren't actively looking either. What typically gets their attention is when they realize how much manual work goes into reconciliation and expense management that could be automated. Would it be worth a 15-minute look to see if that resonates?" },
-  { objection: "What makes Pliant different from Brex/Ramp?", response: "Great question. Brex and Ramp are expense management tools with cards attached. Pliant is payment infrastructure — API-first, so companies can programmatically issue cards, set dynamic limits, and embed our rails into their own products via white-label. We serve both direct enterprise clients AND platforms that want to offer cards to their customers." },
-  { objection: "Send me an email / I need to think about it", response: "Of course — I'll send something over. Just so I can make it relevant: what's the biggest pain point you're dealing with around corporate payments right now? That way I can include a specific example of how we've solved that for similar companies." },
-  { objection: "I don't have time right now", response: "Completely respect that. I'll be brief — 30 seconds. We help finance teams at [industry] companies automate corporate card management and cut reconciliation time by 80%. If that sounds remotely interesting, I'd love 15 minutes that work better. What does Thursday look like?" },
-  { objection: "We're too small for this", response: "That's exactly when our clients get the most value. Pliant scales with you — start with a handful of virtual cards and grow to thousands. Companies that set up smart payment infrastructure early avoid the painful migration later. Want to see how a company your size uses us?" },
-  { objection: "Is Pliant available in the US?", response: "Yes! We're actively launching in the US right now. We support 30+ countries and 11 currencies through our Visa partnership. As a founding US client, you'd get white-glove onboarding and direct access to our product team." },
-  { objection: "Our ERP handles payments", response: "That's a sweet spot for us. Pliant integrates directly into ERP systems — we have partners that embed our card-issuing capabilities right into their workflows. Instead of replacing your ERP, we supercharge its payment layer." },
-];
-
-const DISCOVERY_QUESTIONS = [
-  { category: "Current State", questions: ["How are you currently managing corporate card issuance and controls?", "Walk me through your monthly reconciliation process — how many hours does that take?", "How many corporate cards do you have in circulation right now?", "What does your current approval workflow look like for new card requests?"] },
-  { category: "Pain & Impact", questions: ["What's the biggest headache your finance team deals with around corporate spending?", "When was the last time a payment issue caused a real business problem?", "How much time does your team spend on manual expense categorization?", "What happens when you need to issue a card urgently — like for a last-minute business trip?"] },
-  { category: "Future State", questions: ["If you could wave a magic wand, what would your ideal payment infrastructure look like?", "Are you evaluating any embedded finance or card-as-a-service solutions?", "What would it mean for your team if reconciliation was fully automated?", "How important is multi-currency support over the next 12 months?"] },
-  { category: "Decision Process", questions: ["Besides yourself, who else would evaluate a solution like this?", "What's your timeline for making changes to payment infrastructure?", "Is there budget allocated for improving corporate payment processes?", "What would need to be true for you to move forward with a pilot?"] },
-];
-
-const VALUE_PROPS = [
-  { title: "API-First Architecture", detail: "Programmatic card issuance, dynamic limits, real-time webhooks. Not a card with an app — it's payment infrastructure.", color: "#8B5CF6" },
-  { title: "Embedded Finance / White-Label", detail: "Partners launch their own branded card programs using Pliant's rails. CaaS for platforms, ERPs, and banks.", color: "#3B82F6" },
-  { title: "11 Currencies, 30+ Countries", detail: "Visa-powered, EMI-licensed. Global from day one with local card issuance.", color: "#00E5A0" },
-  { title: "Real-Time Spend Controls", detail: "Limits per card, per merchant category, per time window. Granular control without bottlenecks.", color: "#F59E0B" },
-  { title: "Automated Reconciliation", detail: "Every transaction maps to the right cost center automatically. Integrates with major ERPs and accounting tools.", color: "#EF4444" },
-  { title: "4,000+ Businesses Trust Pliant", detail: "Proven in Europe, now conquering the US. Clients range from startups to enterprise finance teams.", color: "#06D6A0" },
-];
-
-const WEEKLY_FRAMEWORK = [
-  { day: "Monday", focus: "Pipeline Building", tasks: ["Review & refresh target account list", "Research 20 new prospects", "Set the week's outbound sequences", "Sync with Head of Sales on priorities"] },
-  { day: "Tuesday", focus: "Heavy Calling Block", tasks: ["Power hour: 25+ dials before noon", "Follow up on warm leads", "Second calling block: 20+ afternoon", "Log all activity + update CRM"] },
-  { day: "Wednesday", focus: "Multi-Channel Blitz", tasks: ["LinkedIn outreach (15+ connections)", "Send tailored email sequences", "Call prospects who opened emails", "AE Shadow session"] },
-  { day: "Thursday", focus: "Discovery & Qualification", tasks: ["Run scheduled discovery calls", "Deep research for Friday's prospects", "A/B test new messaging angles", "Practice objection handling"] },
-  { day: "Friday", focus: "Close the Week Strong", tasks: ["Final push to hit weekly target", "Update pipeline stages in CRM", "Weekly report to Head of Sales", "Reflect: what worked, what to improve"] },
-];
-
-const QUOTES = [
-  "Every 'no' gets you closer to 'yes'. Keep dialing.",
-  "Top 1% isn't talent — it's discipline when no one's watching.",
-  "Pipeline today = commission tomorrow.",
-  "Activity breeds luck. More calls = more opportunities.",
-  "You're not selling a product — you're solving a problem.",
-  "The best BDRs don't wait for motivation — they create it.",
-  "Speed to lead wins. Be first, be fast, be relentless.",
-  "You're building the US playbook. Make it legendary.",
-];
-
-const AE_MILESTONES = [
-  { m: "Hit Pipeline Targets (6+ months)", desc: "Consistently meet or exceed monthly outbound pipeline goals. Volume + quality.", color: "#00E5A0", active: true },
-  { m: "Proactive Development", desc: "Initiative in pipeline building, sales execution improvement, and market expertise.", color: "#3B82F6" },
-  { m: "Master the Product", desc: "Deep technical understanding of Pliant's API-first credit card solution and integration landscape.", color: "#8B5CF6" },
-  { m: "Certify in Discovery", desc: "Pass internal mock closing simulations. Handle objections independently.", color: "#F59E0B" },
-  { m: "AE Shadow Program", desc: "Shadow demos, manage smaller deal cycles, learn closing mechanics. Prove full-cycle ability.", color: "#EF4444" },
-];
-
-// ══════════════════════════════════════════════════════
-// STATE (localStorage-persisted)
-// ══════════════════════════════════════════════════════
-let _uid = Date.now();
-function uid() { return 'id_' + (++_uid); }
-
-function loadState() {
-  try {
-    const saved = localStorage.getItem('pliant_bdr_state');
-    if (saved) return JSON.parse(saved);
-  } catch(e) {}
-  return null;
-}
-
-function saveState() {
-  try { localStorage.setItem('pliant_bdr_state', JSON.stringify(state)); } catch(e) {}
-}
-
-const defaults = {
-  goals: { calls: { target: 60, done: 0 }, emails: { target: 40, done: 0 }, linkedin: { target: 25, done: 0 }, meetings: { target: 3, done: 0 } },
-  weeklyMeetings: { target: 15, booked: 0 },
-  prospects: [],
-  notes: [],
-  wins: [],
-  xp: 0,
-  pipelineFilter: "all",
-  lastResetDate: new Date().toDateString(),
-};
-
-const goalMeta = {
-  calls: { label: "Cold Calls", icon: "📞" },
-  emails: { label: "Emails Sent", icon: "✉️" },
-  linkedin: { label: "LinkedIn Touches", icon: "🔗" },
-  meetings: { label: "Meetings Booked", icon: "📅" },
-};
-
-let state = loadState() || { ...defaults };
-// Ensure all keys exist
-for (let k in defaults) { if (!(k in state)) state[k] = defaults[k]; }
-
-// Auto-reset daily counters if new day
-if (state.lastResetDate !== new Date().toDateString()) {
-  state.goals = defaults.goals;
-  state.wins = [];
-  state.lastResetDate = new Date().toDateString();
-  saveState();
-}
-
-let activeTab = 'dashboard';
-let pbSection = 'objections';
-let expandedObj = null;
-let expandedDisc = 0;
-let showingProspectForm = false;
-let editingProspectId = null;
-let showingNoteForm = false;
-
-// ══════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════
-function esc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
-function $(id) { return document.getElementById(id); }
-
-function makeBadge(text, color) {
-  return `<span class="badge" style="background:${color}18;color:${color}">${esc(text)}</span>`;
-}
-
-function makeBar(value, max, color) {
-  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
-  return `<div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>`;
-}
-
-function getLevel() { return Math.floor(state.xp / 200) + 1; }
-function getXpMod() { return state.xp % 200; }
-
-function getDayOfWeek() { return new Date().toLocaleDateString("en-US", { weekday: "long" }); }
-function getTodayFramework() { return WEEKLY_FRAMEWORK.find(d => d.day === getDayOfWeek()) || WEEKLY_FRAMEWORK[0]; }
-
-function getByStage() {
-  return STAGES.reduce((a, s) => { a[s] = state.prospects.filter(p => p.stage === s).length; return a; }, {});
-}
-
-function addXP(amount) {
-  state.xp += amount;
-  saveState();
-  updateTopBar();
-}
-
-// ══════════════════════════════════════════════════════
-// CLOCK
-// ══════════════════════════════════════════════════════
-function updateClock() {
-  const now = new Date();
-  $('clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' · ' +
-    now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-}
-setInterval(updateClock, 30000);
-updateClock();
-
-// ══════════════════════════════════════════════════════
-// TOP BAR
-// ══════════════════════════════════════════════════════
-function updateTopBar() {
-  const level = getLevel();
-  const xpMod = getXpMod();
-  $('level-text').textContent = level;
-  $('level-num').textContent = level;
-  $('xp-text').textContent = state.xp;
-  $('xp-bar').style.width = (xpMod / 200 * 100) + '%';
-  $('level-ring').style.background = `conic-gradient(#00E5A0 ${xpMod/200*360}deg, rgba(255,255,255,0.04) 0deg)`;
-}
-
-// ══════════════════════════════════════════════════════
-// TABS
-// ══════════════════════════════════════════════════════
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    activeTab = tab.dataset.tab;
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    $('sec-' + activeTab).classList.add('active');
-    renderCurrentTab();
-  });
-});
-
-function renderCurrentTab() {
-  if (activeTab === 'dashboard') renderDashboard();
-  else if (activeTab === 'pipeline') renderPipeline();
-  else if (activeTab === 'callnotes') renderNotes();
-  else if (activeTab === 'playbook') renderPlaybook();
-}
-
-// ══════════════════════════════════════════════════════
-// DASHBOARD
-// ══════════════════════════════════════════════════════
-function renderDashboard() {
-  // Quote
-  const qi = Math.floor(new Date().getMinutes() / 4) % QUOTES.length;
-  $('quote').textContent = '"' + QUOTES[qi] + '"';
-
-  // Today's framework
-  const fw = getTodayFramework();
-  $('today-focus').textContent = fw.focus;
-  $('gameplan-title').textContent = '📋 ' + fw.day.toUpperCase() + "'S GAME PLAN";
-  $('gameplan-focus').textContent = fw.focus;
-  $('gameplan-tasks').innerHTML = fw.tasks.map(t =>
-    `<div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:#222;font-size:6px;margin-top:7px">●</span><span style="font-size:13px;color:#888">${esc(t)}</span></div>`
-  ).join('');
-
-  // Activity grid
-  let gridHtml = '';
-  for (const [k, g] of Object.entries(state.goals)) {
-    const meta = goalMeta[k];
-    const hit = g.done >= g.target;
-    gridHtml += `
-      <div class="card card-sm" style="position:relative;overflow:hidden;border-color:${hit ? 'rgba(0,229,160,0.2)' : 'rgba(255,255,255,0.06)'};background:${hit ? 'rgba(0,229,160,0.03)' : 'rgba(255,255,255,0.02)'}">
-        ${hit ? '<div class="mono" style="position:absolute;top:8px;right:12px;font-size:9px;color:var(--accent);font-weight:700;letter-spacing:1px">✓ HIT</div>' : ''}
-        <div style="display:flex;align-items:center;justify-content:space-between">
+    <!-- SLIDE 1: STRATEGY TO BOOK LEON -->
+    <div class="p-slide" data-ps="1">
+      <div style="max-width:900px">
+        <div class="mono p-num">01 · EARNING THE MEETING</div>
+        <h2 class="p-title" style="font-size:36px">How I Booked <span class="accent">Leon Faulstroh</span></h2>
+        <p class="p-sub">The exact strategy I used — from research to the call.</p>
+        <div class="p-cols p-cols-60">
           <div>
-            <div class="mono" style="font-size:10px;color:#555;margin-bottom:6px;letter-spacing:0.5px">${meta.icon} ${meta.label.toUpperCase()}</div>
-            <div style="display:flex;align-items:baseline;gap:4px">
-              <span class="mono" style="font-size:34px;font-weight:700;color:${hit ? 'var(--accent)' : '#fff'};line-height:1">${g.done}</span>
-              <span style="font-size:14px;color:#444">/ ${g.target}</span>
+            <div class="p-flow">
+              <div class="p-flow-num mono" style="background:rgba(139,92,246,0.15);color:var(--purple);border:2px solid var(--purple)">1</div>
+              <div><h4>Pre-Call Research (20 min)</h4><p>Studied Leon's LinkedIn, Pliant's Crunchbase, and the JD. Identified his #1 pain: <em style="color:var(--accent)">hiring a BDR who can ramp fast without a playbook</em>.</p></div>
+            </div>
+            <div class="p-flow">
+              <div class="p-flow-num mono" style="background:rgba(59,130,246,0.15);color:var(--blue);border:2px solid var(--blue)">2</div>
+              <div><h4>Crafted a Pattern-Interrupt Opener</h4><p>Led with a bold, relevant hook framed around the <em style="color:var(--accent)">risk of a bad BDR hire costing 3-6 months of lost pipeline</em>.</p></div>
+            </div>
+            <div class="p-flow">
+              <div class="p-flow-num mono" style="background:rgba(0,229,160,0.15);color:var(--accent);border:2px solid var(--accent)">3</div>
+              <div><h4>Drove to a Specific Ask</h4><p>Proposed a concrete 30-minute block: <em style="color:var(--accent)">"I'll walk you through exactly how I'd build your US pipeline in 90 days."</em></p></div>
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <button class="btn-counter ${hit ? 'hit' : ''}" onclick="incGoal('${k}')">+</button>
-            <button class="btn-counter btn-counter-sm" onclick="decGoal('${k}')">−</button>
-          </div>
-        </div>
-        <div style="margin-top:14px">${makeBar(g.done, g.target, hit ? '#00E5A0' : '#3B82F6')}</div>
-      </div>`;
-  }
-  $('activity-grid').innerHTML = gridHtml;
-
-  // Progress ring
-  const totalPct = Math.round(Object.values(state.goals).reduce((a, g) => a + Math.min(g.done / g.target, 1), 0) / 4 * 100);
-  const circ = 2 * Math.PI * 38;
-  const offset = circ - (Math.min(totalPct, 100) / 100) * circ;
-  const ring = $('progress-ring');
-  ring.setAttribute('stroke-dashoffset', offset);
-  ring.setAttribute('stroke', totalPct >= 100 ? '#00E5A0' : '#3B82F6');
-  $('total-pct').textContent = totalPct + '%';
-  $('goals-hit').textContent = Object.values(state.goals).filter(g => g.done >= g.target).length;
-
-  // Weekly
-  $('weekly-booked').textContent = state.weeklyMeetings.booked;
-  $('weekly-booked').style.color = state.weeklyMeetings.booked >= state.weeklyMeetings.target ? '#00E5A0' : '#fff';
-  $('weekly-bar').style.width = Math.min((state.weeklyMeetings.booked / state.weeklyMeetings.target) * 100, 100) + '%';
-
-  // Prospects summary
-  $('prospect-count').textContent = state.prospects.length;
-  const bs = getByStage();
-  $('prospect-badges').innerHTML = STAGES.slice(0, 4).map(s => makeBadge(bs[s] || '0', STAGE_COLORS[s])).join('');
-
-  // Wins
-  renderWins();
-}
-
-function renderWins() {
-  const list = $('wins-list');
-  if (state.wins.length === 0) {
-    list.innerHTML = '<div style="font-size:12px;color:#333;font-style:italic">No wins yet. Go get some!</div>';
-    return;
-  }
-  list.innerHTML = state.wins.map(w =>
-    `<div style="display:flex;gap:8px;margin-bottom:8px;padding:8px 10px;background:rgba(0,229,160,0.03);border-radius:8px">
-      <span style="color:var(--accent);font-size:12px">✓</span>
-      <div style="flex:1"><div style="font-size:13px;color:#bbb">${esc(w.text)}</div><div class="mono" style="font-size:9px;color:#444">${esc(w.time)}</div></div>
-    </div>`
-  ).join('');
-}
-
-function incGoal(k) {
-  state.goals[k].done++;
-  const hit = state.goals[k].done === state.goals[k].target;
-  state.xp += hit ? 50 : 5;
-  saveState();
-  renderDashboard();
-  updateTopBar();
-}
-
-function decGoal(k) {
-  state.goals[k].done = Math.max(0, state.goals[k].done - 1);
-  saveState();
-  renderDashboard();
-}
-
-function bookWeekly() {
-  state.weeklyMeetings.booked++;
-  state.xp += 30;
-  saveState();
-  renderDashboard();
-  updateTopBar();
-}
-
-function addWin() {
-  const input = $('win-input');
-  const text = input.value.trim();
-  if (!text) return;
-  state.wins.push({ id: uid(), text, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-  state.xp += 20;
-  input.value = '';
-  saveState();
-  renderWins();
-  updateTopBar();
-}
-
-function resetDaily() {
-  if (!confirm('Reset all daily counters and wins?')) return;
-  for (let k in state.goals) state.goals[k].done = 0;
-  state.wins = [];
-  state.lastResetDate = new Date().toDateString();
-  saveState();
-  renderDashboard();
-}
-
-// ══════════════════════════════════════════════════════
-// PIPELINE
-// ══════════════════════════════════════════════════════
-function renderPipeline() {
-  const bs = getByStage();
-
-  // Filters
-  let fHtml = `<button class="btn-primary" style="padding:8px 16px;font-size:12px;margin-right:8px" onclick="showProspectForm()">+ Add Prospect</button>`;
-  ['all', ...STAGES].forEach(st => {
-    const active = state.pipelineFilter === st;
-    const color = st === 'all' ? '#00E5A0' : STAGE_COLORS[st];
-    const count = st === 'all' ? state.prospects.length : (bs[st] || 0);
-    fHtml += `<button class="stage-pill" style="border-color:${active ? color : 'rgba(255,255,255,0.06)'};background:${active ? color + '12' : 'transparent'};color:${active ? color : '#555'}" onclick="setPipelineFilter('${st}')">${st === 'all' ? 'All' : st} (${count})</button>`;
-  });
-  $('pipeline-filters').innerHTML = fHtml;
-
-  // Visual bar
-  const visual = $('pipeline-visual');
-  if (state.prospects.length > 0) {
-    visual.style.display = 'block';
-    $('pipeline-bar').innerHTML = STAGES.map(st => {
-      const pct = (bs[st] || 0) / state.prospects.length * 100;
-      return pct > 0 ? `<div style="width:${pct}%;background:${STAGE_COLORS[st]};transition:width 0.4s"></div>` : '';
-    }).join('');
-    $('pipeline-labels').innerHTML = STAGES.map(st =>
-      `<div class="mono" style="font-size:8px;color:#444;text-align:center"><span style="color:${STAGE_COLORS[st]};font-weight:700">${bs[st] || 0}</span> ${st.split(' ')[0]}</div>`
-    ).join('');
-  } else {
-    visual.style.display = 'none';
-  }
-
-  // Prospect form
-  if (showingProspectForm) {
-    renderProspectForm();
-  } else {
-    $('prospect-form-container').innerHTML = '';
-  }
-
-  // Prospect list
-  const filtered = state.pipelineFilter === 'all' ? state.prospects : state.prospects.filter(p => p.stage === state.pipelineFilter);
-  if (filtered.length === 0 && !showingProspectForm) {
-    $('prospects-list').innerHTML = `<div class="card" style="text-align:center;padding:48px"><div style="font-size:32px;margin-bottom:8px">🎯</div><div style="font-size:14px;color:#555">No prospects yet. Start building your pipeline!</div></div>`;
-    return;
-  }
-
-  $('prospects-list').innerHTML = filtered.map(p => {
-    const si = STAGES.indexOf(p.stage);
-    return `<div class="card card-sm prospect-row" style="margin-bottom:10px;display:flex;align-items:flex-start;gap:14px">
-      <div style="width:4px;height:50px;border-radius:4px;background:${STAGE_COLORS[p.stage]};flex-shrink:0;margin-top:4px"></div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:15px;font-weight:700;color:#fff">${esc(p.company)}</span>
-          ${makeBadge(p.stage, STAGE_COLORS[p.stage])}
-          ${p.industry ? makeBadge(p.industry, '#555') : ''}
-        </div>
-        ${p.contact ? `<div style="font-size:13px;color:#888;margin-top:4px">${esc(p.contact)}${p.title ? ' · ' + esc(p.title) : ''}${p.persona ? ' · ' + esc(p.persona) : ''}</div>` : ''}
-        ${p.email ? `<div style="font-size:11px;color:#444;margin-top:2px">${esc(p.email)}${p.phone ? ' · ' + esc(p.phone) : ''}</div>` : ''}
-        ${p.notes ? `<div style="font-size:12px;color:#555;margin-top:6px;font-style:italic">${esc(p.notes)}</div>` : ''}
-      </div>
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        ${si < STAGES.length - 1 ? `<button class="btn-ghost btn-sm" onclick="advanceProspect('${p.id}')" title="Advance">➜</button>` : ''}
-        <button class="btn-ghost btn-sm" onclick="editProspect('${p.id}')">✎</button>
-        <button class="btn-ghost btn-sm" style="color:#FF5252;border-color:rgba(255,82,82,0.15)" onclick="deleteProspect('${p.id}')">✕</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderProspectForm() {
-  const p = editingProspectId ? state.prospects.find(x => x.id === editingProspectId) : null;
-  const vals = p || { company: '', contact: '', title: '', persona: '', industry: '', stage: 'Researched', email: '', phone: '', notes: '' };
-
-  $('prospect-form-container').innerHTML = `
-    <div class="card form-card" style="margin-bottom:16px">
-      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:16px">${editingProspectId ? 'Edit Prospect' : 'Add New Prospect'}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div><label class="label">Company *</label><input class="input" id="pf-company" value="${esc(vals.company)}" placeholder="Acme Corp"></div>
-        <div><label class="label">Contact</label><input class="input" id="pf-contact" value="${esc(vals.contact)}" placeholder="Jane Smith"></div>
-        <div><label class="label">Title</label><input class="input" id="pf-title" value="${esc(vals.title)}" placeholder="VP of Finance"></div>
-        <div><label class="label">Persona</label><select class="select" id="pf-persona"><option value="">Select...</option>${PERSONAS.map(x => `<option ${vals.persona === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
-        <div><label class="label">Industry</label><select class="select" id="pf-industry"><option value="">Select...</option>${INDUSTRIES.map(x => `<option ${vals.industry === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
-        <div><label class="label">Stage</label><select class="select" id="pf-stage">${STAGES.map(x => `<option ${vals.stage === x ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
-        <div><label class="label">Email</label><input class="input" id="pf-email" value="${esc(vals.email)}" placeholder="jane@acme.com"></div>
-        <div><label class="label">Phone</label><input class="input" id="pf-phone" value="${esc(vals.phone)}" placeholder="+1 555-0123"></div>
-      </div>
-      <div style="margin-top:12px"><label class="label">Notes</label><textarea class="input textarea" id="pf-notes" placeholder="Triggers, context, research notes...">${esc(vals.notes)}</textarea></div>
-      <div style="display:flex;gap:10px;margin-top:14px">
-        <button class="btn-primary" onclick="saveProspect()">${editingProspectId ? 'Update' : 'Add Prospect'}</button>
-        <button class="btn-ghost" onclick="cancelProspectForm()">Cancel</button>
-      </div>
-    </div>`;
-}
-
-function showProspectForm() {
-  showingProspectForm = true;
-  editingProspectId = null;
-  renderPipeline();
-}
-
-function cancelProspectForm() {
-  showingProspectForm = false;
-  editingProspectId = null;
-  renderPipeline();
-}
-
-function saveProspect() {
-  const company = $('pf-company').value.trim();
-  if (!company) return;
-  const data = {
-    company,
-    contact: $('pf-contact').value.trim(),
-    title: $('pf-title').value.trim(),
-    persona: $('pf-persona').value,
-    industry: $('pf-industry').value,
-    stage: $('pf-stage').value,
-    email: $('pf-email').value.trim(),
-    phone: $('pf-phone').value.trim(),
-    notes: $('pf-notes').value.trim(),
-  };
-  if (editingProspectId) {
-    const p = state.prospects.find(x => x.id === editingProspectId);
-    if (p) Object.assign(p, data);
-  } else {
-    state.prospects.unshift({ id: uid(), ...data, createdAt: new Date().toLocaleDateString() });
-    state.xp += 10;
-    updateTopBar();
-  }
-  showingProspectForm = false;
-  editingProspectId = null;
-  saveState();
-  renderPipeline();
-}
-
-function editProspect(id) {
-  editingProspectId = id;
-  showingProspectForm = true;
-  renderPipeline();
-}
-
-function deleteProspect(id) {
-  const p = state.prospects.find(x => x.id === id);
-  if (!confirm('Delete ' + (p ? p.company : 'this prospect') + '?')) return;
-  state.prospects = state.prospects.filter(x => x.id !== id);
-  saveState();
-  renderPipeline();
-}
-
-function advanceProspect(id) {
-  const p = state.prospects.find(x => x.id === id);
-  if (!p) return;
-  const si = STAGES.indexOf(p.stage);
-  if (si < STAGES.length - 1) p.stage = STAGES[si + 1];
-  saveState();
-  renderPipeline();
-}
-
-function setPipelineFilter(f) {
-  state.pipelineFilter = f;
-  saveState();
-  renderPipeline();
-}
-
-// ══════════════════════════════════════════════════════
-// CALL INTEL
-// ══════════════════════════════════════════════════════
-function renderNotes() {
-  const search = ($('note-search') || {}).value || '';
-  const filtered = search
-    ? state.notes.filter(n => [n.company, n.contact, n.summary, n.nextSteps].some(f => (f || '').toLowerCase().includes(search.toLowerCase())))
-    : state.notes;
-
-  if (showingNoteForm) {
-    renderNoteForm();
-  } else {
-    $('note-form-container').innerHTML = '';
-  }
-
-  const sentColors = { "Very Positive": "#00E5A0", "Positive": "#06D6A0", "Neutral": "#F59E0B", "Skeptical": "#FF8A65", "Not Interested": "#FF5252" };
-
-  if (filtered.length === 0 && !showingNoteForm) {
-    $('notes-list').innerHTML = `<div class="card" style="text-align:center;padding:48px"><div style="font-size:32px;margin-bottom:8px">📞</div><div style="font-size:14px;color:#555">No call notes yet. Start logging conversations!</div></div>`;
-    return;
-  }
-
-  $('notes-list').innerHTML = filtered.map(n => `
-    <div class="card card-sm" style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <span style="font-size:14px;font-weight:700;color:#fff">${esc(n.company || 'Unknown')}</span>
-            ${n.contact ? `<span style="font-size:12px;color:#777">· ${esc(n.contact)}</span>` : ''}
-            ${makeBadge(n.sentiment, sentColors[n.sentiment] || '#F59E0B')}
-          </div>
-          <div class="mono" style="font-size:9px;color:#444;margin-top:4px">${esc(n.timestamp)}</div>
-        </div>
-        <button class="btn-ghost btn-sm" style="color:#FF5252;border-color:rgba(255,82,82,0.1)" onclick="deleteNote('${n.id}')">✕</button>
-      </div>
-      <div style="font-size:13px;color:#aaa;margin-top:10px;line-height:1.6">${esc(n.summary)}</div>
-      ${n.nextSteps ? `<div style="margin-top:10px;padding:8px 12px;background:rgba(59,130,246,0.05);border-radius:8px;border-left:3px solid #3B82F6">
-        <div class="mono" style="font-size:9px;color:#3B82F6;margin-bottom:4px;letter-spacing:1px">NEXT STEPS</div>
-        <div style="font-size:12px;color:#888">${esc(n.nextSteps)}</div>
-      </div>` : ''}
-    </div>
-  `).join('');
-}
-
-function renderNoteForm() {
-  $('note-form-container').innerHTML = `
-    <div class="card form-card" style="margin-bottom:16px">
-      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:16px">Log Call Notes</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
-        <div><label class="label">Company</label><input class="input" id="nf-company" placeholder="Acme Corp"></div>
-        <div><label class="label">Contact</label><input class="input" id="nf-contact" placeholder="Jane Smith"></div>
-        <div><label class="label">Sentiment</label><select class="select" id="nf-sentiment">
-          ${["Very Positive", "Positive", "Neutral", "Skeptical", "Not Interested"].map(x => `<option>${x}</option>`).join('')}
-        </select></div>
-      </div>
-      <div style="margin-top:12px"><label class="label">Summary</label><textarea class="input textarea" id="nf-summary" style="min-height:80px" placeholder="Key takeaways, pain points, objections..."></textarea></div>
-      <div style="margin-top:12px"><label class="label">Next Steps</label><textarea class="input textarea" id="nf-next" style="min-height:50px" placeholder="Follow-up actions..."></textarea></div>
-      <div style="display:flex;gap:10px;margin-top:14px">
-        <button class="btn-primary" onclick="saveNote()">Save Note</button>
-        <button class="btn-ghost" onclick="cancelNoteForm()">Cancel</button>
-      </div>
-    </div>`;
-}
-
-function showNoteForm() { showingNoteForm = true; renderNotes(); }
-function cancelNoteForm() { showingNoteForm = false; renderNotes(); }
-
-function saveNote() {
-  const summary = $('nf-summary').value.trim();
-  if (!summary) return;
-  state.notes.unshift({
-    id: uid(),
-    company: $('nf-company').value.trim(),
-    contact: $('nf-contact').value.trim(),
-    sentiment: $('nf-sentiment').value,
-    summary,
-    nextSteps: $('nf-next').value.trim(),
-    timestamp: new Date().toLocaleString(),
-  });
-  state.xp += 15;
-  showingNoteForm = false;
-  saveState();
-  renderNotes();
-  updateTopBar();
-}
-
-function deleteNote(id) {
-  if (!confirm('Delete this note?')) return;
-  state.notes = state.notes.filter(n => n.id !== id);
-  saveState();
-  renderNotes();
-}
-
-// ══════════════════════════════════════════════════════
-// PLAYBOOK
-// ══════════════════════════════════════════════════════
-function renderPlaybook() {
-  const sections = [
-    { id: 'objections', l: 'Objection Handling', i: '🛡️' },
-    { id: 'discovery', l: 'Discovery Questions', i: '🔍' },
-    { id: 'value', l: 'Value Props', i: '💎' },
-    { id: 'weekly', l: 'Weekly Framework', i: '📅' },
-    { id: 'promotion', l: 'AE Track', i: '🚀' },
-  ];
-
-  $('pb-tabs').innerHTML = sections.map(s =>
-    `<button class="pb-tab ${pbSection === s.id ? 'active' : ''}" onclick="setPbSection('${s.id}')">${s.i} ${s.l}</button>`
-  ).join('');
-
-  const content = $('pb-content');
-
-  if (pbSection === 'objections') {
-    content.innerHTML = `
-      <div class="mono" style="font-size:10px;color:#555;margin-bottom:16px;letter-spacing:1px">🛡️ ${OBJECTION_BANK.length} BATTLE-TESTED RESPONSES</div>
-      ${OBJECTION_BANK.map((o, i) => `
-        <div class="card card-sm obj-card" style="margin-bottom:8px;border-color:${expandedObj === i ? 'rgba(0,229,160,0.12)' : 'rgba(255,255,255,0.05)'};background:${expandedObj === i ? 'rgba(0,229,160,0.02)' : 'rgba(255,255,255,0.015)'}" onclick="toggleObj(${i})">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div style="font-size:13px;font-weight:600;color:#FF8A65">"${esc(o.objection)}"</div>
-            <span style="color:#444;font-size:14px;transform:${expandedObj === i ? 'rotate(180deg)' : 'none'};transition:transform 0.2s;flex-shrink:0;margin-left:8px">▾</span>
-          </div>
-          ${expandedObj === i ? `<div style="margin-top:12px;padding:12px 14px;background:rgba(0,229,160,0.03);border-radius:10px;border-left:3px solid #00E5A0">
-            <div class="mono" style="font-size:9px;color:var(--accent);margin-bottom:6px;letter-spacing:1px">YOUR RESPONSE</div>
-            <div style="font-size:13px;color:#bbb;line-height:1.7">${esc(o.response)}</div>
-          </div>` : ''}
-        </div>
-      `).join('')}`;
-  }
-
-  else if (pbSection === 'discovery') {
-    content.innerHTML = `
-      <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
-        ${DISCOVERY_QUESTIONS.map((c, i) => `<button class="stage-pill" style="border-color:${expandedDisc === i ? 'rgba(139,92,246,0.25)' : 'rgba(255,255,255,0.06)'};background:${expandedDisc === i ? 'rgba(139,92,246,0.08)' : 'transparent'};color:${expandedDisc === i ? '#8B5CF6' : '#555'}" onclick="setDiscCat(${i})">${c.category}</button>`).join('')}
-      </div>
-      <div style="font-size:14px;font-weight:700;color:#8B5CF6;margin-bottom:14px">${DISCOVERY_QUESTIONS[expandedDisc].category}</div>
-      ${DISCOVERY_QUESTIONS[expandedDisc].questions.map((q, i) => `
-        <div class="card card-sm" style="margin-bottom:8px;display:flex;gap:12px;align-items:flex-start">
-          <span class="mono" style="color:#8B5CF6;font-weight:700;font-size:12px;flex-shrink:0">${i + 1}</span>
-          <span style="font-size:13px;color:#bbb;line-height:1.6">${esc(q)}</span>
-        </div>
-      `).join('')}`;
-  }
-
-  else if (pbSection === 'value') {
-    content.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
-      ${VALUE_PROPS.map(v => `
-        <div class="card card-sm" style="border-left:3px solid ${v.color}">
-          <div style="font-size:13px;font-weight:700;color:${v.color};margin-bottom:8px">${esc(v.title)}</div>
-          <div style="font-size:12px;color:#888;line-height:1.6">${esc(v.detail)}</div>
-        </div>
-      `).join('')}
-    </div>`;
-  }
-
-  else if (pbSection === 'weekly') {
-    const dow = getDayOfWeek();
-    content.innerHTML = WEEKLY_FRAMEWORK.map(day => {
-      const isT = day.day === dow;
-      return `<div class="card card-sm" style="margin-bottom:10px;border-color:${isT ? 'rgba(0,229,160,0.18)' : 'rgba(255,255,255,0.05)'};background:${isT ? 'rgba(0,229,160,0.025)' : 'rgba(255,255,255,0.015)'}">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:14px;font-weight:700;color:${isT ? 'var(--accent)' : '#fff'}">${day.day}</span>
-            ${isT ? makeBadge('TODAY', '#00E5A0') : ''}
-          </div>
-          ${makeBadge(day.focus, '#F59E0B')}
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          ${day.tasks.map(t => `<div style="font-size:12px;color:#777;display:flex;gap:6px;align-items:flex-start"><span style="color:#222;font-size:6px;margin-top:7px">●</span>${esc(t)}</div>`).join('')}
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  else if (pbSection === 'promotion') {
-    content.innerHTML = `
-      <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(0,229,160,0.05) 0%,rgba(139,92,246,0.03) 100%);border-color:rgba(0,229,160,0.1)">
-        <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px">🚀 Path to Account Executive</div>
-        <div style="font-size:13px;color:#888">Performance-based promotion in <span style="color:var(--accent);font-weight:700">6–12 months</span></div>
-        <div style="font-size:12px;color:#555;margin-top:4px">OTE: $90k–$110k · 70/30 Base/Bonus · Accelerators on target</div>
-      </div>
-      ${AE_MILESTONES.map((x, i) => `
-        <div class="card card-sm" style="margin-bottom:10px;display:flex;gap:14px;align-items:flex-start">
-          <div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;background:${x.active ? x.color + '18' : 'rgba(255,255,255,0.03)'};border:2px solid ${x.active ? x.color : 'rgba(255,255,255,0.08)'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${x.color}" class="mono">${i + 1}</div>
           <div>
-            <div style="font-size:14px;font-weight:700;color:${x.active ? x.color : '#777'}">${esc(x.m)}</div>
-            <div style="font-size:12px;color:#555;margin-top:4px;line-height:1.5">${esc(x.desc)}</div>
+            <div class="script-block">
+              <div class="script-lbl mono">MY OPENING SCRIPT</div>
+              <div class="script-txt">"Hi Leon — this is [Name]. I know you're building Pliant's founding US sales team, and I'm not calling to ask about the role — I'm calling to show you why <em>I'm the BDR who won't cost you a lost quarter of pipeline.</em><br><br>In my last role, I generated [X meetings/month] and [$Y pipeline] in my first 6 months. I've already put together a 90-day plan specific to Pliant's ICP in travel and fintech.<br><br>Can I get 30 minutes this week to walk you through exactly how I'd build your outbound engine?"</div>
+            </div>
+            <div class="card card-sm" style="margin-top:12px">
+              <div class="mono" style="font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:8px">WHY THIS WORKS</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.6">✓ Pattern interrupt — not a typical candidate call<br>✓ Quantifiable — specific numbers<br>✓ Risk-framed — cost of a wrong hire<br>✓ Shows preparation — plan already built<br>✓ Clear CTA — specific time ask</div>
+            </div>
           </div>
         </div>
-      `).join('')}`;
-  }
+      </div>
+    </div>
+
+    <!-- SLIDE 2: ICP -->
+    <div class="p-slide" data-ps="2">
+      <div style="max-width:900px">
+        <div class="mono p-num">02 · ICP & TARGETING</div>
+        <h2 class="p-title" style="font-size:36px">Who I'm Going After & <span class="accent-p">Why</span></h2>
+        <p class="p-sub">Two segments, two motions — both mapped to Pliant's core value.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card" style="border-left:3px solid var(--accent)">
+            <span class="tag" style="background:rgba(0,229,160,0.12);color:var(--accent);margin-bottom:16px">SEGMENT 1</span>
+            <h3 style="font-size:18px;font-weight:700;margin:12px 0 8px">Enterprise & Mid-Market</h3>
+            <p style="font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:16px">Companies spending $500K+/year on corporate cards who need automation, control, and multi-currency support.</p>
+            <div style="font-size:12px;color:var(--muted);line-height:2"><strong style="color:var(--dim)">Titles:</strong> CFO, VP Finance, Head of Payments<br><strong style="color:var(--dim)">Industries:</strong> Travel, Fleet & Logistics, SaaS<br><strong style="color:var(--dim)">Size:</strong> 200-5,000 employees<br><strong style="color:var(--dim)">Trigger:</strong> Growth, international expansion, new funding</div>
+          </div>
+          <div class="card" style="border-left:3px solid var(--purple)">
+            <span class="tag" style="background:rgba(139,92,246,0.12);color:var(--purple);margin-bottom:16px">SEGMENT 2</span>
+            <h3 style="font-size:18px;font-weight:700;margin:12px 0 8px">Embedded Finance Partners</h3>
+            <p style="font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:16px">Platforms, ERPs, and banks that want branded card programs via Pliant's white-label CaaS.</p>
+            <div style="font-size:12px;color:var(--muted);line-height:2"><strong style="color:var(--dim)">Titles:</strong> CEO, CPO, Head of Partnerships<br><strong style="color:var(--dim)">Industries:</strong> FinSoft, ERP, Banking, Expense Mgmt<br><strong style="color:var(--dim)">Size:</strong> $5M+ ARR platforms<br><strong style="color:var(--dim)">Trigger:</strong> Launching fintech features, revenue diversification</div>
+          </div>
+        </div>
+        <div class="hl-box" style="margin-top:20px;padding:16px 24px;display:flex;align-items:center;gap:16px">
+          <span style="font-size:28px">🎯</span>
+          <div><div style="font-size:14px;font-weight:700;color:#fff">Targeting Logic</div><div style="font-size:13px;color:var(--dim)">Initial TAL of 200 accounts via LinkedIn Sales Navigator + Crunchbase signals. Tiered: <span class="accent">Tier 1</span> (50, full custom) · <span class="accent-p">Tier 2</span> (100, semi-custom) · Tier 3 (50, templated).</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: PROSPECTING SYSTEM -->
+    <div class="p-slide" data-ps="3">
+      <div style="max-width:900px">
+        <div class="mono p-num">03 · PROSPECTING SYSTEM</div>
+        <h2 class="p-title" style="font-size:36px">The <span class="accent">Daily Machine</span></h2>
+        <p class="p-sub">A repeatable activity plan that compounds week over week.</p>
+        <div class="p-cols p-cols-2">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:14px">DAILY ACTIVITY TARGETS</div>
+              <div class="metric-row"><span class="metric-nm">📞 Cold Calls</span><span class="metric-val accent">60/day</span></div>
+              <div class="metric-row"><span class="metric-nm">✉️ Personalized Emails</span><span class="metric-val accent-b">40/day</span></div>
+              <div class="metric-row"><span class="metric-nm">🔗 LinkedIn Touches</span><span class="metric-val accent-p">25/day</span></div>
+              <div class="metric-row"><span class="metric-nm">📅 Meetings Booked</span><span class="metric-val accent-a">3/day</span></div>
+            </div>
+            <div class="card">
+              <div class="mono" style="font-size:10px;color:var(--purple);letter-spacing:1px;margin-bottom:14px">WEEKLY RHYTHM</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.8"><strong style="color:#fff">Mon</strong> — Pipeline building + research<br><strong style="color:#fff">Tue</strong> — Heavy call blocks (AM + PM)<br><strong style="color:#fff">Wed</strong> — Multi-channel blitz<br><strong style="color:#fff">Thu</strong> — Discovery + qualification<br><strong style="color:#fff">Fri</strong> — Close the week, CRM hygiene, HoS report</div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--blue);letter-spacing:1px;margin-bottom:14px">14-DAY, 9-TOUCH SEQUENCE</div>
+              <div style="font-size:12px;color:var(--dim);line-height:2"><span class="accent">Day 1</span> — Email 1 (pain hook) + LinkedIn connect<br><span class="accent">Day 2</span> — Cold call #1<br><span class="accent">Day 4</span> — Email 2 (case study)<br><span class="accent">Day 5</span> — Call #2 + LinkedIn engage<br><span class="accent">Day 7</span> — Email 3 (breakup/value)<br><span class="accent">Day 9</span> — Call #3 + voicemail<br><span class="accent">Day 11</span> — LinkedIn DM (insight)<br><span class="accent">Day 13</span> — Final email<br><span class="accent">Day 14</span> — Final call</div>
+            </div>
+            <div class="card">
+              <div class="mono" style="font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:10px">TECH STACK</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.8"><strong style="color:#fff">CRM:</strong> Salesforce / HubSpot<br><strong style="color:#fff">Sequencing:</strong> Outreach / Salesloft<br><strong style="color:#fff">Prospecting:</strong> LinkedIn Sales Nav, Apollo<br><strong style="color:#fff">Intel:</strong> Crunchbase, BuiltWith, 10-Ks</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: AE HANDOFF -->
+    <div class="p-slide" data-ps="4">
+      <div style="max-width:900px">
+        <div class="mono p-num">04 · MEETINGS & AE HANDOFF</div>
+        <h2 class="p-title" style="font-size:36px">From First Touch to <span class="accent-b">Qualified Handoff</span></h2>
+        <p class="p-sub">How I generate meetings and set AEs up to close.</p>
+        <div class="p-cols p-cols-60">
+          <div class="card">
+            <div class="mono" style="font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:16px">THE HANDOFF PROCESS</div>
+            <div class="p-flow"><div class="p-flow-num mono" style="background:rgba(0,229,160,0.15);color:var(--accent);border:2px solid var(--accent);font-size:12px">1</div><div><h4>Qualify with BANT + Pain</h4><p>Budget, Authority, Need, Timeline — plus the emotional driver.</p></div></div>
+            <div class="p-flow"><div class="p-flow-num mono" style="background:rgba(59,130,246,0.15);color:var(--blue);border:2px solid var(--blue);font-size:12px">2</div><div><h4>Internal Handoff Brief</h4><p>Company context, contact persona, pain points, competitive landscape, recommended demo angle.</p></div></div>
+            <div class="p-flow"><div class="p-flow-num mono" style="background:rgba(139,92,246,0.15);color:var(--purple);border:2px solid var(--purple);font-size:12px">3</div><div><h4>Warm Introduction</h4><p>I join the first 5 min to restate pain and transfer credibility. Then step out.</p></div></div>
+            <div class="p-flow" style="margin-bottom:0"><div class="p-flow-num mono" style="background:rgba(249,115,22,0.15);color:var(--orange);border:2px solid var(--orange);font-size:12px">4</div><div><h4>Post-Call Follow-Up</h4><p>Thank-you email within 1 hour, reinforcing next steps.</p></div></div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:14px">QUALIFICATION CRITERIA</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.8"><span class="accent">✓</span> Company fits ICP<br><span class="accent">✓</span> Decision-maker or influencer<br><span class="accent">✓</span> Specific pain point identified<br><span class="accent">✓</span> Timeline within 6 months<br><span class="accent">✓</span> No disqualifiers</div>
+            </div>
+            <div class="hl-box">
+              <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:8px">🤝 My Handoff Philosophy</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.6">The AE should walk in feeling like they've had a 10-min prep call. My CRM notes aren't checkboxes — they're intelligence briefs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: MEASURING SUCCESS -->
+    <div class="p-slide" data-ps="5">
+      <div style="max-width:900px">
+        <div class="mono p-num">05 · MEASURING SUCCESS</div>
+        <h2 class="p-title" style="font-size:36px">What Gets <span class="accent-a">Measured</span> Gets Done</h2>
+        <p class="p-sub">Inputs, conversion rates, and feedback loops.</p>
+        <div class="p-cols p-cols-2">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:16px">INPUT METRICS (WEEKLY)</div>
+              <div class="metric-row"><span class="metric-nm">Outbound calls</span><span class="metric-val accent">300+</span></div>
+              <div class="metric-row"><span class="metric-nm">Emails sent</span><span class="metric-val accent">200+</span></div>
+              <div class="metric-row"><span class="metric-nm">LinkedIn touches</span><span class="metric-val accent">125+</span></div>
+              <div class="metric-row"><span class="metric-nm">Accounts researched</span><span class="metric-val accent">20+</span></div>
+            </div>
+            <div class="card">
+              <div class="mono" style="font-size:10px;color:var(--purple);letter-spacing:1px;margin-bottom:16px">OUTPUT METRICS (MONTHLY)</div>
+              <div class="metric-row"><span class="metric-nm">Meetings booked</span><span class="metric-val accent-p">12-15</span></div>
+              <div class="metric-row"><span class="metric-nm">Qualified opportunities</span><span class="metric-val accent-p">8-10</span></div>
+              <div class="metric-row"><span class="metric-nm">Pipeline generated</span><span class="metric-val accent-p">$250K+</span></div>
+              <div class="metric-row"><span class="metric-nm">Meeting → Opp rate</span><span class="metric-val accent-p">65%+</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--blue);letter-spacing:1px;margin-bottom:16px">CONVERSION FUNNEL</div>
+              <div style="font-size:13px;color:var(--dim)">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Calls → Conversations</span><strong style="color:#fff">15-20%</strong></div>
+                <div style="height:4px;border-radius:4px;background:var(--ghost);margin-bottom:14px"><div style="height:100%;width:18%;background:var(--blue);border-radius:4px"></div></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Conversations → Meetings</span><strong style="color:#fff">25-30%</strong></div>
+                <div style="height:4px;border-radius:4px;background:var(--ghost);margin-bottom:14px"><div style="height:100%;width:28%;background:var(--purple);border-radius:4px"></div></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Meetings → Qualified Opps</span><strong style="color:#fff">60-70%</strong></div>
+                <div style="height:4px;border-radius:4px;background:var(--ghost);margin-bottom:14px"><div style="height:100%;width:65%;background:var(--accent);border-radius:4px"></div></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Email Open Rate</span><strong style="color:#fff">45%+</strong></div>
+                <div style="height:4px;border-radius:4px;background:var(--ghost)"><div style="height:100%;width:45%;background:var(--amber);border-radius:4px"></div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="mono" style="font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:12px">FEEDBACK LOOPS</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.7"><span class="accent">→</span> Weekly 1:1 with HoS — metrics + coaching<br><span class="accent">→</span> AE feedback on quality (scored 1-5)<br><span class="accent">→</span> A/B test emails + call openers biweekly<br><span class="accent">→</span> Monthly ICP refinement from data</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: SAMPLE WORK -->
+    <div class="p-slide" data-ps="6">
+      <div style="max-width:920px">
+        <div class="mono p-num">06 · SAMPLE WORK</div>
+        <h2 class="p-title" style="font-size:36px">Mini Account Plan + <span class="accent">Live Scripts</span></h2>
+        <p class="p-sub">A real example of how I'd work a Tier 1 target.</p>
+        <div class="p-cols p-cols-60">
+          <div>
+            <div class="card" style="margin-bottom:16px;border-left:3px solid var(--amber)">
+              <div class="mono" style="font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:12px">MINI ACCOUNT PLAN — NAVAN (EXAMPLE)</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.7"><strong style="color:#fff">Company:</strong> Navan — Travel & expense, $9.2B valuation<br><strong style="color:#fff">Why:</strong> High-volume travel bookings, complex multi-currency payments, thousands of virtual cards<br><strong style="color:#fff">Target:</strong> VP of Finance / Head of Payments<br><strong style="color:#fff">Trigger:</strong> $150M funding + EMEA expansion<br><strong style="color:#fff">Pain:</strong> Card spend across 30+ countries, manual reconciliation<br><strong style="color:#fff">Angle:</strong> Pliant's 11-currency Visa platform + API = programmatic cards at scale<br><strong style="color:#fff">Entry:</strong> Multi-thread VP Finance + Head of Payments + CFO</div>
+            </div>
+            <div class="script-block">
+              <div class="script-lbl mono">COLD CALL OPENER</div>
+              <div class="script-txt">"Hi [Name], this is [Your Name] with Pliant. Quick one — I noticed Navan just closed $150M and is expanding EMEA. I'm guessing <em>managing card spend across 30+ countries</em> just became a bigger headache.<br><br>We're an API-first platform that lets you issue cards in 11 currencies with real-time controls — <em>so finance isn't drowning in multi-currency reconciliation.</em><br><br>Worth 15 minutes to see how we solve this for travel-tech?"</div>
+            </div>
+          </div>
+          <div>
+            <div class="email-block">
+              <div class="email-lbl mono">EMAIL #1 — PAIN-BASED</div>
+              <div class="email-fld"><strong>Subject:</strong> [Name], quick q on Navan's card infrastructure</div>
+              <div class="email-body">Hi [Name],<br><br>Congrats on the $150M raise — EMEA expansion is a huge move.<br><br>Quick question: as you scale internationally, how are you handling programmatic card issuance and multi-currency reconciliation?<br><br>We work with travel companies that were burning 20+ hours/month on manual reconciliation before Pliant. We issue Visa cards in 11 currencies with real-time controls — all programmable.<br><br>Worth a 15-min call?<br><br>Best,<br>[Your Name]</div>
+            </div>
+            <div class="email-block">
+              <div class="email-lbl mono">EMAIL #2 — SOCIAL PROOF</div>
+              <div class="email-fld"><strong>Subject:</strong> How [company] cut reconciliation by 80%</div>
+              <div class="email-body">Hi [Name],<br><br>Quick example: a travel platform processing thousands of daily transactions automated their card lifecycle through our API. Result: 80% less reconciliation, zero failed transactions.<br><br>Given Navan's scale, the ROI would be significant. Open to a quick conversation?<br><br>[Your Name]</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: 90-DAY RAMP -->
+    <div class="p-slide" data-ps="7">
+      <div style="max-width:900px">
+        <div class="mono p-num">07 · 90-DAY RAMP PLAN</div>
+        <h2 class="p-title" style="font-size:36px">From Day 1 to <span class="accent">Full Velocity</span></h2>
+        <p class="p-sub">How I'll earn my seat and accelerate to AE track.</p>
+        <div class="p-cols p-cols-3">
+          <div class="card" style="border-top:3px solid var(--accent)">
+            <div class="mono" style="font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:12px">DAYS 1–30</div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:10px">Learn & Load</h3>
+            <div style="font-size:13px;color:var(--dim);line-height:1.7"><span class="accent">→</span> Master product + API docs<br><span class="accent">→</span> Study top EU deals<br><span class="accent">→</span> Build 200-account TAL<br><span class="accent">→</span> Launch sequences week 2<br><span class="accent">→</span> First meetings week 3<br><span class="accent">→</span> Daily objection role-play</div>
+            <div style="margin-top:16px;padding:10px 14px;background:rgba(0,229,160,0.06);border-radius:8px"><div style="font-size:12px;color:var(--accent);font-weight:600">Target: 5-8 meetings</div></div>
+          </div>
+          <div class="card" style="border-top:3px solid var(--blue)">
+            <div class="mono" style="font-size:10px;color:var(--blue);letter-spacing:1px;margin-bottom:12px">DAYS 31–60</div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:10px">Optimize & Scale</h3>
+            <div style="font-size:13px;color:var(--dim);line-height:1.7"><span class="accent-b">→</span> A/B test messaging<br><span class="accent-b">→</span> Hit daily targets consistently<br><span class="accent-b">→</span> Run discovery independently<br><span class="accent-b">→</span> Build sequence templates<br><span class="accent-b">→</span> Track AE feedback scores<br><span class="accent-b">→</span> Contribute to US playbook</div>
+            <div style="margin-top:16px;padding:10px 14px;background:rgba(59,130,246,0.06);border-radius:8px"><div style="font-size:12px;color:var(--blue);font-weight:600">Target: 10-12 meetings/mo</div></div>
+          </div>
+          <div class="card" style="border-top:3px solid var(--purple)">
+            <div class="mono" style="font-size:10px;color:var(--purple);letter-spacing:1px;margin-bottom:12px">DAYS 61–90</div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:10px">Crush Quota</h3>
+            <div style="font-size:13px;color:var(--dim);line-height:1.7"><span class="accent-p">→</span> 15+ meetings/month<br><span class="accent-p">→</span> $250K+ pipeline<br><span class="accent-p">→</span> Begin AE shadows<br><span class="accent-p">→</span> Handle objections solo<br><span class="accent-p">→</span> Codify playbook for future BDRs<br><span class="accent-p">→</span> Demonstrate AE readiness</div>
+            <div style="margin-top:16px;padding:10px 14px;background:rgba(139,92,246,0.06);border-radius:8px"><div style="font-size:12px;color:var(--purple);font-weight:600">Target: 15+, AE shadow starts</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: WHY HIRE ME -->
+    <div class="p-slide" data-ps="8">
+      <div style="max-width:800px">
+        <div class="mono p-num">08 · THE CLOSE</div>
+        <h2 class="p-title" style="font-size:42px">Why You Should <span class="accent">Hire Me</span></h2>
+        <p class="p-sub" style="margin-bottom:32px">This isn't just a presentation — it's proof of how I work.</p>
+        <div style="display:grid;gap:12px;margin-bottom:32px">
+          <div class="card" style="display:flex;gap:16px;align-items:flex-start;border-left:3px solid var(--accent)">
+            <div class="mono" style="font-size:28px;font-weight:800;color:var(--accent);flex-shrink:0;width:40px">01</div>
+            <div><h4 style="font-size:16px;font-weight:700;margin-bottom:4px">I Showed, Not Told</h4><p style="font-size:13px;color:var(--dim);line-height:1.6">I called Leon, earned the meeting, and built a detailed plan — exactly what I'd do for Pliant's prospects every day.</p></div>
+          </div>
+          <div class="card" style="display:flex;gap:16px;align-items:flex-start;border-left:3px solid var(--purple)">
+            <div class="mono" style="font-size:28px;font-weight:800;color:var(--purple);flex-shrink:0;width:40px">02</div>
+            <div><h4 style="font-size:16px;font-weight:700;margin-bottom:4px">I Have a Repeatable System</h4><p style="font-size:13px;color:var(--dim);line-height:1.6">Structured, metric-driven process that compounds. I know my numbers, track inputs, and optimize relentlessly.</p></div>
+          </div>
+          <div class="card" style="display:flex;gap:16px;align-items:flex-start;border-left:3px solid var(--blue)">
+            <div class="mono" style="font-size:28px;font-weight:800;color:var(--blue);flex-shrink:0;width:40px">03</div>
+            <div><h4 style="font-size:16px;font-weight:700;margin-bottom:4px">Building for Scale, Not Just Quota</h4><p style="font-size:13px;color:var(--dim);line-height:1.6">As a founding hire, I'm documenting what works to build the outbound playbook for the team that comes after me.</p></div>
+          </div>
+          <div class="card" style="display:flex;gap:16px;align-items:flex-start;border-left:3px solid var(--amber)">
+            <div class="mono" style="font-size:28px;font-weight:800;color:var(--amber);flex-shrink:0;width:40px">04</div>
+            <div><h4 style="font-size:16px;font-weight:700;margin-bottom:4px">I Want to Close — Not Just Generate</h4><p style="font-size:13px;color:var(--dim);line-height:1.6">BDR is my residency. I'm learning every pattern so I can step into a closing role within 6-12 months.</p></div>
+          </div>
+        </div>
+        <div class="hl-box" style="text-align:center;padding:28px">
+          <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Let's build Pliant's US pipeline together.</div>
+          <div style="font-size:14px;color:var(--dim)">I'm ready to start. When do I begin?</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Presentation bottom nav -->
+  <div class="p-bottom">
+    <button class="p-nav gho" id="p-prev" onclick="pPrev()" disabled>← Previous</button>
+    <div class="dots" id="p-dots"></div>
+    <button class="p-nav pri" id="p-next" onclick="pNext()">Next →</button>
+  </div>
+  <div class="kbd-hint" id="kbd-hint"><span class="kbd">←</span> <span class="kbd">→</span> to navigate</div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<script>
+// ═══════ GLOBAL ═══════
+function $(id){return document.getElementById(id)}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+let _uid=Date.now();
+function uid(){return'id_'+(++_uid)}
+
+// Clock
+function updateClock(){const n=new Date();$('g-clock').textContent=n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · '+n.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});}
+setInterval(updateClock,30000);updateClock();
+
+// ═══════ PAGE SWITCHING ═══════
+let currentPage='hub';
+function showPage(p){
+  currentPage=p;
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  $(p==='hub'?'page-hub':'page-presentation').classList.add('active');
+  document.querySelectorAll('.g-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.g-nav-btn').forEach(b=>{if((p==='hub'&&b.textContent.includes('Command'))||(p==='presentation'&&b.textContent.includes('Presentation')))b.classList.add('active');});
+  $('kbd-hint').style.display=p==='presentation'?'block':'none';
+  document.body.style.overflow=p==='presentation'?'hidden':'auto';
+  if(p==='hub')renderCCTab();
 }
 
-function setPbSection(s) { pbSection = s; renderPlaybook(); }
-function toggleObj(i) { expandedObj = expandedObj === i ? null : i; renderPlaybook(); }
-function setDiscCat(i) { expandedDisc = i; renderPlaybook(); }
+// ═══════ PRESENTATION LOGIC ═══════
+const pSlides=document.querySelectorAll('.p-slide');
+const pTotal=pSlides.length;
+let pCur=0, pVisited=new Set([0]);
 
-// ══════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════
-updateTopBar();
-renderDashboard();
+// Build dots
+const dotsEl=$('p-dots');
+for(let i=0;i<pTotal;i++){const d=document.createElement('div');d.className='dot'+(i===0?' active':'');d.onclick=()=>pGo(i);dotsEl.appendChild(d);}
+
+function pGo(n){
+  if(n<0||n>=pTotal||n===pCur)return;
+  pSlides[pCur].className='p-slide '+(n>pCur?'exit-left':'');
+  pCur=n;pVisited.add(n);
+  pSlides[pCur].className='p-slide active';
+  document.querySelectorAll('#p-dots .dot').forEach((d,i)=>{d.className='dot'+(i===pCur?' active':pVisited.has(i)?' visited':'');});
+  $('p-prev').disabled=pCur===0;
+  $('p-next').disabled=pCur===pTotal-1;
+  $('p-next').textContent=pCur===pTotal-1?'✓ Done':'Next →';
+}
+function pNext(){pGo(pCur+1)}
+function pPrev(){pGo(pCur-1)}
+
+document.addEventListener('keydown',e=>{
+  if(currentPage!=='presentation')return;
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();pNext();}
+  if(e.key==='ArrowLeft'){e.preventDefault();pPrev();}
+});
+let tX=0;
+document.addEventListener('touchstart',e=>{tX=e.touches[0].clientX;});
+document.addEventListener('touchend',e=>{if(currentPage!=='presentation')return;const d=tX-e.changedTouches[0].clientX;if(Math.abs(d)>60){d>0?pNext():pPrev();}});
+
+
+// ═══════ COMMAND CENTER DATA ═══════
+const STAGES=["Researched","Contacted","Engaged","Discovery","Meeting Set","Qualified"];
+const STAGE_C={"Researched":"#64748b","Contacted":"#8B5CF6","Engaged":"#3B82F6","Discovery":"#F59E0B","Meeting Set":"#00E5A0","Qualified":"#06D6A0"};
+const PERSONAS=["CFO","VP Finance","Head of Payments","Controller","Treasury","CEO","COO","Other"];
+const INDUSTRIES=["Travel & Hospitality","SaaS / Tech","Fleet & Logistics","Financial Services","ERP / Software","Banking","E-Commerce","Other"];
+const GOAL_META={calls:{label:"Cold Calls",icon:"📞"},emails:{label:"Emails Sent",icon:"✉️"},linkedin:{label:"LinkedIn Touches",icon:"🔗"},meetings:{label:"Meetings Booked",icon:"📅"}};
+
+const OBJ_BANK=[
+  {o:"We already have corporate cards",r:"That's great — most of our clients did too. The difference is Pliant's API-first approach lets you automate card issuance, set granular controls, and embed payments directly into your workflows. We don't replace your bank — we give you programmable infrastructure your current cards can't offer."},
+  {o:"We're not looking to switch right now",r:"Totally understand. Most of our best customers weren't actively looking either. What gets their attention is when they realize how much manual work goes into reconciliation that could be automated. Worth a 15-min look?"},
+  {o:"What makes Pliant different from Brex/Ramp?",r:"Brex and Ramp are expense management tools with cards attached. Pliant is payment infrastructure — API-first, so companies programmatically issue cards, set dynamic limits, and embed rails via white-label. We serve direct enterprise AND platforms wanting to offer cards to their customers."},
+  {o:"Send me an email / need to think",r:"Of course. Just so I can make it relevant: what's the biggest pain point around corporate payments right now? That way I can include a specific example of how we've solved that for similar companies."},
+  {o:"I don't have time right now",r:"Completely respect that. 30 seconds: We help finance teams automate corporate card management and cut reconciliation time by 80%. If interesting, I'd love 15 minutes. What does Thursday look like?"},
+  {o:"We're too small for this",r:"That's exactly when clients get the most value. Pliant scales with you — start with a handful of virtual cards and grow to thousands. Companies that set up smart infrastructure early avoid painful migrations later."},
+  {o:"Is Pliant available in the US?",r:"Yes! We're actively launching in the US. We support 30+ countries and 11 currencies via our Visa partnership. As a founding US client, you'd get white-glove onboarding and direct product team access."},
+  {o:"Our ERP handles payments",r:"That's a sweet spot. Pliant integrates directly into ERP systems — partners embed our card-issuing capabilities right into their workflows. Instead of replacing your ERP, we supercharge its payment layer."},
+];
+
+const DISC_Q=[
+  {cat:"Current State",qs:["How are you currently managing corporate card issuance and controls?","Walk me through your monthly reconciliation process — how many hours?","How many corporate cards in circulation?","What's your approval workflow for new card requests?"]},
+  {cat:"Pain & Impact",qs:["What's the biggest headache around corporate spending?","When did a payment issue last cause a real business problem?","How much time on manual expense categorization?","What happens when you need a card urgently — last-minute trip?"]},
+  {cat:"Future State",qs:["If you could wave a magic wand, ideal payment infrastructure?","Evaluating embedded finance or CaaS solutions?","What would fully automated reconciliation mean for your team?","How important is multi-currency in the next 12 months?"]},
+  {cat:"Decision Process",qs:["Who else would evaluate this?","Timeline for payment infrastructure changes?","Budget allocated for improving corporate payments?","What would need to be true to move forward with a pilot?"]},
+];
+
+const VAL_PROPS=[
+  {t:"API-First Architecture",d:"Programmatic card issuance, dynamic limits, real-time webhooks.",c:"#8B5CF6"},
+  {t:"Embedded Finance / White-Label",d:"Partners launch branded card programs via Pliant's CaaS rails.",c:"#3B82F6"},
+  {t:"11 Currencies, 30+ Countries",d:"Visa-powered, EMI-licensed. Global from day one.",c:"#00E5A0"},
+  {t:"Real-Time Spend Controls",d:"Limits per card, merchant category, time window.",c:"#F59E0B"},
+  {t:"Automated Reconciliation",d:"Transactions auto-map to cost centers. Major ERP integrations.",c:"#EF4444"},
+  {t:"4,000+ Businesses Trust Pliant",d:"Proven in Europe, conquering the US.",c:"#06D6A0"},
+];
+
+const WEEK_FW=[
+  {day:"Monday",focus:"Pipeline Building",tasks:["Review target account list","Research 20 new prospects","Set outbound sequences","Sync with HoS"]},
+  {day:"Tuesday",focus:"Heavy Calling",tasks:["Power hour: 25+ dials AM","Follow up warm leads","Call block: 20+ PM","Log activity + CRM"]},
+  {day:"Wednesday",focus:"Multi-Channel Blitz",tasks:["LinkedIn (15+ connects)","Tailored email sequences","Call email openers","AE Shadow session"]},
+  {day:"Thursday",focus:"Discovery & Qual",tasks:["Run discovery calls","Research for Friday","A/B test messaging","Objection practice"]},
+  {day:"Friday",focus:"Close Week Strong",tasks:["Final push for target","Update pipeline CRM","Weekly HoS report","Reflect + improve"]},
+];
+
+const AE_MILES=[
+  {m:"Hit Pipeline Targets (6+ mo)",d:"Meet or exceed monthly outbound pipeline goals.",c:"#00E5A0",a:true},
+  {m:"Proactive Development",d:"Initiative in pipeline building and market expertise.",c:"#3B82F6"},
+  {m:"Master the Product",d:"Deep understanding of API-first solution + integrations.",c:"#8B5CF6"},
+  {m:"Certify in Discovery",d:"Pass mock closing sims. Handle objections independently.",c:"#F59E0B"},
+  {m:"AE Shadow Program",d:"Shadow demos, manage small deals, prove full-cycle ability.",c:"#EF4444"},
+];
+
+const QUOTES=["Every 'no' gets you closer to 'yes'.","Top 1% isn't talent — it's discipline.","Pipeline today = commission tomorrow.","Activity breeds luck.","You're solving a problem, not selling a product.","Don't wait for motivation — create it.","Speed to lead wins.","Build the playbook. Make it legendary."];
+
+// State
+const defaults={goals:{calls:{target:60,done:0},emails:{target:40,done:0},linkedin:{target:25,done:0},meetings:{target:3,done:0}},weeklyMeetings:{target:15,booked:0},prospects:[],notes:[],wins:[],xp:0,pFilter:"all",lastReset:new Date().toDateString()};
+let state;
+try{const s=localStorage.getItem('pliant_bdr_v2');state=s?JSON.parse(s):null;}catch(e){}
+if(!state)state={...defaults};
+for(let k in defaults)if(!(k in state))state[k]=defaults[k];
+if(state.lastReset!==new Date().toDateString()){state.goals=JSON.parse(JSON.stringify(defaults.goals));state.wins=[];state.lastReset=new Date().toDateString();}
+function save(){try{localStorage.setItem('pliant_bdr_v2',JSON.stringify(state));}catch(e){}}
+
+function getLevel(){return Math.floor(state.xp/200)+1}
+function getXpMod(){return state.xp%200}
+function updateXP(){
+  const l=getLevel(),m=getXpMod();
+  $('g-lvl').textContent=l;$('g-ring-num').textContent=l;$('g-xp').textContent=state.xp;
+  $('g-xp-bar').style.width=(m/200*100)+'%';
+  $('g-ring').style.background=`conic-gradient(#00E5A0 ${m/200*360}deg, rgba(255,255,255,0.04) 0deg)`;
+}
+function makeBadge(t,c){return`<span class="badge" style="background:${c}18;color:${c}">${esc(t)}</span>`}
+function makeBar(v,mx,c){const p=mx>0?Math.min(v/mx*100,100):0;return`<div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${c}"></div></div>`}
+function getDOW(){return new Date().toLocaleDateString("en-US",{weekday:"long"})}
+function getTodayFW(){return WEEK_FW.find(d=>d.day===getDOW())||WEEK_FW[0]}
+function byStage(){return STAGES.reduce((a,s)=>{a[s]=state.prospects.filter(p=>p.stage===s).length;return a},{})}
+
+// CC tabs
+let ccTab='dashboard';
+document.querySelectorAll('.cc-tab').forEach(t=>{t.addEventListener('click',()=>{
+  ccTab=t.dataset.cctab;
+  document.querySelectorAll('.cc-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+  document.querySelectorAll('.cc-section').forEach(x=>x.classList.remove('active'));$('ccs-'+ccTab).classList.add('active');
+  renderCCTab();
+});});
+function renderCCTab(){
+  if(ccTab==='dashboard')renderDash();
+  else if(ccTab==='pipeline')renderPipe();
+  else if(ccTab==='callnotes')renderNotes();
+  else if(ccTab==='playbook')renderPB();
+}
+
+// ═══════ DASHBOARD ═══════
+function renderDash(){
+  const fw=getTodayFW();const qi=Math.floor(new Date().getMinutes()/4)%QUOTES.length;
+  const bs=byStage();const totalPct=Math.round(Object.values(state.goals).reduce((a,g)=>a+Math.min(g.done/g.target,1),0)/4*100);
+  const goalsHit=Object.values(state.goals).filter(g=>g.done>=g.target).length;
+
+  let h=`
+  <div class="card card-sm card-accent" style="margin-bottom:20px;padding:18px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <span style="font-size:24px">🔥</span>
+    <div style="flex:1;min-width:200px"><div style="font-size:14px;color:var(--accent);font-weight:600;font-style:italic">"${QUOTES[qi]}"</div></div>
+    <div style="text-align:right"><div class="mono" style="font-size:9px;color:#555;letter-spacing:1px">TODAY'S FOCUS</div><div style="font-size:13px;font-weight:700;color:#fff">${fw.focus}</div></div>
+  </div>
+  <div class="grid-2" style="margin-bottom:20px">`;
+
+  for(const[k,g]of Object.entries(state.goals)){const m=GOAL_META[k];const hit=g.done>=g.target;
+    h+=`<div class="card card-sm" style="position:relative;overflow:hidden;border-color:${hit?'rgba(0,229,160,0.2)':'rgba(255,255,255,0.06)'};background:${hit?'rgba(0,229,160,0.03)':'rgba(255,255,255,0.02)'}">
+    ${hit?'<div class="mono" style="position:absolute;top:8px;right:12px;font-size:9px;color:var(--accent);font-weight:700;letter-spacing:1px">✓ HIT</div>':''}
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div><div class="mono" style="font-size:10px;color:#555;margin-bottom:6px;letter-spacing:0.5px">${m.icon} ${m.label.toUpperCase()}</div>
+      <div style="display:flex;align-items:baseline;gap:4px"><span class="mono" style="font-size:34px;font-weight:700;color:${hit?'var(--accent)':'#fff'};line-height:1">${g.done}</span><span style="font-size:14px;color:#444">/ ${g.target}</span></div></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn-ctr ${hit?'hit':''}" onclick="incG('${k}')">+</button>
+        <button class="btn-ctr btn-ctr-sm" onclick="decG('${k}')">−</button>
+      </div>
+    </div>
+    <div style="margin-top:14px">${makeBar(g.done,g.target,hit?'#00E5A0':'#3B82F6')}</div></div>`;
+  }
+  h+=`</div>`;
+
+  // Stats row
+  h+=`<div class="grid-3" style="margin-bottom:20px">
+    <div class="card card-sm" style="text-align:center">
+      <div style="position:relative;width:90px;height:90px;margin:0 auto 10px">
+        <svg width="90" height="90" style="transform:rotate(-90deg)"><circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="7"/><circle cx="45" cy="45" r="38" fill="none" stroke="${totalPct>=100?'#00E5A0':'#3B82F6'}" stroke-width="7" stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="${238.76-(Math.min(totalPct,100)/100)*238.76}" style="transition:stroke-dashoffset 0.5s"/></svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><span class="mono" style="font-size:22px;font-weight:700;color:#fff">${totalPct}%</span></div>
+      </div>
+      <div class="mono" style="font-size:10px;color:#555;letter-spacing:1px">DAILY PROGRESS</div>
+      <div style="font-size:12px;color:#888;margin-top:4px">${goalsHit}/4 targets hit</div>
+    </div>
+    <div class="card card-sm" style="text-align:center">
+      <div class="mono" style="font-size:9px;color:#555;margin-bottom:10px;letter-spacing:1px">WEEKLY MEETINGS</div>
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:4px">
+        <span class="mono" style="font-size:38px;font-weight:700;color:${state.weeklyMeetings.booked>=state.weeklyMeetings.target?'var(--accent)':'#fff'}">${state.weeklyMeetings.booked}</span>
+        <span style="font-size:16px;color:#444">/ ${state.weeklyMeetings.target}</span>
+      </div>
+      <div style="margin-top:8px">${makeBar(state.weeklyMeetings.booked,state.weeklyMeetings.target,'#F59E0B')}</div>
+      <button class="btn-g" style="margin-top:12px;padding:8px 16px;font-size:11px" onclick="bookW()">+ Book Meeting</button>
+    </div>
+    <div class="card card-sm" style="text-align:center">
+      <div class="mono" style="font-size:9px;color:#555;margin-bottom:10px;letter-spacing:1px">ACTIVE PROSPECTS</div>
+      <div class="mono" style="font-size:38px;font-weight:700;color:var(--purple)">${state.prospects.length}</div>
+      <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:8px">${STAGES.slice(0,4).map(s=>makeBadge(bs[s]||'0',STAGE_C[s])).join('')}</div>
+    </div>
+  </div>`;
+
+  // Game plan + wins
+  h+=`<div class="grid-2w" style="margin-bottom:20px">
+    <div class="card card-sm">
+      <div class="mono" style="font-size:10px;color:#555;margin-bottom:12px;letter-spacing:1px">📋 ${fw.day.toUpperCase()}'S GAME PLAN</div>
+      <div style="font-size:14px;font-weight:700;color:var(--accent);margin-bottom:12px">${fw.focus}</div>
+      ${fw.tasks.map(t=>`<div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:#222;font-size:6px;margin-top:7px">●</span><span style="font-size:13px;color:#888">${esc(t)}</span></div>`).join('')}
+    </div>
+    <div class="card card-sm">
+      <div class="mono" style="font-size:10px;color:#555;margin-bottom:12px;letter-spacing:1px">🏆 TODAY'S WINS</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px"><input class="inp" id="win-inp" placeholder="Log a win..." style="flex:1" onkeydown="if(event.key==='Enter')addWin()"><button class="btn-p" style="padding:10px 16px" onclick="addWin()">+</button></div>
+      <div id="wins-list" style="max-height:180px;overflow-y:auto">${state.wins.length===0?'<div style="font-size:12px;color:#333;font-style:italic">No wins yet. Go get some!</div>':state.wins.map(w=>`<div style="display:flex;gap:8px;margin-bottom:8px;padding:8px 10px;background:rgba(0,229,160,0.03);border-radius:8px"><span style="color:var(--accent);font-size:12px">✓</span><div style="flex:1"><div style="font-size:13px;color:#bbb">${esc(w.text)}</div><div class="mono" style="font-size:9px;color:#444">${esc(w.time)}</div></div></div>`).join('')}</div>
+    </div>
+  </div>
+  <div style="text-align:center"><button class="btn-g" style="font-size:11px;padding:8px 20px" onclick="resetD()">↻ Reset Daily Counters</button></div>`;
+
+  $('ccs-dashboard').innerHTML=h;
+}
+
+// Dashboard actions
+window.incG=function(k){state.goals[k].done++;const hit=state.goals[k].done===state.goals[k].target;state.xp+=hit?50:5;save();renderDash();updateXP();}
+window.decG=function(k){state.goals[k].done=Math.max(0,state.goals[k].done-1);save();renderDash();}
+window.bookW=function(){state.weeklyMeetings.booked++;state.xp+=30;save();renderDash();updateXP();}
+window.addWin=function(){const i=$('win-inp');const t=i.value.trim();if(!t)return;state.wins.push({id:uid(),text:t,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});state.xp+=20;i.value='';save();renderDash();updateXP();}
+window.resetD=function(){if(!confirm('Reset daily counters and wins?'))return;for(let k in state.goals)state.goals[k].done=0;state.wins=[];state.lastReset=new Date().toDateString();save();renderDash();}
+
+// ═══════ PIPELINE ═══════
+let showPF=false,editPId=null;
+function renderPipe(){
+  const bs=byStage();
+  let h=`<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <button class="btn-p" style="padding:8px 16px;font-size:12px;margin-right:8px" onclick="showPForm()">+ Add Prospect</button>`;
+  ['all',...STAGES].forEach(st=>{const a=state.pFilter===st;const c=st==='all'?'#00E5A0':STAGE_C[st];const n=st==='all'?state.prospects.length:(bs[st]||0);
+    h+=`<button class="stage-pill" style="border-color:${a?c:'rgba(255,255,255,0.06)'};background:${a?c+'12':'transparent'};color:${a?c:'#555'}" onclick="setPF('${st}')">${st==='all'?'All':st} (${n})</button>`;
+  });
+  h+=`</div>`;
+
+  if(state.prospects.length>0){
+    h+=`<div class="card card-sm" style="margin-bottom:16px;padding:14px 18px"><div style="display:flex;height:8px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.03)">`;
+    STAGES.forEach(st=>{const p=(bs[st]||0)/state.prospects.length*100;if(p>0)h+=`<div style="width:${p}%;background:${STAGE_C[st]}"></div>`;});
+    h+=`</div><div style="display:flex;justify-content:space-between;margin-top:8px">${STAGES.map(st=>`<div class="mono" style="font-size:8px;color:#444"><span style="color:${STAGE_C[st]};font-weight:700">${bs[st]||0}</span> ${st.split(' ')[0]}</div>`).join('')}</div></div>`;
+  }
+
+  if(showPF)h+=renderPForm();
+
+  const fl=state.pFilter==='all'?state.prospects:state.prospects.filter(p=>p.stage===state.pFilter);
+  if(fl.length===0&&!showPF)h+=`<div class="card" style="text-align:center;padding:48px"><div style="font-size:32px;margin-bottom:8px">🎯</div><div style="font-size:14px;color:#555">No prospects yet. Start building!</div></div>`;
+  fl.forEach(p=>{const si=STAGES.indexOf(p.stage);
+    h+=`<div class="card card-sm" style="margin-bottom:10px;display:flex;align-items:flex-start;gap:14px">
+    <div style="width:4px;height:50px;border-radius:4px;background:${STAGE_C[p.stage]};flex-shrink:0;margin-top:4px"></div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:15px;font-weight:700;color:#fff">${esc(p.company)}</span>${makeBadge(p.stage,STAGE_C[p.stage])}${p.industry?makeBadge(p.industry,'#555'):''}</div>
+      ${p.contact?`<div style="font-size:13px;color:#888;margin-top:4px">${esc(p.contact)}${p.title?' · '+esc(p.title):''}${p.persona?' · '+esc(p.persona):''}</div>`:''}
+      ${p.email?`<div style="font-size:11px;color:#444;margin-top:2px">${esc(p.email)}${p.phone?' · '+esc(p.phone):''}</div>`:''}
+      ${p.notes?`<div style="font-size:12px;color:#555;margin-top:6px;font-style:italic">${esc(p.notes)}</div>`:''}
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      ${si<STAGES.length-1?`<button class="btn-g btn-sm" onclick="advP('${p.id}')">➜</button>`:''}
+      <button class="btn-g btn-sm" onclick="editP('${p.id}')">✎</button>
+      <button class="btn-g btn-sm" style="color:#FF5252;border-color:rgba(255,82,82,0.15)" onclick="delP('${p.id}')">✕</button>
+    </div></div>`;
+  });
+  $('ccs-pipeline').innerHTML=h;
+}
+function renderPForm(){
+  const p=editPId?state.prospects.find(x=>x.id===editPId):null;
+  const v=p||{company:'',contact:'',title:'',persona:'',industry:'',stage:'Researched',email:'',phone:'',notes:''};
+  return`<div class="card form-card" style="margin-bottom:16px">
+    <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:16px">${editPId?'Edit':'Add'} Prospect</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><label class="lbl">Company *</label><input class="inp" id="pf-co" value="${esc(v.company)}"></div>
+      <div><label class="lbl">Contact</label><input class="inp" id="pf-ct" value="${esc(v.contact)}"></div>
+      <div><label class="lbl">Title</label><input class="inp" id="pf-ti" value="${esc(v.title)}"></div>
+      <div><label class="lbl">Persona</label><select class="inp" id="pf-pe"><option value="">Select...</option>${PERSONAS.map(x=>`<option ${v.persona===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div><label class="lbl">Industry</label><select class="inp" id="pf-in"><option value="">Select...</option>${INDUSTRIES.map(x=>`<option ${v.industry===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div><label class="lbl">Stage</label><select class="inp" id="pf-st">${STAGES.map(x=>`<option ${v.stage===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div><label class="lbl">Email</label><input class="inp" id="pf-em" value="${esc(v.email)}"></div>
+      <div><label class="lbl">Phone</label><input class="inp" id="pf-ph" value="${esc(v.phone)}"></div>
+    </div>
+    <div style="margin-top:12px"><label class="lbl">Notes</label><textarea class="inp txtarea" id="pf-no">${esc(v.notes)}</textarea></div>
+    <div style="display:flex;gap:10px;margin-top:14px"><button class="btn-p" onclick="saveP()">${editPId?'Update':'Add'}</button><button class="btn-g" onclick="cancelPF()">Cancel</button></div>
+  </div>`;
+}
+window.showPForm=function(){showPF=true;editPId=null;renderPipe();}
+window.cancelPF=function(){showPF=false;editPId=null;renderPipe();}
+window.saveP=function(){const co=$('pf-co').value.trim();if(!co)return;const d={company:co,contact:$('pf-ct').value.trim(),title:$('pf-ti').value.trim(),persona:$('pf-pe').value,industry:$('pf-in').value,stage:$('pf-st').value,email:$('pf-em').value.trim(),phone:$('pf-ph').value.trim(),notes:$('pf-no').value.trim()};
+  if(editPId){const p=state.prospects.find(x=>x.id===editPId);if(p)Object.assign(p,d);}else{state.prospects.unshift({id:uid(),...d});state.xp+=10;updateXP();}
+  showPF=false;editPId=null;save();renderPipe();}
+window.editP=function(id){editPId=id;showPF=true;renderPipe();}
+window.delP=function(id){const p=state.prospects.find(x=>x.id===id);if(!confirm('Delete '+(p?p.company:'this')+'?'))return;state.prospects=state.prospects.filter(x=>x.id!==id);save();renderPipe();}
+window.advP=function(id){const p=state.prospects.find(x=>x.id===id);if(!p)return;const i=STAGES.indexOf(p.stage);if(i<STAGES.length-1)p.stage=STAGES[i+1];save();renderPipe();}
+window.setPF=function(f){state.pFilter=f;save();renderPipe();}
+
+// ═══════ CALL INTEL ═══════
+let showNF=false;
+function renderNotes(){
+  const search=($('n-search')||{}).value||'';
+  const fl=search?state.notes.filter(n=>[n.company,n.contact,n.summary,n.nextSteps].some(f=>(f||'').toLowerCase().includes(search.toLowerCase()))):state.notes;
+  const sentC={"Very Positive":"#00E5A0","Positive":"#06D6A0","Neutral":"#F59E0B","Skeptical":"#FF8A65","Not Interested":"#FF5252"};
+  let h=`<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap"><button class="btn-p" style="padding:8px 16px;font-size:12px" onclick="showNForm()">+ Log Call</button><input class="inp" id="n-search" placeholder="Search notes..." style="max-width:300px" value="${esc(search)}" oninput="renderNotes()"></div>`;
+  if(showNF)h+=`<div class="card form-card" style="margin-bottom:16px">
+    <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:16px">Log Call Notes</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div><label class="lbl">Company</label><input class="inp" id="nf-co"></div>
+      <div><label class="lbl">Contact</label><input class="inp" id="nf-ct"></div>
+      <div><label class="lbl">Sentiment</label><select class="inp" id="nf-se">${["Very Positive","Positive","Neutral","Skeptical","Not Interested"].map(x=>`<option>${x}</option>`).join('')}</select></div>
+    </div>
+    <div style="margin-top:12px"><label class="lbl">Summary</label><textarea class="inp txtarea" id="nf-su" style="min-height:80px"></textarea></div>
+    <div style="margin-top:12px"><label class="lbl">Next Steps</label><textarea class="inp txtarea" id="nf-ns" style="min-height:50px"></textarea></div>
+    <div style="display:flex;gap:10px;margin-top:14px"><button class="btn-p" onclick="saveN()">Save</button><button class="btn-g" onclick="cancelNF()">Cancel</button></div></div>`;
+  if(fl.length===0&&!showNF)h+=`<div class="card" style="text-align:center;padding:48px"><div style="font-size:32px;margin-bottom:8px">📞</div><div style="font-size:14px;color:#555">No call notes yet.</div></div>`;
+  fl.forEach(n=>{h+=`<div class="card card-sm" style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start"><div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="font-size:14px;font-weight:700;color:#fff">${esc(n.company||'Unknown')}</span>${n.contact?`<span style="font-size:12px;color:#777">· ${esc(n.contact)}</span>`:''}${makeBadge(n.sentiment,sentC[n.sentiment]||'#F59E0B')}</div>
+      <div class="mono" style="font-size:9px;color:#444;margin-top:4px">${esc(n.timestamp)}</div></div>
+      <button class="btn-g btn-sm" style="color:#FF5252;border-color:rgba(255,82,82,0.1)" onclick="delN('${n.id}')">✕</button></div>
+    <div style="font-size:13px;color:#aaa;margin-top:10px;line-height:1.6">${esc(n.summary)}</div>
+    ${n.nextSteps?`<div style="margin-top:10px;padding:8px 12px;background:rgba(59,130,246,0.05);border-radius:8px;border-left:3px solid #3B82F6"><div class="mono" style="font-size:9px;color:#3B82F6;margin-bottom:4px;letter-spacing:1px">NEXT STEPS</div><div style="font-size:12px;color:#888">${esc(n.nextSteps)}</div></div>`:''}</div>`;});
+  $('ccs-callnotes').innerHTML=h;
+}
+window.showNForm=function(){showNF=true;renderNotes();}
+window.cancelNF=function(){showNF=false;renderNotes();}
+window.saveN=function(){const su=$('nf-su').value.trim();if(!su)return;state.notes.unshift({id:uid(),company:$('nf-co').value.trim(),contact:$('nf-ct').value.trim(),sentiment:$('nf-se').value,summary:su,nextSteps:$('nf-ns').value.trim(),timestamp:new Date().toLocaleString()});state.xp+=15;showNF=false;save();renderNotes();updateXP();}
+window.delN=function(id){if(!confirm('Delete?'))return;state.notes=state.notes.filter(n=>n.id!==id);save();renderNotes();}
+
+// ═══════ PLAYBOOK ═══════
+let pbSec='objections',expObj=null,expDisc=0;
+function renderPB(){
+  const secs=[{id:'objections',l:'Objections',i:'🛡️'},{id:'discovery',l:'Discovery',i:'🔍'},{id:'value',l:'Value Props',i:'💎'},{id:'weekly',l:'Weekly',i:'📅'},{id:'promotion',l:'AE Track',i:'🚀'}];
+  let h=`<div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap">${secs.map(s=>`<button class="pb-tab ${pbSec===s.id?'active':''}" onclick="setPBS('${s.id}')">${s.i} ${s.l}</button>`).join('')}</div>`;
+
+  if(pbSec==='objections'){
+    h+=`<div class="mono" style="font-size:10px;color:#555;margin-bottom:16px;letter-spacing:1px">🛡️ ${OBJ_BANK.length} RESPONSES</div>`;
+    OBJ_BANK.forEach((o,i)=>{h+=`<div class="card card-sm" style="margin-bottom:8px;cursor:pointer;border-color:${expObj===i?'rgba(0,229,160,0.12)':'rgba(255,255,255,0.05)'};background:${expObj===i?'rgba(0,229,160,0.02)':'rgba(255,255,255,0.015)'}" onclick="togObj(${i})">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="font-size:13px;font-weight:600;color:#FF8A65">"${esc(o.o)}"</div><span style="color:#444;font-size:14px;transform:${expObj===i?'rotate(180deg)':'none'};transition:transform 0.2s;flex-shrink:0;margin-left:8px">▾</span></div>
+      ${expObj===i?`<div style="margin-top:12px;padding:12px 14px;background:rgba(0,229,160,0.03);border-radius:10px;border-left:3px solid var(--accent)"><div class="mono" style="font-size:9px;color:var(--accent);margin-bottom:6px;letter-spacing:1px">YOUR RESPONSE</div><div style="font-size:13px;color:#bbb;line-height:1.7">${esc(o.r)}</div></div>`:''}</div>`;});
+  } else if(pbSec==='discovery'){
+    h+=`<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">${DISC_Q.map((c,i)=>`<button class="stage-pill" style="border-color:${expDisc===i?'rgba(139,92,246,0.25)':'rgba(255,255,255,0.06)'};background:${expDisc===i?'rgba(139,92,246,0.08)':'transparent'};color:${expDisc===i?'#8B5CF6':'#555'}" onclick="setDC(${i})">${c.cat}</button>`).join('')}</div>`;
+    h+=`<div style="font-size:14px;font-weight:700;color:#8B5CF6;margin-bottom:14px">${DISC_Q[expDisc].cat}</div>`;
+    DISC_Q[expDisc].qs.forEach((q,i)=>{h+=`<div class="card card-sm" style="margin-bottom:8px;display:flex;gap:12px;align-items:flex-start"><span class="mono" style="color:#8B5CF6;font-weight:700;font-size:12px;flex-shrink:0">${i+1}</span><span style="font-size:13px;color:#bbb;line-height:1.6">${esc(q)}</span></div>`;});
+  } else if(pbSec==='value'){
+    h+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">${VAL_PROPS.map(v=>`<div class="card card-sm" style="border-left:3px solid ${v.c}"><div style="font-size:13px;font-weight:700;color:${v.c};margin-bottom:8px">${esc(v.t)}</div><div style="font-size:12px;color:#888;line-height:1.6">${esc(v.d)}</div></div>`).join('')}</div>`;
+  } else if(pbSec==='weekly'){
+    const dow=getDOW();
+    WEEK_FW.forEach(d=>{const isT=d.day===dow;
+      h+=`<div class="card card-sm" style="margin-bottom:10px;border-color:${isT?'rgba(0,229,160,0.18)':'rgba(255,255,255,0.05)'};background:${isT?'rgba(0,229,160,0.025)':'rgba(255,255,255,0.015)'}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px;font-weight:700;color:${isT?'var(--accent)':'#fff'}">${d.day}</span>${isT?makeBadge('TODAY','#00E5A0'):''}</div>${makeBadge(d.focus,'#F59E0B')}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${d.tasks.map(t=>`<div style="font-size:12px;color:#777;display:flex;gap:6px"><span style="color:#222;font-size:6px;margin-top:7px">●</span>${esc(t)}</div>`).join('')}</div></div>`;});
+  } else if(pbSec==='promotion'){
+    h+=`<div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(0,229,160,0.05),rgba(139,92,246,0.03));border-color:rgba(0,229,160,0.1)"><div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px">🚀 Path to AE</div><div style="font-size:13px;color:#888">Promotion in <span style="color:var(--accent);font-weight:700">6–12 months</span></div><div style="font-size:12px;color:#555;margin-top:4px">OTE: $90k–$110k · 70/30 · Accelerators</div></div>`;
+    AE_MILES.forEach((x,i)=>{h+=`<div class="card card-sm" style="margin-bottom:10px;display:flex;gap:14px;align-items:flex-start">
+      <div class="mono" style="width:32px;height:32px;border-radius:50%;flex-shrink:0;background:${x.a?x.c+'18':'rgba(255,255,255,0.03)'};border:2px solid ${x.a?x.c:'rgba(255,255,255,0.08)'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${x.c}">${i+1}</div>
+      <div><div style="font-size:14px;font-weight:700;color:${x.a?x.c:'#777'}">${esc(x.m)}</div><div style="font-size:12px;color:#555;margin-top:4px;line-height:1.5">${esc(x.d)}</div></div></div>`;});
+  }
+  $('ccs-playbook').innerHTML=h;
+}
+window.setPBS=function(s){pbSec=s;renderPB();}
+window.togObj=function(i){expObj=expObj===i?null:i;renderPB();}
+window.setDC=function(i){expDisc=i;renderPB();}
+
+// ═══════ INIT ═══════
+updateXP();
+renderDash();
 </script>
 </body>
 </html>
