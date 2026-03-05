@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pliant BDR Presentation — Final Stage Exercise</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06090F;
+    --surface: #0C1018;
+    --border: rgba(255,255,255,0.06);
+    --accent: #00E5A0;
+    --accent2: #00B8D4;
+    --purple: #8B5CF6;
+    --blue: #3B82F6;
+    --amber: #F59E0B;
+    --red: #EF4444;
+    --orange: #F97316;
+    --text: #E2E8F0;
+    --dim: #94A3B8;
+    --muted: #475569;
+    --ghost: #1E293B;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden; height: 100vh;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Noise */
+  body::before {
+    content: ''; position: fixed; inset: 0; opacity: 0.018; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Layout */
+  .presentation { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; }
+
+  /* Top bar */
+  .topbar {
+    padding: 12px 32px; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0,229,160,0.03) 0%, transparent 100%);
+    flex-shrink: 0;
+  }
+
+  /* Slide container */
+  .slides-viewport {
+    flex: 1; position: relative; overflow: hidden;
+  }
+  .slide {
+    position: absolute; inset: 0; padding: 48px 64px;
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; transform: translateX(60px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none; overflow-y: auto;
+  }
+  .slide.active {
+    opacity: 1; transform: translateX(0); pointer-events: auto;
+  }
+  .slide.exit-left {
+    opacity: 0; transform: translateX(-60px);
+  }
+
+  /* Bottom nav */
+  .bottombar {
+    padding: 14px 32px; display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border); flex-shrink: 0;
+    background: rgba(0,0,0,0.3);
+  }
+  .nav-btn {
+    padding: 10px 24px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: 'Outfit', sans-serif; transition: all 0.15s;
+    border: none;
+  }
+  .nav-btn.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: var(--bg);
+  }
+  .nav-btn.primary:hover { box-shadow: 0 4px 20px rgba(0,229,160,0.3); transform: translateY(-1px); }
+  .nav-btn.ghost {
+    background: rgba(255,255,255,0.04); color: var(--dim);
+    border: 1px solid var(--border);
+  }
+  .nav-btn.ghost:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* Progress dots */
+  .dots { display: flex; gap: 6px; align-items: center; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ghost); transition: all 0.3s; cursor: pointer;
+  }
+  .dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
+  .dot.visited { background: rgba(0,229,160,0.3); }
+
+  /* Typography */
+  .slide-num { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-bottom: 12px; }
+  .slide-title { font-size: 42px; font-weight: 800; line-height: 1.15; margin-bottom: 8px; letter-spacing: -1px; }
+  .slide-subtitle { font-size: 18px; color: var(--dim); font-weight: 400; margin-bottom: 36px; line-height: 1.5; }
+
+  /* Cards */
+  .card {
+    background: rgba(255,255,255,0.025); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px;
+  }
+  .card-grid { display: grid; gap: 16px; }
+  .card-grid-2 { grid-template-columns: 1fr 1fr; }
+  .card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  /* Stat callout */
+  .stat { text-align: center; }
+  .stat-num { font-size: 48px; font-weight: 800; line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--dim); margin-top: 6px; letter-spacing: 0.5px; }
+
+  /* Tag */
+  .tag {
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+  }
+
+  /* Flow step */
+  .flow-step {
+    display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px;
+  }
+  .flow-num {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .flow-content h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .flow-content p { font-size: 13px; color: var(--dim); line-height: 1.5; }
+
+  /* Script block */
+  .script-block {
+    background: rgba(0,229,160,0.03); border: 1px solid rgba(0,229,160,0.1);
+    border-radius: 12px; padding: 20px; margin-bottom: 12px;
+    border-left: 3px solid var(--accent);
+  }
+  .script-label { font-size: 10px; font-weight: 700; color: var(--accent); letter-spacing: 1.5px; margin-bottom: 8px; }
+  .script-text { font-size: 14px; color: #CBD5E1; line-height: 1.7; }
+  .script-text em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+  /* Email block */
+  .email-block {
+    background: rgba(59,130,246,0.03); border: 1px solid rgba(59,130,246,0.1);
+    border-radius: 12px; padding: 20px; margin-bottom: 12px;
+    border-left: 3px solid var(--blue);
+  }
+  .email-label { font-size: 10px; font-weight: 700; color: var(--blue); letter-spacing: 1.5px; margin-bottom: 8px; }
+  .email-field { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .email-field strong { color: var(--dim); }
+  .email-body { font-size: 13px; color: #CBD5E1; line-height: 1.7; margin-top: 10px; }
+
+  /* Accent text */
+  .accent { color: var(--accent); }
+  .accent-purple { color: var(--purple); }
+  .accent-blue { color: var(--blue); }
+  .accent-amber { color: var(--amber); }
+
+  /* Columns */
+  .cols { display: grid; gap: 32px; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-60-40 { grid-template-columns: 3fr 2fr; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .slide { padding: 24px 20px; }
+    .slide-title { font-size: 28px; }
+    .card-grid-2, .card-grid-3, .cols-2, .cols-60-40 { grid-template-columns: 1fr; }
+    .topbar, .bottombar { padding: 10px 16px; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+  ::selection { background: rgba(0,229,160,0.2); }
+
+  /* Timeline */
+  .timeline-item {
+    display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start;
+  }
+  .timeline-dot {
+    width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+    border: 2px solid;
+  }
+  .timeline-line {
+    width: 2px; background: var(--border); margin-left: 5px; flex-shrink: 0;
+  }
+
+  /* Metric row */
+  .metric-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-name { font-size: 14px; color: var(--dim); }
+  .metric-value { font-size: 16px; font-weight: 700; }
+
+  /* Highlight box */
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(0,229,160,0.06), rgba(0,184,212,0.03));
+    border: 1px solid rgba(0,229,160,0.12);
+    border-radius: 14px; padding: 24px;
+  }
+
+  /* Keyboard hint */
+  .kbd-hint {
+    position: fixed; bottom: 60px; right: 32px;
+    font-size: 11px; color: var(--muted); z-index: 10;
+  }
+  .kbd { 
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    font-size: 10px; margin: 0 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="presentation">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--bg)" class="mono">P</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#fff">Pliant BDR Presentation</div>
+        <div class="mono" style="font-size:10px;color:var(--muted)">Final Stage Exercise</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <span class="mono" style="font-size:11px;color:var(--muted)">Slide <span id="slide-counter">1</span> / <span id="slide-total">9</span></span>
+    </div>
+  </div>
+
+  <!-- Slides -->
+  <div class="slides-viewport" id="viewport">
+
+    <!-- ═══ SLIDE 0: TITLE ═══ -->
+    <div class="slide active" data-slide="0">
+      <div style="max-width:720px">
+        <div class="mono slide-num">PLIANT · BDR FINAL STAGE EXERCISE</div>
+        <h1 class="slide-title" style="font-size:52px">
+          How I'll Build Pliant's<br>
+          <span class="accent">US Pipeline</span> from Scratch
+        </h1>
+        <p class="slide-subtitle" style="margin-bottom:40px">
+          A repeatable system for generating qualified opportunities<br>
+          for the AE team to close.
+        </p>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:var(--bg)">Y</div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#fff">[Your Name]</div>
+            <div style="font-size:13px;color:var(--dim)">BDR Candidate · Pliant US Founding Team</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SLIDE 1: STRATEGY TO BOOK LEON ═══ -->
+    <div class="slide" data-slide="1">
+      <div style="max-width:900px">
+        <div class="mono slide-num">01 · EARNING THE MEETING</div>
+        <h2 class="slide-title" style="font-size:36px">How I Booked <span class="accent">Leon Faulstroh</span></h2>
+        <p class="slide-subtitle">A breakdown of the exact strategy I used — from research to the call.</p>
+        <div class="cols cols-60-40">
+          <div>
+            <div class="flow-step">
+              <div class="flow-num mono" style="background:rgba(139,92,246,0.15);color:var(--purple);border:2px solid var(--purple)">1</div>
+              <div class="flow-content">
+                <h4>Pre-Call Research (20 min)</h4>
+                <p>Studied Leon's LinkedIn, Pliant's Crunchbase, recent press, and the job description. Identified that as VP of Growth building a founding US team, his #1 pain is <em style="color:var(--accent)">hiring a BDR who can ramp fast without a playbook</em>.</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num mono" style="background:rgba(59,130,246,0.15);color:var(--blue);border:2px solid var(--blue)">2</div>
+              <div class="flow-content">
+                <h4>Crafted a Pattern-Interrupt Opener</h4>
+                <p>Led with a bold, relevant hook — not "Hi, I'm interested in the role." Instead, I opened with a <em style="color:var(--accent)">quantifiable value proposition</em> framed around the risk of a bad BDR hire costing Pliant 3-6 months of lost pipeline.</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num mono" style="background:rgba(0,229,160,0.15);color:var(--accent);border:2px solid var(--accent)">3</div>
+              <div class="flow-content">
+                <h4>Drove to a Specific Ask</h4>
+                <p>Didn't just say "can we chat." Proposed a concrete 30-minute block, gave Leon a reason to prioritize it: <em style="color:var(--accent)">"I'll walk you through exactly how I'd build your US pipeline in 90 days."</em></p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="script-block">
+              <div class="script-label mono">MY OPENING SCRIPT</div>
+              <div class="script-text">
+                "Hi Leon — this is [Name]. I know you're building Pliant's founding US sales team, and I'm not calling to ask about the role — I'm calling to show you why <em>I'm the BDR who won't cost you a lost quarter of pipeline.</em><br><br>
+                In my last role, I generated [X meetings/month] and [$Y pipeline] in my first 6 months. I've already put together a 90-day plan specific to Pliant's ICP in travel and fintech.<br><br>
+                Can I get 30 minutes on your calendar this week to walk you through exactly how I'd build your outbound engine?"
+              </div>
+            </div>
+            <div class="card" style="padding:16px;margin-top:12px">
+              <div class="mono" style="font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:8px">WHY THIS WORKS</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.6">
+                ✓ Pattern interrupt — not a typical candidate call<br>
+                ✓ Quantifiable — specific numbers, not vague claims<br>
+                ✓ Risk-framed — speaks to the cost of a wrong hire<br>
+                ✓ Shows preparation — already has a plan ready<br>
+                ✓ Clear CTA — specific time ask, not open-ended
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SLIDE 2: ICP & TARGETING ═══ -->
+    <div class="slide" data-slide="2">
+      <div style="max-width:900px">
+        <div class="mono slide-num">02 · ICP & TARGETING</div>
+        <h2 class="slide-title" style="font-size:36px">Who I'm Going After & <span class="accent-purple">Why</span></h2>
+        <p class="slide-subtitle">Two segments, two motions — both mapped to Pliant's core value.</p>
+        <div class="card-grid card-grid-2">
+          <div class="card" style="border-left:3px solid var(--accent)">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+              <span class="tag" style="background:rgba(0,229,160,0.12);color:var(--accent)">SEGMENT 1</span>
+            </div>
+            <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Enterprise & Mid-Market</h3>
+            <p style="font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:16px">Companies spending $500K+/year on corporate cards who need automation, control, and multi-currency support.</p>
+            <div style="font-size:12px;color:var(--muted);line-height:2">
+              <strong style="color:var(--dim)">Titles:</strong> CFO, VP Finance, Head of Payments, Controller<br>
+              <strong style="color:var(--dim)">Industries:</strong> Travel & Hospitality, Fleet & Logistics, SaaS<br>
+              <strong style="color:var(--dim)">Size:</strong> 200-5,000 employees<br>
+              <strong style="color:var(--dim)">Trigger:</strong> Headcount growth, international expansion, new funding round
+            </div>
+          </div>
+          <div class="card" style="border-left:3px solid var(--purple)">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+              <span class="tag" style="background:rgba(139,92,246,0.12);color:var(--purple)">SEGMENT 2</span>
+            </div>
+            <h3 style="font-size:18px;font-weight:700;margin-bottom:8px">Embedded Finance Partners</h3>
+            <p style="font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:16px">Platforms, ERPs, and banks that want to offer branded card programs to their own customers via Pliant's white-label CaaS.</p>
+            <div style="font-size:12px;color:var(--muted);line-height:2">
+              <strong style="color:var(--dim)">Titles:</strong> CEO, CPO, Head of Partnerships, VP Product<br>
+              <strong style="color:var(--dim)">Industries:</strong> Financial Software, ERP, Banking, Expense Mgmt<br>
+              <strong style="color:var(--dim)">Size:</strong> $5M+ ARR platforms<br>
+              <strong style="color:var(--dim)">Trigger:</strong> Launching fintech features, competitive pressure, revenue diversification
+            </div>
+          </div>
+        </div>
+        <div class="highlight-box" style="margin-top:20px;padding:16px 24px;display:flex;align-items:center;gap:16px">
+          <span style="font-size:28px">🎯</span>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#fff">Targeting Logic</div>
+            <div style="font-size:13px;color:var(--dim)">I'll build my initial TAL (Target Account List) of 200 accounts using LinkedIn Sales Navigator, Crunchbase (funding signals), and industry news. Then I'll tier them: <span class="accent">Tier 1</span> (50 accounts, full custom) · <span class="accent-purple">Tier 2</span> (100, semi-custom) · Tier 3 (50, templated).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SLIDE 3: PROSPECTING SYSTEM ═══ -->
+    <div class="slide" data-slide="3">
+      <div style="max-width:900px">
+        <div class="mono slide-num">03 · PROSPECTING SYSTEM</div>
+        <h2 class="slide-title" style="font-size:36px">The <span class="accent">Daily Machine</span></h2>
+        <p class="slide-subtitle">A repeatable activity plan that compounds week over week.</p>
+        <div class="cols cols-2">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:14px">DAILY ACTIVITY TARGETS</div>
+              <div class="metric-row"><span class="metric-name">📞 Cold Calls</span><span class="metric-value accent">60/day</span></div>
+              <div class="metric-row"><span class="metric-name">✉️ Personalized Emails</span><span class="metric-value accent-blue">40/day</span></div>
+              <div class="metric-row"><span class="metric-name">🔗 LinkedIn Touches</span><span class="metric-value accent-purple">25/day</span></div>
+              <div class="metric-row"><span class="metric-name">📅 Meetings Booked Target</span><span class="metric-value" style="color:var(--amber)">3/day</span></div>
+            </div>
+            <div class="card">
+              <div class="mono" style="font-size:10px;color:var(--purple);letter-spacing:1px;margin-bottom:14px">WEEKLY RHYTHM</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.8">
+                <strong style="color:#fff">Mon</strong> — Pipeline building + account research<br>
+                <strong style="color:#fff">Tue</strong> — Heavy call block (power hours AM + PM)<br>
+                <strong style="color:#fff">Wed</strong> — Multi-channel blitz (LinkedIn + email + call)<br>
+                <strong style="color:#fff">Thu</strong> — Discovery calls + qualification<br>
+                <strong style="color:#fff">Fri</strong> — Close the week, CRM hygiene, report to HoS
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--blue);letter-spacing:1px;margin-bottom:14px">SEQUENCING LOGIC</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.7">
+                Each prospect enters a <strong style="color:#fff">14-day, 9-touch sequence</strong> across 3 channels:
+              </div>
+              <div style="margin-top:12px;font-size:12px;color:var(--dim);line-height:2">
+                <span style="color:var(--accent)">Day 1</span> — Email 1 (pain-based hook) + LinkedIn connect<br>
+                <span style="color:var(--accent)">Day 2</span> — Cold call attempt #1<br>
+                <span style="color:var(--accent)">Day 4</span> — Email 2 (case study / social proof)<br>
+                <span style="color:var(--accent)">Day 5</span> — Call #2 + LinkedIn engagement<br>
+                <span style="color:var(--accent)">Day 7</span> — Email 3 (breakup / value recap)<br>
+                <span style="color:var(--accent)">Day 9</span> — Call #3 + voicemail<br>
+                <span style="color:var(--accent)">Day 11</span> — LinkedIn DM (insight-based)<br>
+                <span style="color:var(--accent)">Day 13</span> — Final email (last chance frame)<br>
+                <span style="color:var(--accent)">Day 14</span> — Final call attempt
+              </div>
+            </div>
+            <div class="card">
+              <div class="mono" style="font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:10px">TECH STACK</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.8">
+                <strong style="color:#fff">CRM:</strong> Salesforce / HubSpot<br>
+                <strong style="color:#fff">Sequencing:</strong> Outreach / Salesloft<br>
+                <strong style="color:#fff">Prospecting:</strong> LinkedIn Sales Navigator, Apollo<br>
+                <strong style="color:#fff">Intel:</strong> Crunchbase, BuiltWith, company 10-Ks
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SLIDE 4: MEETING GENERATION & AE HANDOFF ═══ -->
+    <div class="slide" data-slide="4">
+      <div style="max-width:900px">
+        <div class="mono slide-num">04 · MEETINGS & AE HANDOFF</div>
+        <h2 class="slide-title" style="font-size:36px">From First Touch to <span class="accent-blue">Qualified Handoff</span></h2>
+        <p class="slide-subtitle">How I generate meetings and set AEs up to close.</p>
+        <div class="cols cols-60-40">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:16px">THE HANDOFF PROCESS</div>
+              <div class="flow-step">
+                <div class="flow-num mono" style="background:rgba(0,229,160,0.15);color:var(--accent);border:2px solid var(--accent);font-size:12px">1</div>
+                <div class="flow-content">
+                  <h4>Qualify with BANT + Pain</h4>
+                  <p>Budget awareness, Authority confirmed, Need validated (specific pain point), Timeline established. Plus: I document the <em>emotional</em> driver — what's actually keeping them up at night.</p>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-num mono" style="background:rgba(59,130,246,0.15);color:var(--blue);border:2px solid var(--blue);font-size:12px">2</div>
+                <div class="flow-content">
+                  <h4>Internal Handoff Brief</h4>
+                  <p>Before every AE meeting, I provide: company context, contact role & persona, pain points discovered, competitive landscape, and recommended demo angle.</p>
+                </div>
+              </div>
+              <div class="flow-step">
+                <div class="flow-num mono" style="background:rgba(139,92,246,0.15);color:var(--purple);border:2px solid var(--purple);font-size:12px">3</div>
+                <div class="flow-content">
+                  <h4>Warm Introduction</h4>
+                  <p>I join the first 5 minutes of the AE call to make a warm handoff, restate the prospect's pain, and transfer credibility. Then I step out.</p>
+                </div>
+              </div>
+              <div class="flow-step" style="margin-bottom:0">
+                <div class="flow-num mono" style="background:rgba(249,115,22,0.15);color:var(--orange);border:2px solid var(--orange);font-size:12px">4</div>
+                <div class="flow-content">
+                  <h4>Post-Call Follow-Up</h4>
+                  <p>I send a thank-you email to the prospect within 1 hour of the AE meeting, reinforcing next steps and maintaining the relationship.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:14px">QUALIFICATION CRITERIA</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.8">
+                <span style="color:var(--accent)">✓</span> Company fits ICP (size, industry, spend)<br>
+                <span style="color:var(--accent)">✓</span> Contact is a decision-maker or influencer<br>
+                <span style="color:var(--accent)">✓</span> Specific pain point identified<br>
+                <span style="color:var(--accent)">✓</span> Active evaluation or timeline within 6 months<br>
+                <span style="color:var(--accent)">✓</span> No disqualifying factors (e.g., locked into 3-year contract)
+              </div>
+            </div>
+            <div class="highlight-box">
+              <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:8px">🤝 My Handoff Philosophy</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.6">
+                The AE should walk into the meeting feeling like they've already had a 10-minute prep call. My CRM notes aren't checkboxes — they're intelligence briefs. The better my handoff, the higher the AE's close rate, and the more meetings I get asked to book.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SLIDE 5: MEASURING SUCCESS ═══ -->
+    <div class="slide" data-slide="5">
+      <div style="max-width:900px">
+        <div class="mono slide-num">05 · MEASURING SUCCESS</div>
+        <h2 class="slide-title" style="font-size:36px">What Gets <span class="accent-amber">Measured</span> Gets Done</h2>
+        <p class="slide-subtitle">Inputs, conversion rates, and feedback loops I'll track from day one.</p>
+        <div class="cols cols-2">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:16px">INPUT METRICS (WEEKLY)</div>
+              <div class="metric-row"><span class="metric-name">Outbound calls</span><span class="metric-value" style="color:var(--accent)">300+</span></div>
+              <div class="metric-row"><span class="metric-name">Emails sent</span><span class="metric-value" style="color:var(--accent)">200+</span></div>
+              <div class="metric-row"><span class="metric-name">LinkedIn touches</span><span class="metric-value" style="color:var(--accent)">125+</span></div>
+              <div class="metric-row"><span class="metric-name">New accounts researched</span><span class="metric-value" style="color:var(--accent)">20+</span></div>
+            </div>
+            <div class="card">
+              <div class="mono" style="font-size:10px;color:var(--purple);letter-spacing:1px;margin-bottom:16px">OUTPUT METRICS (MONTHLY)</div>
+              <div class="metric-row"><span class="metric-name">Meetings booked</span><span class="metric-value" style="color:var(--purple)">12-15</span></div>
+              <div class="metric-row"><span class="metric-name">Qualified opportunities</span><span class="metric-value" style="color:var(--purple)">8-10</span></div>
+              <div class="metric-row"><span class="metric-name">Pipeline generated</span><span class="metric-value" style="color:var(--purple)">$250K+</span></div>
+              <div class="metric-row"><span class="metric-name">Meeting → Opp conversion</span><span class="metric-value" style="color:var(--purple)">65%+</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="mono" style="font-size:10px;color:var(--blue);letter-spacing:1px;margin-bottom:16px">CONVERSION FUNNEL</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.8">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Calls → Conversations</span><strong style="color:#fff">15-20%</strong></div>
+                <div style="height:4px;border-radius:4px;background:var(--ghost);margin-bottom:12px"><div style="height:100%;width:18%;background:var(--blue);border-radius:4px"></div></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Conversations → Meetings</span><strong style="color:#fff">25-30%</strong></div>
+                <div style="height:4px;border-radius:4px;background:var(--ghost);margin-bottom:12px"><div style="height:100%;width:28%;background:var(--purple);border-radius:4px"></div></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Meetings → Qualified Opps</span><strong style="color:#fff">60-70%</strong></div>
+                <div style="height:4px;border-radius:4px;background:var(--ghost);margin-bottom:12px"><div style="height:100%;width:65%;background:var(--accent);border-radius:4px"></div></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Email Open Rate</span><strong style="color:#fff">45%+</strong></div>
+                <div style="height:4px;border-radius:4px;background:var(--ghost)"><div style="height:100%;width:45%;background:var(--amber);border-radius:4px"></div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="mono" style="font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:12px">FEEDBACK LOOPS</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.7">
+                <span style="color:var(--accent)">→</span> Weekly 1:1 with Head of Sales — review metrics, coaching<br>
+                <span style="color:var(--accent)">→</span> AE feedback on meeting quality (scored 1-5)<br>
+                <span style="color:var(--accent)">→</span> A/B test email subject lines + call openers every 2 weeks<br>
+                <span style="color:var(--accent)">→</span> Monthly ICP refinement based on conversion data
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SLIDE 6: SAMPLE — ACCOUNT PLAN + SCRIPTS ═══ -->
+    <div class="slide" data-slide="6">
+      <div style="max-width:920px">
+        <div class="mono slide-num">06 · SAMPLE WORK</div>
+        <h2 class="slide-title" style="font-size:36px">Mini Account Plan + <span class="accent">Live Scripts</span></h2>
+        <p class="slide-subtitle">A real example of how I'd work a Tier 1 target account.</p>
+        <div class="cols cols-60-40">
+          <div>
+            <!-- Account Plan -->
+            <div class="card" style="margin-bottom:16px;border-left:3px solid var(--amber)">
+              <div class="mono" style="font-size:10px;color:var(--amber);letter-spacing:1px;margin-bottom:12px">MINI ACCOUNT PLAN — NAVAN (EXAMPLE)</div>
+              <div style="font-size:13px;color:var(--dim);line-height:1.7">
+                <strong style="color:#fff">Company:</strong> Navan (fka TripActions) — Travel & expense platform, $9.2B valuation<br>
+                <strong style="color:#fff">Why they fit:</strong> High-volume travel bookings, complex multi-currency payments, likely issuing thousands of virtual cards. Their current card program may lack the API flexibility Pliant offers for programmatic controls.<br>
+                <strong style="color:#fff">Target contact:</strong> VP of Finance or Head of Payments<br>
+                <strong style="color:#fff">Trigger:</strong> Recent $150M funding round + international expansion into EMEA<br>
+                <strong style="color:#fff">Pain hypothesis:</strong> Managing card spend across 30+ countries with inconsistent controls. Reconciliation across multiple currencies is manual.<br>
+                <strong style="color:#fff">Angle:</strong> Pliant's 11-currency, 30+ country Visa-powered platform eliminates their multi-geo pain. API-first = programmatic virtual card issuance at scale.<br>
+                <strong style="color:#fff">Entry strategy:</strong> Multi-thread — target VP Finance + Head of Payments + CFO with tailored messaging per persona.
+              </div>
+            </div>
+            <!-- Call Script -->
+            <div class="script-block">
+              <div class="script-label mono">COLD CALL OPENER</div>
+              <div class="script-text">
+                "Hi [Name], this is [Your Name] with Pliant. I'll be quick — I noticed Navan just closed a $150M round and is expanding across EMEA. I'm guessing that means <em>managing corporate card spend across 30+ countries</em> just became a much bigger headache.<br><br>
+                We're an API-first payments platform that lets companies like yours programmatically issue cards in 11 currencies with real-time controls — <em>so your finance team isn't drowning in multi-currency reconciliation.</em><br><br>
+                Would it be worth 15 minutes to see how we're solving this for other travel-tech companies?"
+              </div>
+            </div>
+          </div>
+          <div>
+            <!-- Email 1 -->
+            <div class="email-block">
+              <div class="email-label mono">OUTBOUND EMAIL #1 — PAIN-BASED</div>
+              <div class="email-field"><strong>Subject:</strong> [Name], quick question on Navan's card infrastructure</div>
+              <div class="email-body">
+                Hi [Name],<br><br>
+                Congrats on the $150M raise — EMEA expansion sounds like a huge move.<br><br>
+                Quick question: as Navan scales internationally, how are you handling programmatic card issuance and multi-currency reconciliation?<br><br>
+                I ask because we work with travel and fintech companies that were burning 20+ hours/month on manual reconciliation before switching to Pliant's API-first platform. We issue Visa cards in 11 currencies with real-time spend controls — all programmable.<br><br>
+                Worth a 15-min call to see if it's relevant?<br><br>
+                Best,<br>[Your Name]
+              </div>
+            </div>
+            <!-- Email 2 -->
+            <div class="email-block">
+              <div class="email-label mono">FOLLOW-UP EMAIL #2 — SOCIAL PROOF</div>
+              <div class="email-field"><strong>Subject:</strong> How [similar company] cut reconciliation by 80%</div>
+              <div class="email-body">
+                Hi [Name],<br><br>
+                Wanted to share a quick example. One of our clients — a travel platform processing thousands of daily transactions — automated their entire card lifecycle through Pliant's API. Result: 80% less time on reconciliation and zero failed transactions.<br><br>
+                Given Navan's scale, I think the ROI would be significant. Open to a quick conversation?<br><br>
+                [Your Name]
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SLIDE 7: 90-DAY RAMP ═══ -->
+    <div class="slide" data-slide="7">
+      <div style="max-width:900px">
+        <div class="mono slide-num">07 · 90-DAY RAMP PLAN</div>
+        <h2 class="slide-title" style="font-size:36px">From Day 1 to <span class="accent">Full Velocity</span></h2>
+        <p class="slide-subtitle">How I'll earn my seat and accelerate to AE track.</p>
+        <div class="card-grid card-grid-3">
+          <div class="card" style="border-top:3px solid var(--accent)">
+            <div class="mono" style="font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:12px">DAYS 1–30</div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:10px">Learn & Load</h3>
+            <div style="font-size:13px;color:var(--dim);line-height:1.7">
+              <span style="color:var(--accent)">→</span> Master Pliant's product, API docs, integration landscape<br>
+              <span style="color:var(--accent)">→</span> Study top European deals — what worked<br>
+              <span style="color:var(--accent)">→</span> Build initial TAL of 200 accounts<br>
+              <span style="color:var(--accent)">→</span> Launch first sequences by week 2<br>
+              <span style="color:var(--accent)">→</span> Book first meetings by week 3<br>
+              <span style="color:var(--accent)">→</span> Daily call practice + objection role-play
+            </div>
+            <div style="margin-top:16px;padding:10px 14px;background:rgba(0,229,160,0.06);border-radius:8px">
+              <div style="font-size:12px;color:var(--accent);font-weight:600">Target: 5-8 meetings booked</div>
+            </div>
+          </div>
+          <div class="card" style="border-top:3px solid var(--blue)">
+            <div class="mono" style="font-size:10px;color:var(--blue);letter-spacing:1px;margin-bottom:12px">DAYS 31–60</div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:10px">Optimize & Scale</h3>
+            <div style="font-size:13px;color:var(--dim);line-height:1.7">
+              <span style="color:var(--blue)">→</span> A/B test messaging — refine what converts<br>
+              <span style="color:var(--blue)">→</span> Hit daily activity targets consistently<br>
+              <span style="color:var(--blue)">→</span> Begin running discovery calls independently<br>
+              <span style="color:var(--blue)">→</span> Build repeatable sequence templates<br>
+              <span style="color:var(--blue)">→</span> Start tracking AE feedback scores<br>
+              <span style="color:var(--blue)">→</span> Contribute to US market playbook
+            </div>
+            <div style="margin-top:16px;padding:10px 14px;background:rgba(59,130,246,0.06);border-radius:8px">
+              <div style="font-size:12px;color:var(--blue);font-weight:600">Target: 10-12 meetings/month</div>
+            </div>
+          </div>
+          <div class="card" style="border-top:3px solid var(--purple)">
+            <div class="mono" style="font-size:10px;color:var(--purple);letter-spacing:1px;margin-bottom:12px">DAYS 61–90</div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:10px">Crush Quota</h3>
+            <div style="font-size:13px;color:var(--dim);line-height:1.7">
+              <span style="color:var(--purple)">→</span> Hit or exceed 15 meetings/month<br>
+              <span style="color:var(--purple)">→</span> $250K+ monthly pipeline generated<br>
+              <span style="color:var(--purple)">→</span> Begin AE shadow program<br>
+              <span style="color:var(--purple)">→</span> Handle objections without support<br>
+              <span style="color:var(--purple)">→</span> Codify winning playbook for future BDRs<br>
+              <span style="color:var(--purple)">→</span> Demonstrate readiness for AE track
+            </div>
+            <div style="margin-top:16px;padding:10px 14px;background:rgba(139,92,246,0.06);border-radius:8px">
+              <div style="font-size:12px;color:var(--purple);font-weight:600">Target: 15+ meetings, AE shadow starts</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SLIDE 8: WHY HIRE ME ═══ -->
+    <div class="slide" data-slide="8">
+      <div style="max-width:800px">
+        <div class="mono slide-num">08 · THE CLOSE</div>
+        <h2 class="slide-title" style="font-size:42px">Why You Should <span class="accent">Hire Me</span></h2>
+        <p class="slide-subtitle" style="margin-bottom:32px">This isn't just a presentation — it's proof of how I work.</p>
+        <div class="card-grid" style="grid-template-columns:1fr;gap:12px;margin-bottom:32px">
+          <div class="card" style="display:flex;gap:16px;align-items:flex-start;border-left:3px solid var(--accent)">
+            <div class="mono" style="font-size:28px;font-weight:800;color:var(--accent);flex-shrink:0;width:40px">01</div>
+            <div>
+              <h4 style="font-size:16px;font-weight:700;margin-bottom:4px">I Showed, Not Told</h4>
+              <p style="font-size:13px;color:var(--dim);line-height:1.6">I didn't just say I can prospect. I called Leon, earned the meeting, and built a detailed plan — exactly what I'd do for Pliant's prospects every single day.</p>
+            </div>
+          </div>
+          <div class="card" style="display:flex;gap:16px;align-items:flex-start;border-left:3px solid var(--purple)">
+            <div class="mono" style="font-size:28px;font-weight:800;color:var(--purple);flex-shrink:0;width:40px">02</div>
+            <div>
+              <h4 style="font-size:16px;font-weight:700;margin-bottom:4px">I Have a Repeatable System</h4>
+              <p style="font-size:13px;color:var(--dim);line-height:1.6">This isn't improvisation. It's a structured, metric-driven process that compounds over time. I know my numbers, I track my inputs, and I optimize relentlessly.</p>
+            </div>
+          </div>
+          <div class="card" style="display:flex;gap:16px;align-items:flex-start;border-left:3px solid var(--blue)">
+            <div class="mono" style="font-size:28px;font-weight:800;color:var(--blue);flex-shrink:0;width:40px">03</div>
+            <div>
+              <h4 style="font-size:16px;font-weight:700;margin-bottom:4px">I'm Building for Scale, Not Just Hitting Quota</h4>
+              <p style="font-size:13px;color:var(--dim);line-height:1.6">As a founding US hire, I'm not just booking meetings — I'm documenting what works to build Pliant's outbound playbook for the team that comes after me.</p>
+            </div>
+          </div>
+          <div class="card" style="display:flex;gap:16px;align-items:flex-start;border-left:3px solid var(--amber)">
+            <div class="mono" style="font-size:28px;font-weight:800;color:var(--amber);flex-shrink:0;width:40px">04</div>
+            <div>
+              <h4 style="font-size:16px;font-weight:700;margin-bottom:4px">I Want to Close — Not Just Generate</h4>
+              <p style="font-size:13px;color:var(--dim);line-height:1.6">The AE track is why I'm here. I see BDR as my residency — I'm learning every objection, every persona, every deal pattern so I can step into a closing role within 6-12 months.</p>
+            </div>
+          </div>
+        </div>
+        <div class="highlight-box" style="text-align:center;padding:28px">
+          <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">Let's build Pliant's US pipeline together.</div>
+          <div style="font-size:14px;color:var(--dim)">I'm ready to start. When do I begin?</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottombar">
+    <button class="nav-btn ghost" id="prev-btn" onclick="prevSlide()" disabled>← Previous</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn primary" id="next-btn" onclick="nextSlide()">Next →</button>
+  </div>
+</div>
+
+<div class="kbd-hint hide-mobile">
+  <span class="kbd">←</span> <span class="kbd">→</span> to navigate
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+let currentSlide = 0;
+let visited = new Set([0]);
+
+document.getElementById('slide-total').textContent = totalSlides;
+
+// Build dots
+const dotsEl = document.getElementById('dots');
+for (let i = 0; i < totalSlides; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'dot' + (i === 0 ? ' active' : '');
+  dot.onclick = () => goToSlide(i);
+  dotsEl.appendChild(dot);
+}
+
+function goToSlide(n) {
+  if (n < 0 || n >= totalSlides || n === currentSlide) return;
+  const direction = n > currentSlide ? 1 : -1;
+  slides[currentSlide].className = 'slide ' + (direction > 0 ? 'exit-left' : '');
+  currentSlide = n;
+  visited.add(n);
+  slides[currentSlide].className = 'slide active';
+
+  // Update counter
+  document.getElementById('slide-counter').textContent = n + 1;
+
+  // Update dots
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.className = 'dot' + (i === currentSlide ? ' active' : visited.has(i) ? ' visited' : '');
+  });
+
+  // Update buttons
+  document.getElementById('prev-btn').disabled = currentSlide === 0;
+  document.getElementById('next-btn').disabled = currentSlide === totalSlides - 1;
+  document.getElementById('next-btn').textContent = currentSlide === totalSlides - 1 ? '✓ Done' : 'Next →';
+}
+
+function nextSlide() { goToSlide(currentSlide + 1); }
+function prevSlide() { goToSlide(currentSlide - 1); }
+
+// Keyboard nav
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+});
+
+// Touch/swipe
+let touchStartX = 0;
+document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', (e) => {
+  const diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff) > 60) { diff > 0 ? nextSlide() : prevSlide(); }
+});
+</script>
+</body>
+</html>
