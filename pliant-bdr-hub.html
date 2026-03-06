@@ -3,1118 +3,588 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chris Khoury — How I'll Build Pliant's US Pipeline from Scratch</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<title>Chris Khoury — Pliant BDR Final Stage</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg-primary: #0a0a0f;
-  --bg-card: #111118;
-  --bg-card-hover: #16161f;
-  --bg-accent: #1a1a2e;
-  --border: #1e1e2e;
-  --border-accent: #2a2a3e;
-  --text-primary: #e8e8f0;
-  --text-secondary: #8888a8;
-  --text-muted: #555570;
-  --accent: #6366f1;
-  --accent-dim: #4f46e5;
-  --accent-glow: rgba(99, 102, 241, 0.15);
-  --accent-green: #10b981;
-  --accent-green-dim: rgba(16, 185, 129, 0.12);
-  --accent-amber: #f59e0b;
-  --accent-amber-dim: rgba(245, 158, 11, 0.12);
-  --accent-red: #ef4444;
-  --accent-cyan: #06b6d4;
-  --accent-cyan-dim: rgba(6, 182, 212, 0.12);
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-sans: 'Instrument Sans', -apple-system, sans-serif;
-  --font-serif: 'Instrument Serif', Georgia, serif;
+  --black: #08080c;
+  --s1: #0e0e14;
+  --s2: #131320;
+  --s3: #1a1a2a;
+  --b1: #1c1c30;
+  --b2: #262640;
+  --b3: #333355;
+  --t1: #eeeef4;
+  --t2: #b0b0cc;
+  --t3: #6e6e8e;
+  --t4: #44445e;
+  --blue: #5b6cf7;
+  --blue-d: rgba(91,108,247,0.10);
+  --blue-m: rgba(91,108,247,0.20);
+  --green: #34d399;
+  --green-d: rgba(52,211,153,0.08);
+  --amber: #fbbf24;
+  --amber-d: rgba(251,191,36,0.08);
+  --cyan: #22d3ee;
+  --cyan-d: rgba(34,211,238,0.08);
+  --mono: 'DM Mono', monospace;
+  --serif: 'Libre Baskerville', Georgia, serif;
+  --sans: 'Outfit', -apple-system, sans-serif;
 }
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--t1);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--blue);color:#fff}
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:52px;background:rgba(8,8,12,0.82);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1rem,3vw,2.5rem)}
+.nav-l{display:flex;align-items:center;gap:10px}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 10px var(--blue),0 0 30px rgba(91,108,247,0.2);animation:br 3s ease infinite}
+@keyframes br{0%,100%{opacity:1}50%{opacity:.4}}
+.nav-lbl{font-family:var(--mono);font-size:.68rem;font-weight:500;letter-spacing:.08em;color:var(--t3)}
+.pills{display:flex;gap:1px;background:var(--b1);border-radius:8px;overflow:hidden}
+.pill{background:var(--s1);border:none;color:var(--t4);font-family:var(--mono);font-size:.6rem;font-weight:500;letter-spacing:.04em;padding:7px 14px;cursor:pointer;transition:all .25s}
+.pill:hover{color:var(--t2);background:var(--s2)}
+.pill.on{color:#fff;background:var(--blue)}
+.nav-k{font-family:var(--mono);font-size:.6rem;color:var(--t4);display:flex;align-items:center;gap:6px}
+.nav-k kbd{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;background:var(--s2);border:1px solid var(--b1);border-radius:4px;font-family:var(--mono);font-size:.55rem;color:var(--t3);padding:0 4px}
+@media(max-width:768px){.nav-k{display:none}.pill{padding:6px 8px;font-size:.55rem}}
 
-html {
-  scroll-behavior: smooth;
-  scroll-snap-type: y mandatory;
-}
+/* PROGRESS */
+.ptrack{position:fixed;top:52px;left:0;right:0;height:2px;background:var(--b1);z-index:999}
+.pbar{height:100%;background:var(--blue);width:0%;transition:width .15s ease;box-shadow:0 0 8px rgba(91,108,247,0.4)}
 
-body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  line-height: 1.6;
-  overflow-x: hidden;
-}
+/* SLIDES */
+.slide{min-height:100vh;padding:76px clamp(1.5rem,4vw,4rem) 4rem;max-width:1080px;margin:0 auto;display:flex;flex-direction:column}
 
-/* ─── NAV BAR ─── */
-.nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 2rem;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: var(--text-secondary);
-}
-.nav-brand .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 12px var(--accent);
-  animation: pulse-dot 2s ease infinite;
-}
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-.nav-slides {
-  display: flex;
-  gap: 2px;
-}
-.nav-slides button {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.nav-slides button:first-child { border-radius: 6px 0 0 6px; }
-.nav-slides button:last-child { border-radius: 0 6px 6px 0; }
-.nav-slides button.active {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
-}
-.nav-slides button:hover:not(.active) {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-}
-.nav-keys {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.nav-keys kbd {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 0.6rem;
-}
+/* TYPO */
+.tag{font-family:var(--mono);font-size:.65rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin-bottom:1rem}
+.title{font-family:var(--serif);font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:400;line-height:1.2;margin-bottom:.6rem}
+.title em{font-style:italic;color:var(--blue)}
+.sub{font-size:1rem;font-weight:300;color:var(--t3);margin-bottom:2.5rem;max-width:560px;line-height:1.65}
 
-/* ─── SLIDES ─── */
-.slide {
-  min-height: 100vh;
-  scroll-snap-align: start;
-  padding: 80px 2rem 3rem;
-  display: flex;
-  flex-direction: column;
-  max-width: 1100px;
-  margin: 0 auto;
-}
+/* PANELS */
+.p{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:1.75rem;margin-bottom:1rem;transition:border-color .3s}
+.p:hover{border-color:var(--b2)}
+.p-l{font-family:var(--mono);font-size:.6rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--t4);margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--b1)}
+.p-t{font-size:.9rem;color:var(--t2);line-height:1.75}
 
-/* ─── SECTION HEADERS ─── */
-.section-tag {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  color: var(--accent);
-  margin-bottom: 0.75rem;
-  text-transform: uppercase;
-}
-.section-title {
-  font-family: var(--font-serif);
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 400;
-  line-height: 1.15;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-}
-.section-subtitle {
-  font-size: 1.05rem;
-  color: var(--text-secondary);
-  margin-bottom: 2.5rem;
-  max-width: 600px;
-}
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+@media(max-width:900px){.g3,.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.g2,.g3,.g4{grid-template-columns:1fr}}
 
-/* ─── CARDS ─── */
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.75rem;
-  margin-bottom: 1rem;
-  transition: border-color 0.3s;
-}
-.card:hover {
-  border-color: var(--border-accent);
-}
-.card-label {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-}
-.card-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-.card-text {
-  font-size: 0.92rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
+/* STEPS */
+.step{display:flex;gap:1.25rem;margin-bottom:1.5rem;align-items:flex-start}
+.step-n{flex-shrink:0;width:32px;height:32px;border-radius:9px;background:var(--blue-d);border:1px solid var(--blue-m);color:var(--blue);font-family:var(--mono);font-size:.75rem;font-weight:500;display:flex;align-items:center;justify-content:center}
+.step h4{font-size:.95rem;font-weight:600;margin-bottom:.3rem}
+.step p,.step-p{font-size:.85rem;color:var(--t2);line-height:1.7}
 
-/* ─── GRID ─── */
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; }
+/* QUOTE */
+.qb{position:relative;background:linear-gradient(135deg,rgba(91,108,247,0.04),rgba(34,211,238,0.02));border:1px solid rgba(91,108,247,0.12);border-left:3px solid var(--blue);border-radius:0 14px 14px 0;padding:2rem 2rem 2rem 2.25rem;margin:1.5rem 0}
+.qb p{font-size:.88rem;color:var(--t2);line-height:1.85;margin-bottom:1rem}
+.qb p:last-child{margin-bottom:0}
+.qb strong{color:var(--t1);font-weight:600}
 
-@media (max-width: 768px) {
-  .grid-2, .grid-3, .grid-4 {
-    grid-template-columns: 1fr;
-  }
-  .slide { padding: 80px 1.25rem 2rem; }
-}
+/* METRICS */
+.mr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 0;border-bottom:1px solid var(--b1)}
+.mr:last-child{border-bottom:none}
+.ml{font-size:.85rem;color:var(--t2);display:flex;align-items:center;gap:.6rem}
+.mv{font-family:var(--mono);font-size:.82rem;font-weight:500;color:var(--blue)}
 
-/* ─── STEP CARDS ─── */
-.step {
-  display: flex;
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-.step-num {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--accent-glow);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(99, 102, 241, 0.2);
-}
-.step-content h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.35rem;
-}
-.step-content p {
-  font-size: 0.88rem;
-  color: var(--text-secondary);
-  line-height: 1.65;
-}
+/* CHECKS */
+.ch{list-style:none}
+.ch li{padding:.45rem 0;font-size:.85rem;color:var(--t2);display:flex;align-items:flex-start;gap:.7rem;line-height:1.55}
+.ch li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;font-size:.8rem;margin-top:2px}
 
-/* ─── SCRIPT BLOCK ─── */
-.script-block {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(6, 182, 212, 0.04));
-  border: 1px solid rgba(99, 102, 241, 0.15);
-  border-radius: 12px;
-  padding: 2rem;
-  margin: 1.5rem 0;
-  font-size: 0.9rem;
-  line-height: 1.8;
-  color: var(--text-primary);
-  position: relative;
-}
-.script-block::before {
-  content: '"';
-  position: absolute;
-  top: 0.5rem;
-  left: 1rem;
-  font-family: var(--font-serif);
-  font-size: 4rem;
-  color: var(--accent);
-  opacity: 0.2;
-  line-height: 1;
-}
-.script-block p {
-  margin-bottom: 1rem;
-  padding-left: 1rem;
-}
-.script-block p:last-child { margin-bottom: 0; }
+/* TIMELINE */
+.tl{display:flex;gap:.85rem;padding:.5rem 0;font-size:.82rem;color:var(--t2);align-items:baseline;line-height:1.5}
+.tl-d{font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--blue);min-width:48px;flex-shrink:0}
 
-/* ─── METRIC BARS ─── */
-.metric-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-}
-.metric-row:last-child { border-bottom: none; }
-.metric-label {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-.metric-label .icon {
-  font-size: 1.1rem;
-}
-.metric-value {
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--accent);
-}
+/* SEGMENTS */
+.seg{background:var(--s1);border:1px solid var(--b1);border-radius:14px;overflow:hidden}
+.seg-h{padding:1.15rem 1.5rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:.75rem}
+.sb{font-family:var(--mono);font-size:.55rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:5px}
+.sb.a{background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-m)}
+.sb.b{background:var(--cyan-d);color:var(--cyan);border:1px solid rgba(34,211,238,0.15)}
+.seg-h h3{font-size:1rem;font-weight:600}
+.seg-b{padding:1.15rem 1.5rem}
+.sr{display:flex;gap:.75rem;padding:.35rem 0;font-size:.82rem;align-items:baseline}
+.sr .k{font-family:var(--mono);font-size:.65rem;font-weight:500;color:var(--t4);min-width:62px;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em}
+.sr .v{color:var(--t2)}
 
-/* ─── CHECK LIST ─── */
-.check-list {
-  list-style: none;
-}
-.check-list li {
-  padding: 0.5rem 0;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-.check-list li::before {
-  content: '✓';
-  color: var(--accent-green);
-  font-weight: 700;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
+/* INSIGHT BOXES */
+.ins{border-radius:12px;padding:1.4rem 1.6rem;margin-top:1rem}
+.ins.bl{background:var(--blue-d);border:1px solid rgba(91,108,247,0.12)}
+.ins.gr{background:var(--green-d);border:1px solid rgba(52,211,153,0.12)}
+.ins.am{background:var(--amber-d);border:1px solid rgba(251,191,36,0.12)}
+.ins.cy{background:var(--cyan-d);border:1px solid rgba(34,211,238,0.12)}
+.ins-l{font-family:var(--mono);font-size:.6rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.65rem}
+.ins.bl .ins-l{color:var(--blue)}.ins.gr .ins-l{color:var(--green)}.ins.am .ins-l{color:var(--amber)}.ins.cy .ins-l{color:var(--cyan)}
+.ins p{font-size:.88rem;color:var(--t2);line-height:1.7}
 
-/* ─── SEQUENCE TIMELINE ─── */
-.timeline-item {
-  display: flex;
-  gap: 1rem;
-  padding: 0.6rem 0;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  align-items: baseline;
-}
-.timeline-day {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
-  min-width: 52px;
-  flex-shrink: 0;
-}
+/* EMAIL */
+.em{background:var(--s1);border:1px solid var(--b1);border-radius:14px;overflow:hidden}
+.em-t{padding:.85rem 1.35rem;border-bottom:1px solid var(--b1);background:var(--s2);display:flex;align-items:center;gap:.7rem}
+.em-tag{font-family:var(--mono);font-size:.55rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);background:var(--blue-d);border:1px solid var(--blue-m);padding:2px 8px;border-radius:4px}
+.em-s{font-size:.82rem;font-weight:600;color:var(--t1)}
+.em-b{padding:1.35rem;font-size:.85rem;color:var(--t2);line-height:1.75}
+.em-b p{margin-bottom:.75rem}
+.em-b p:last-child{margin-bottom:0}
 
-/* ─── EMAIL SAMPLE ─── */
-.email-block {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-.email-header {
-  background: var(--bg-accent);
-  padding: 0.85rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.email-header .tag {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: var(--accent-glow);
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-.email-header .subject {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-.email-body {
-  padding: 1.25rem;
-  font-size: 0.88rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-.email-body p { margin-bottom: 0.8rem; }
-.email-body p:last-child { margin-bottom: 0; }
+/* RAMP */
+.ramp{background:var(--s1);border:1px solid var(--b1);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.ramp-t{padding:1.15rem 1.4rem;border-bottom:1px solid var(--b1)}
+.ramp-ph{font-family:var(--mono);font-size:.6rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.2rem}
+.ramp-t h3{font-size:1.05rem;font-weight:600}
+.ramp-bd{padding:1.15rem 1.4rem;flex:1}
+.ramp-i{font-size:.8rem;color:var(--t2);padding:.3rem 0;display:flex;gap:.5rem;align-items:baseline;line-height:1.5}
+.ramp-i::before{content:'→';color:var(--t4);flex-shrink:0}
+.ramp-tgt{margin-top:auto;padding:.85rem 1.4rem;border-top:1px solid var(--b1);font-family:var(--mono);font-size:.75rem;font-weight:500}
 
-/* ─── RAMP PHASE ─── */
-.ramp-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-}
-.ramp-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
-.ramp-header .phase {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 0.25rem;
-}
-.ramp-header h3 {
-  font-size: 1.15rem;
-  font-weight: 600;
-}
-.ramp-body {
-  padding: 1.25rem 1.5rem;
-}
-.ramp-item {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  padding: 0.35rem 0;
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-.ramp-item::before {
-  content: '→';
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-.ramp-target {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--accent-green);
-}
+/* ACCOUNT PLAN */
+.acct{background:var(--s1);border:1px solid var(--b1);border-radius:14px;overflow:hidden;margin-bottom:1.5rem}
+.acct-t{padding:1.15rem 1.5rem;border-bottom:1px solid var(--b1);background:var(--s2);display:flex;align-items:baseline;gap:1rem}
+.acct-t h3{font-size:1.05rem;font-weight:700}
+.acct-t span{font-size:.8rem;color:var(--t3)}
+.acct-b{padding:1.15rem 1.5rem}
+.ar{display:flex;gap:.75rem;padding:.4rem 0;font-size:.82rem;align-items:baseline}
+.ar .k{font-weight:600;color:var(--t3);min-width:58px;flex-shrink:0}
+.ar .v{color:var(--t2);line-height:1.5}
 
-/* ─── CLOSE SECTION ─── */
-.close-point {
-  display: flex;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-.close-num {
-  flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--accent);
-  opacity: 0.3;
-  line-height: 1.2;
-}
-.close-content h4 {
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin-bottom: 0.4rem;
-}
-.close-content p {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
+/* CLOSE POINTS */
+.cp{display:flex;gap:1.75rem;margin-bottom:2rem;align-items:flex-start}
+.cp-n{flex-shrink:0;font-family:var(--serif);font-size:2.2rem;font-weight:400;color:var(--b2);line-height:1;min-width:40px}
+.cp h4{font-size:1.05rem;font-weight:600;margin-bottom:.4rem}
+.cp p{font-size:.88rem;color:var(--t2);line-height:1.75}
 
-/* ─── HERO ─── */
-.hero {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  flex: 1;
-}
-.hero-tag {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  color: var(--accent);
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.hero-tag::before {
-  content: '';
-  width: 24px;
-  height: 1px;
-  background: var(--accent);
-}
-.hero h1 {
-  font-family: var(--font-serif);
-  font-size: clamp(2.5rem, 5.5vw, 4rem);
-  font-weight: 400;
-  line-height: 1.1;
-  margin-bottom: 1.25rem;
-  max-width: 800px;
-}
-.hero h1 em {
-  font-style: italic;
-  color: var(--accent);
-}
-.hero-sub {
-  font-size: 1.15rem;
-  color: var(--text-secondary);
-  margin-bottom: 2.5rem;
-  max-width: 550px;
-  line-height: 1.6;
-}
-.hero-author {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-.hero-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-cyan));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: white;
-}
-.hero-author-info .name {
-  font-weight: 600;
-  font-size: 1rem;
-}
-.hero-author-info .role {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-}
+/* HERO */
+.hero{flex:1;display:flex;flex-direction:column;justify-content:center}
+.hero-tag{font-family:var(--mono);font-size:.65rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);margin-bottom:2rem;display:flex;align-items:center;gap:1rem}
+.hero-tag::before{content:'';width:32px;height:1px;background:var(--blue)}
+.hero h1{font-family:var(--serif);font-size:clamp(2.4rem,5vw,3.8rem);font-weight:400;line-height:1.15;margin-bottom:1.5rem;max-width:780px}
+.hero h1 em{font-style:italic;color:var(--blue)}
+.hero-sub{font-size:1.1rem;font-weight:300;color:var(--t3);margin-bottom:3rem;max-width:520px;line-height:1.65}
+.hero-card{display:inline-flex;align-items:center;gap:1rem;padding:1rem 1.75rem 1rem 1rem;background:var(--s1);border:1px solid var(--b1);border-radius:14px}
+.hero-av{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,var(--blue),#818cf8);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95rem;color:#fff}
+.hero-info .nm{font-weight:600;font-size:.95rem}
+.hero-info .rl{font-size:.78rem;color:var(--t3)}
 
-/* ─── MATH BLOCK ─── */
-.math-block {
-  background: var(--accent-green-dim);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 12px;
-  padding: 1.5rem 1.75rem;
-  margin: 1rem 0;
-}
-.math-block .math-title {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-green);
-  margin-bottom: 0.75rem;
-}
-.math-block p {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  margin-bottom: 0.4rem;
-}
-.math-block .result {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--accent-green);
-  margin-top: 0.5rem;
-}
+/* BANNER */
+.ban{background:linear-gradient(135deg,rgba(91,108,247,0.06),rgba(34,211,238,0.03));border:1px solid rgba(91,108,247,0.1);border-radius:16px;padding:2.75rem 3rem;text-align:center;margin-top:2rem}
+.ban p{font-family:var(--serif);font-size:1.2rem;font-style:italic;color:var(--t2);line-height:1.7;max-width:640px;margin:0 auto}
+.ban .sig{margin-top:1.25rem;font-family:var(--mono);font-size:.7rem;font-style:normal;color:var(--t4);letter-spacing:.06em}
 
-/* ─── CLOSING BANNER ─── */
-.closing-banner {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(6, 182, 212, 0.05));
-  border: 1px solid rgba(99, 102, 241, 0.15);
-  border-radius: 16px;
-  padding: 3rem;
-  text-align: center;
-  margin-top: 2rem;
-}
-.closing-banner p {
-  font-family: var(--font-serif);
-  font-size: 1.35rem;
-  font-style: italic;
-  color: var(--text-primary);
-  line-height: 1.6;
-  max-width: 700px;
-  margin: 0 auto;
-}
+/* RHYTHM */
+.rh{display:flex;gap:.85rem;padding:.55rem 0;font-size:.82rem;align-items:baseline}
+.rh-d{font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--amber);min-width:32px;flex-shrink:0}
+.rh-t{color:var(--t2)}
 
-/* ─── WHY SEGMENTS ─── */
-.why-box {
-  background: var(--accent-cyan-dim);
-  border: 1px solid rgba(6, 182, 212, 0.15);
-  border-radius: 12px;
-  padding: 1.5rem 1.75rem;
-  margin-top: 1rem;
-}
-.why-box .why-title {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-cyan);
-  margin-bottom: 0.75rem;
-}
-.why-box p {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
+/* HANDOFF */
+.ho{background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:1.5rem;text-align:center}
+.ho .n{width:32px;height:32px;border-radius:9px;background:var(--blue-d);border:1px solid var(--blue-m);color:var(--blue);font-family:var(--mono);font-size:.75rem;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto .85rem}
+.ho h4{font-size:.92rem;font-weight:600;margin-bottom:.4rem}
+.ho p{font-size:.8rem;color:var(--t3);line-height:1.55}
 
-/* ─── SEGMENT CARDS ─── */
-.segment-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-}
-.segment-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.segment-badge {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-.segment-badge.direct {
-  background: var(--accent-glow);
-  color: var(--accent);
-}
-.segment-badge.partner {
-  background: var(--accent-cyan-dim);
-  color: var(--accent-cyan);
-}
-.segment-header h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-.segment-body {
-  padding: 1.25rem 1.5rem;
-}
-.segment-row {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  padding: 0.4rem 0;
-  font-size: 0.85rem;
-}
-.segment-row .label {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  min-width: 70px;
-  flex-shrink: 0;
-}
-.segment-row .value {
-  color: var(--text-secondary);
-}
+/* MATH */
+.math{background:var(--green-d);border:1px solid rgba(52,211,153,0.12);border-radius:14px;padding:1.6rem 1.85rem;margin-top:1rem}
+.math-l{font-family:var(--mono);font-size:.6rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:.85rem}
+.math p{font-size:.88rem;color:var(--t2);line-height:1.7;margin-bottom:.35rem}
+.math .res{font-family:var(--mono);font-size:1.05rem;font-weight:500;color:var(--green);margin-top:.65rem}
 
-/* ─── HANDOFF NOTE ─── */
-.handoff-note {
-  background: var(--accent-amber-dim);
-  border: 1px solid rgba(245, 158, 11, 0.15);
-  border-radius: 12px;
-  padding: 1.5rem 1.75rem;
-  margin-top: 1rem;
-}
-.handoff-note .note-title {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-amber);
-  margin-bottom: 0.75rem;
-}
-.handoff-note p {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
+/* PHILOSOPHY CALLOUT */
+.philo{position:relative;background:var(--s1);border:1px solid var(--b1);border-radius:14px;padding:2rem;margin:1.5rem 0}
+.philo::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--green));border-radius:14px 14px 0 0}
+.philo-label{font-family:var(--mono);font-size:.6rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin-bottom:1rem}
+.philo p{font-size:.9rem;color:var(--t2);line-height:1.8;margin-bottom:.75rem}
+.philo p:last-child{margin-bottom:0}
+.philo strong{color:var(--t1)}
 
-/* ─── ACCOUNT PLAN ─── */
-.account-plan {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 1.5rem;
-}
-.account-plan-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-accent);
-}
-.account-plan-header h3 {
-  font-size: 1rem;
-  font-weight: 600;
-}
-.account-plan-header span {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-}
-.account-plan-body {
-  padding: 1.25rem 1.5rem;
-}
-.plan-row {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.45rem 0;
-  font-size: 0.85rem;
-  align-items: baseline;
-}
-.plan-row .key {
-  font-weight: 600;
-  color: var(--text-muted);
-  min-width: 65px;
-  flex-shrink: 0;
-}
-.plan-row .val {
-  color: var(--text-secondary);
-}
+/* REVEAL */
+.rv{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s ease}
+.rv.vis{opacity:1;transform:translateY(0)}
 
-/* ─── WEEKLY RHYTHM ─── */
-.rhythm-item {
-  display: flex;
-  gap: 1rem;
-  padding: 0.6rem 0;
-  font-size: 0.85rem;
-  align-items: baseline;
-}
-.rhythm-day {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-amber);
-  min-width: 36px;
-  flex-shrink: 0;
-}
-.rhythm-desc {
-  color: var(--text-secondary);
-}
-
-/* ─── ANIMATIONS ─── */
-.fade-in {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.fade-in.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* ─── SCROLLBAR ─── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-primary); }
-::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; }
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--black)}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
+<div class="ptrack"><div class="pbar" id="pb"></div></div>
+
 <nav class="nav">
-  <div class="nav-brand">
-    <span class="dot"></span>
-    PLIANT BDR — CHRIS KHOURY
+  <div class="nav-l">
+    <div class="nav-dot"></div>
+    <span class="nav-lbl">CHRIS KHOURY · PLIANT BDR</span>
   </div>
-  <div class="nav-slides">
-    <button class="active" onclick="goSlide(0)">INTRO</button>
-    <button onclick="goSlide(1)">01</button>
-    <button onclick="goSlide(2)">02</button>
-    <button onclick="goSlide(3)">03</button>
-    <button onclick="goSlide(4)">04</button>
-    <button onclick="goSlide(5)">05</button>
-    <button onclick="goSlide(6)">06</button>
-    <button onclick="goSlide(7)">07</button>
-    <button onclick="goSlide(8)">08</button>
+  <div class="pills" id="pills">
+    <button class="pill on" data-i="0">INTRO</button>
+    <button class="pill" data-i="1">01</button>
+    <button class="pill" data-i="2">02</button>
+    <button class="pill" data-i="3">03</button>
+    <button class="pill" data-i="4">04</button>
+    <button class="pill" data-i="5">05</button>
+    <button class="pill" data-i="6">06</button>
+    <button class="pill" data-i="7">07</button>
+    <button class="pill" data-i="8">08</button>
   </div>
-  <div class="nav-keys">
-    <kbd>←</kbd> <kbd>→</kbd> to navigate
-  </div>
+  <div class="nav-k"><kbd>←</kbd><kbd>→</kbd> navigate</div>
 </nav>
 
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- SLIDE 0 — HERO -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="slide" id="slide-0">
+<!-- ══════════════════════════════════════
+     SLIDE 0 — HERO
+     ══════════════════════════════════════ -->
+<section class="slide" id="s0">
   <div class="hero">
     <div class="hero-tag">Pliant · BDR Final Stage Exercise</div>
     <h1>How I'll Build Pliant's <em>US Pipeline</em> from Scratch</h1>
-    <p class="hero-sub">A repeatable system for generating qualified opportunities for the AE team to close.</p>
-    <div class="hero-author">
-      <div class="hero-avatar">CK</div>
-      <div class="hero-author-info">
-        <div class="name">Chris Khoury</div>
-        <div class="role">BDR Candidate · Pliant US Founding Team</div>
+    <p class="hero-sub">A system for generating qualified, AE-ready opportunities — built by someone who's done it before, twice, as if the company were his own.</p>
+    <div class="hero-card">
+      <div class="hero-av">CK</div>
+      <div class="hero-info">
+        <div class="nm">Chris Khoury</div>
+        <div class="rl">BDR Candidate · Pliant US Founding Team</div>
       </div>
     </div>
   </div>
 </section>
 
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- SLIDE 1 — EARNING THE MEETING -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="slide" id="slide-1">
-  <div class="section-tag">01 · Earning the Meeting</div>
-  <div class="section-title">How I Booked Leon Faulstroh</div>
-  <div class="section-subtitle">The exact strategy I used — from research to the call.</div>
+<!-- ══════════════════════════════════════
+     SLIDE 1 — EARNING THE MEETING
+     ══════════════════════════════════════ -->
+<section class="slide" id="s1">
+  <div class="tag">01 · Earning the Meeting</div>
+  <div class="title">How I Booked Leon Faulstroh</div>
+  <div class="sub">The exact strategy I used — from research to the call.</div>
 
-  <div class="step">
-    <div class="step-num">1</div>
-    <div class="step-content">
-      <h4>Pre-Call Research (20 min)</h4>
-      <p>Studied Leon's career trajectory: Founders Associate closing 80+ accounts, Head of RevOps driving 3x YoY revenue growth, Head of International Expansion opening 7 European markets, now VP of Growth. Mapped his #1 pain: hiring a US BDR who can ramp without hand-holding and build outbound from nothing — in a market Pliant hasn't cracked yet.</p>
+  <div class="step rv">
+    <div class="step-n">1</div>
+    <div>
+      <h4>Deep Research — Not Surface-Level</h4>
+      <p>Mapped Leon's full arc at Pliant: Founders Associate closing 80+ accounts → Head of RevOps driving 3x YoY revenue → International Expansion across 7 European markets → VP of Growth. This isn't a guy who wants a generic pitch. He wants proof you can operate without a playbook. So I built one before calling.</p>
     </div>
   </div>
 
-  <div class="step">
-    <div class="step-num">2</div>
-    <div class="step-content">
-      <h4>Crafted a Pattern-Interrupt Opener</h4>
-      <p>Led with the cost of a bad hire — not a generic intro. Framed it as: a wrong BDR costs 3–6 months of dead pipeline, wasted AE time, and a delayed US launch. Then immediately positioned my track record as the antidote.</p>
+  <div class="step rv">
+    <div class="step-n">2</div>
+    <div>
+      <h4>Led with Risk, Not a Resume</h4>
+      <p>The opening isn't "Hi, I'm interested in the role." It's the cost of getting this hire wrong — 3–6 months of dead pipeline, wasted AE time, a delayed US launch. Then I positioned my track record as the reason that risk disappears.</p>
     </div>
   </div>
 
-  <div class="step">
-    <div class="step-num">3</div>
-    <div class="step-content">
-      <h4>Drove to a Specific Ask</h4>
-      <p>Didn't ask "would you be open to chatting." Proposed a concrete 30 minutes: "I'll walk you through exactly how I'd build your US pipeline in 90 days — with the ICP, the sequences, and the numbers."</p>
+  <div class="step rv">
+    <div class="step-n">3</div>
+    <div>
+      <h4>Specific Ask, Specific Value</h4>
+      <p>No "would you be open to chatting." I proposed a concrete 30 minutes with a defined agenda: the ICP, the system, the numbers. The same way I'd book a meeting with a prospect — give them a reason to show up.</p>
     </div>
   </div>
 
-  <div class="card" style="margin-top: 1rem;">
-    <div class="card-label">My Opening Script</div>
-    <div class="script-block">
-      <p>Leon, hey — it's Chris Khoury. I know this is out of the blue, so I'll be quick. I just wrapped up the interview process for the BDR role and got the final stage exercise. Before I do anything else, I wanted to call you directly — because that's what a good BDR would do.</p>
-      <p>Here's why I'm calling. You've scaled Pliant into 7+ European markets, you've built the growth org from the ground up — and now you need someone generating qualified pipeline so your AEs can focus on closing, not hunting. The risk of hiring the wrong BDR isn't just a bad hire — it's 3 to 6 months of dead pipeline, wasted AE time, and missed quota while you start over.</p>
-      <p>I'm not a typical BDR candidate. I've built outbound engines from scratch — at Cheetah Capital I scaled a 120-partner ecosystem that drove 65% of total revenue, deployed $148M across 1,600 businesses, and built a 50-person revenue org. I've sold into CFOs, COOs, and Heads of Payments — the exact buyers Pliant targets.</p>
-      <p>What I'm committing to: within the first 90 days, I'll have a repeatable prospecting system running, I'll be booking 15–20 qualified meetings per month, and I'll be handing your AEs opportunities they can actually close — not just names on a list.</p>
-      <p>I'd love 30 minutes to walk you through exactly how I'd do that. When works this week?</p>
+  <div class="p rv">
+    <div class="p-l">My Opening Script</div>
+    <div class="qb">
+      <p>Leon, hey — it's Chris Khoury. I know this is out of the blue, so I'll be quick. I just finished the interview process for the BDR role and got the final stage exercise. Before I did anything else, I wanted to call you directly — because that's what a good BDR would do.</p>
+      <p>Here's why I'm calling. You've scaled Pliant into 7+ European markets and built the growth org from the ground up. Now you need someone who can build a US pipeline from scratch — generating qualified meetings so your AEs can focus on closing, not hunting. The risk of the wrong hire isn't just lost salary — it's <strong>3 to 6 months of dead pipeline</strong>, wasted AE capacity, and a delayed market entry.</p>
+      <p>I've spent the last 5 years at Cheetah Capital doing exactly this. I built the outbound engine from zero, personally drove the meetings and relationships that led to <strong>$150M+ deployed across 1,600 businesses</strong>, and scaled a <strong>120-partner ecosystem</strong> that generated <strong>65% of total revenue</strong>. I treated that company like it was my own — because it was. And that's exactly how I'll treat Pliant.</p>
+      <p>I've already built a 90-day plan specific to Pliant's ICP — the enterprise targets, the embedded finance partners, and the system I'd run daily to fill your AEs' calendars with meetings they can actually close.</p>
+      <p><strong>Can I get 30 minutes this week to walk you through it?</strong></p>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-label">Why This Works</div>
-    <ul class="check-list">
+  <div class="p rv">
+    <div class="p-l">Why This Approach Works</div>
+    <ul class="ch">
       <li>Pattern interrupt — treated the exercise like a real prospect call, not a job application</li>
-      <li>Quantifiable — $148M deployed, 120+ partners, 50-person org, 65% partner-driven revenue</li>
-      <li>Risk-framed — cost of a wrong BDR hire in a new market launch</li>
-      <li>Leon-specific — referenced his 7-market expansion and growth org build</li>
-      <li>Clear CTA — 30 minutes, this week, specific agenda</li>
+      <li>Risk-framed — the cost of a bad BDR hire during a critical US market launch</li>
+      <li>Proof, not claims — $150M deployed, 120+ partners, 65% partner-driven revenue, all from outbound I built</li>
+      <li>Leon-specific — referenced his 7-market expansion, RevOps background, and the exact problem he's solving</li>
+      <li>Ownership signal — "I treated it like my own company, because it was"</li>
     </ul>
   </div>
 </section>
 
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- SLIDE 2 — ICP & TARGETING -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="slide" id="slide-2">
-  <div class="section-tag">02 · ICP & Targeting</div>
-  <div class="section-title">Who I'm Going After & Why</div>
-  <div class="section-subtitle">Two segments, two motions — both mapped to Pliant's core value.</div>
+<!-- ══════════════════════════════════════
+     SLIDE 2 — ICP & TARGETING
+     ══════════════════════════════════════ -->
+<section class="slide" id="s2">
+  <div class="tag">02 · ICP & Targeting</div>
+  <div class="title">Who I'm Going After & Why</div>
+  <div class="sub">Two segments, two motions — both mapped to how Pliant already wins in Europe.</div>
 
-  <div class="grid-2">
-    <div class="segment-card">
-      <div class="segment-header">
-        <span class="segment-badge direct">Segment 1</span>
+  <div class="g2 rv">
+    <div class="seg">
+      <div class="seg-h">
+        <span class="sb a">Segment 1</span>
         <h3>Enterprise & Mid-Market</h3>
       </div>
-      <div class="segment-body">
-        <div class="segment-row"><span class="label">Titles</span><span class="value">CFO, VP Finance, Head of Payments, Head of Procurement</span></div>
-        <div class="segment-row"><span class="label">Industries</span><span class="value">Travel & Hospitality, Fleet & Logistics, SaaS, Digital Agencies</span></div>
-        <div class="segment-row"><span class="label">Size</span><span class="value">200–5,000 employees, $500K+/yr card spend</span></div>
-        <div class="segment-row"><span class="label">Triggers</span><span class="value">Series B+ funding, international expansion, new CFO hire, ERP migration, manual reconciliation pain</span></div>
+      <div class="seg-b">
+        <div class="sr"><span class="k">Titles</span><span class="v">CFO, VP Finance, Head of Payments, Head of Procurement</span></div>
+        <div class="sr"><span class="k">Sectors</span><span class="v">Travel & Hospitality, Fleet & Logistics, SaaS, Digital Agencies</span></div>
+        <div class="sr"><span class="k">Size</span><span class="v">200–5,000 employees · $500K+/yr card spend</span></div>
+        <div class="sr"><span class="k">Trigger</span><span class="v">Series B+ funding, international expansion, new CFO, ERP migration, manual reconciliation pain</span></div>
       </div>
     </div>
 
-    <div class="segment-card">
-      <div class="segment-header">
-        <span class="segment-badge partner">Segment 2</span>
+    <div class="seg">
+      <div class="seg-h">
+        <span class="sb b">Segment 2</span>
         <h3>Embedded Finance Partners</h3>
       </div>
-      <div class="segment-body">
-        <div class="segment-row"><span class="label">Titles</span><span class="value">CEO, CPO, Head of Partnerships, VP Product</span></div>
-        <div class="segment-row"><span class="label">Industries</span><span class="value">FinSoft, ERP Providers, Neobanks, Expense Mgmt, Travel Tech</span></div>
-        <div class="segment-row"><span class="label">Size</span><span class="value">$5M+ ARR platforms</span></div>
-        <div class="segment-row"><span class="label">Triggers</span><span class="value">Launching fintech features, revenue diversification, competitor launched a card program</span></div>
+      <div class="seg-b">
+        <div class="sr"><span class="k">Titles</span><span class="v">CEO, CPO, Head of Partnerships, VP Product</span></div>
+        <div class="sr"><span class="k">Sectors</span><span class="v">FinSoft, ERP Providers, Neobanks, Expense Management, Travel Tech</span></div>
+        <div class="sr"><span class="k">Size</span><span class="v">$5M+ ARR platforms</span></div>
+        <div class="sr"><span class="k">Trigger</span><span class="v">Launching fintech features, revenue diversification, competitor launched a card program</span></div>
       </div>
     </div>
   </div>
 
-  <div class="why-box">
-    <div class="why-title">Why These Two Segments</div>
-    <p>Pliant already wins in both motions in Europe — Deutsche Telekom on the enterprise side, Circula and Candis on the CaaS/partner side. The US playbook mirrors this: land enterprise logos for direct revenue, sign platform partners for compounding distribution. I've done both — at Cheetah Capital, 65% of revenue came through partner-led GTM, while I simultaneously ran direct enterprise sales into CFOs and COOs.</p>
+  <div class="ins cy rv">
+    <div class="ins-l">Why These Two Segments</div>
+    <p>Pliant wins in both motions in Europe — Deutsche Telekom on enterprise direct, Circula and Candis on CaaS/partner. The US playbook mirrors this: land enterprise logos for direct revenue, sign platform partners for compounding distribution. At Cheetah Capital, I executed both simultaneously — 65% of revenue came through partner-led GTM while I ran direct enterprise sales into CFOs and COOs. This isn't theory for me. It's what I've been doing for 5 years.</p>
   </div>
 
-  <div class="card" style="margin-top: 1rem;">
-    <div class="card-label">Targeting Logic</div>
-    <p class="card-text">Initial TAL of 200 accounts built via LinkedIn Sales Navigator + Crunchbase signals + Pliant's existing EU win patterns. Tiered: <strong>Tier 1</strong> (50 accounts, full custom outreach) · <strong>Tier 2</strong> (100 accounts, semi-custom) · <strong>Tier 3</strong> (50 accounts, templated sequences). Refreshed monthly based on conversion data.</p>
-  </div>
-</section>
-
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- SLIDE 3 — PROSPECTING SYSTEM -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="slide" id="slide-3">
-  <div class="section-tag">03 · Prospecting System</div>
-  <div class="section-title">The Daily Machine</div>
-  <div class="section-subtitle">A repeatable activity plan that compounds week over week.</div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-label">Daily Activity Targets</div>
-      <div class="metric-row"><span class="metric-label"><span class="icon">📞</span> Cold Calls</span><span class="metric-value">50/day</span></div>
-      <div class="metric-row"><span class="metric-label"><span class="icon">✉️</span> Personalized Emails</span><span class="metric-value">35/day</span></div>
-      <div class="metric-row"><span class="metric-label"><span class="icon">🔗</span> LinkedIn Touches</span><span class="metric-value">25/day</span></div>
-      <div class="metric-row"><span class="metric-label"><span class="icon">📅</span> Meetings Booked</span><span class="metric-value">2–3/day</span></div>
-      <p style="font-size: 0.78rem; color: var(--text-muted); padding: 0.75rem 1.25rem 0; font-style: italic;">Targets reflect full ramp. Weeks 1–2 are research-heavy with lower volume as I master the product and build the TAL.</p>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Weekly Rhythm</div>
-      <div class="rhythm-item"><span class="rhythm-day">Mon</span><span class="rhythm-desc">Account research + TAL building, sequence loading, weekly planning</span></div>
-      <div class="rhythm-item"><span class="rhythm-day">Tue</span><span class="rhythm-desc">Heavy call block AM (9–12) + PM (2–5), priority on Tier 1 accounts</span></div>
-      <div class="rhythm-item"><span class="rhythm-day">Wed</span><span class="rhythm-desc">Multi-channel blitz: calls + LinkedIn + email follow-ups</span></div>
-      <div class="rhythm-item"><span class="rhythm-day">Thu</span><span class="rhythm-desc">Discovery calls + qualification for booked meetings</span></div>
-      <div class="rhythm-item"><span class="rhythm-day">Fri</span><span class="rhythm-desc">Pipeline review, CRM hygiene, AE handoff prep, weekly report to HoS</span></div>
-    </div>
-  </div>
-
-  <div class="grid-2" style="margin-top: 0;">
-    <div class="card">
-      <div class="card-label">14-Day, 9-Touch Sequence</div>
-      <div class="timeline-item"><span class="timeline-day">Day 1</span> Email 1 (pain hook) + LinkedIn connect with note</div>
-      <div class="timeline-item"><span class="timeline-day">Day 2</span> Cold call #1 (pattern-interrupt opener)</div>
-      <div class="timeline-item"><span class="timeline-day">Day 4</span> Email 2 (case study / social proof)</div>
-      <div class="timeline-item"><span class="timeline-day">Day 5</span> Call #2 + LinkedIn engage (comment on their content)</div>
-      <div class="timeline-item"><span class="timeline-day">Day 7</span> Email 3 (breakup / new angle)</div>
-      <div class="timeline-item"><span class="timeline-day">Day 9</span> Call #3 + voicemail drop</div>
-      <div class="timeline-item"><span class="timeline-day">Day 11</span> LinkedIn DM (share relevant insight)</div>
-      <div class="timeline-item"><span class="timeline-day">Day 13</span> Final email (direct ask or referral request)</div>
-      <div class="timeline-item"><span class="timeline-day">Day 14</span> Final call (last attempt or pivot to new contact)</div>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Tech Stack</div>
-      <div class="segment-row"><span class="label">CRM</span><span class="value">Salesforce / HubSpot (used both)</span></div>
-      <div class="segment-row"><span class="label">Sequence</span><span class="value">Outreach / Salesloft</span></div>
-      <div class="segment-row"><span class="label">Prospect</span><span class="value">LinkedIn Sales Nav, Apollo, ZoomInfo</span></div>
-      <div class="segment-row"><span class="label">Intel</span><span class="value">Crunchbase, BuiltWith, 10-Ks, earnings transcripts</span></div>
-      <div class="segment-row"><span class="label">Enrich</span><span class="value">Clearbit, Lusha for direct dials</span></div>
-    </div>
+  <div class="p rv" style="margin-top:1rem">
+    <div class="p-l">Targeting Logic</div>
+    <p class="p-t">Initial target account list of 200 built from LinkedIn Sales Navigator + Crunchbase signals + Pliant's EU win patterns. Tiered by effort: <strong>Tier 1</strong> (50 accounts — full custom, multi-threaded outreach) · <strong>Tier 2</strong> (100 accounts — semi-custom sequences) · <strong>Tier 3</strong> (50 accounts — templated). Every account gets real research. No spray and pray. Refreshed monthly based on conversion data and AE feedback.</p>
   </div>
 </section>
 
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- SLIDE 4 — MEETINGS & AE HANDOFF -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="slide" id="slide-4">
-  <div class="section-tag">04 · Meetings & AE Handoff</div>
-  <div class="section-title">From First Touch to Qualified Handoff</div>
-  <div class="section-subtitle">How I generate meetings and set AEs up to close.</div>
+<!-- ══════════════════════════════════════
+     SLIDE 3 — PROSPECTING SYSTEM
+     ══════════════════════════════════════ -->
+<section class="slide" id="s3">
+  <div class="tag">03 · Prospecting System</div>
+  <div class="title">The Daily Machine</div>
+  <div class="sub">Consistent effort, every single day. No shortcuts.</div>
 
-  <div class="grid-4">
-    <div class="card" style="text-align:center;">
-      <div class="step-num" style="margin: 0 auto 0.75rem;">1</div>
-      <div class="card-title" style="font-size: 0.95rem;">Qualify with BANT + Pain</div>
-      <p class="card-text" style="font-size: 0.82rem;">Budget, Authority, Need, Timeline — plus the emotional driver behind the problem.</p>
+  <div class="philo rv">
+    <div class="philo-label">My Philosophy on Prospecting</div>
+    <p>Every person on my list is a potential relationship that could change Pliant's trajectory. <strong>I don't just call to book a meeting — I call to start a conversation that matters.</strong> At Cheetah Capital, the relationships I built through outbound led to $150M+ in deployed capital. That doesn't happen from rushing through a call sheet. It happens from treating every touchpoint with extreme effort — researching the person, understanding their pain, and showing up with value before asking for anything.</p>
+    <p>The system below is how I stay consistent. But the system serves the relationships, not the other way around.</p>
+  </div>
+
+  <div class="g2 rv">
+    <div class="p">
+      <div class="p-l">Daily Activity Targets</div>
+      <div class="mr"><span class="ml">📞 Cold Calls</span><span class="mv">50/day</span></div>
+      <div class="mr"><span class="ml">✉️ Personalized Emails</span><span class="mv">35/day</span></div>
+      <div class="mr"><span class="ml">🔗 LinkedIn Touches</span><span class="mv">25/day</span></div>
+      <div class="mr"><span class="ml">📅 Meetings Booked</span><span class="mv">2–3/day</span></div>
+      <p style="font-size:.75rem;color:var(--t4);padding-top:.85rem;font-style:italic;line-height:1.5;">Full ramp velocity. Weeks 1–2 are product mastery + TAL building. Volume scales progressively — quality never drops.</p>
     </div>
-    <div class="card" style="text-align:center;">
-      <div class="step-num" style="margin: 0 auto 0.75rem;">2</div>
-      <div class="card-title" style="font-size: 0.95rem;">Internal Handoff Brief</div>
-      <p class="card-text" style="font-size: 0.82rem;">Company context, persona, pain points, competitive landscape, recommended demo angle.</p>
-    </div>
-    <div class="card" style="text-align:center;">
-      <div class="step-num" style="margin: 0 auto 0.75rem;">3</div>
-      <div class="card-title" style="font-size: 0.95rem;">Warm Introduction</div>
-      <p class="card-text" style="font-size: 0.82rem;">I join the first 5 min to restate pain and transfer credibility. Then step out.</p>
-    </div>
-    <div class="card" style="text-align:center;">
-      <div class="step-num" style="margin: 0 auto 0.75rem;">4</div>
-      <div class="card-title" style="font-size: 0.95rem;">Post-Call Follow-Up</div>
-      <p class="card-text" style="font-size: 0.82rem;">Thank-you email within 1 hour, reinforcing next steps and keeping momentum.</p>
+
+    <div class="p">
+      <div class="p-l">Weekly Rhythm</div>
+      <div class="rh"><span class="rh-d">Mon</span><span class="rh-t">Account research, TAL building, sequence loading, weekly planning</span></div>
+      <div class="rh"><span class="rh-d">Tue</span><span class="rh-t">Heavy call block AM (9–12) + PM (2–5), Tier 1 priority</span></div>
+      <div class="rh"><span class="rh-d">Wed</span><span class="rh-t">Multi-channel blitz: calls + LinkedIn + email follow-ups</span></div>
+      <div class="rh"><span class="rh-d">Thu</span><span class="rh-t">Discovery calls + qualification for booked meetings</span></div>
+      <div class="rh"><span class="rh-d">Fri</span><span class="rh-t">Pipeline review, CRM hygiene, AE handoff prep, HoS weekly report</span></div>
     </div>
   </div>
 
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-label">Qualification Criteria</div>
-      <ul class="check-list">
-        <li>Company fits ICP (segment 1 or 2)</li>
-        <li>Decision-maker or strong influencer</li>
-        <li>Specific pain point identified and articulated</li>
+  <div class="g2 rv">
+    <div class="p">
+      <div class="p-l">14-Day, 9-Touch Sequence</div>
+      <div class="tl"><span class="tl-d">Day 1</span> Email 1 (pain hook) + LinkedIn connect with personalized note</div>
+      <div class="tl"><span class="tl-d">Day 2</span> Cold call #1 (pattern-interrupt opener)</div>
+      <div class="tl"><span class="tl-d">Day 4</span> Email 2 (case study / social proof)</div>
+      <div class="tl"><span class="tl-d">Day 5</span> Call #2 + LinkedIn engage (comment on their content)</div>
+      <div class="tl"><span class="tl-d">Day 7</span> Email 3 (new angle / breakup)</div>
+      <div class="tl"><span class="tl-d">Day 9</span> Call #3 + voicemail drop</div>
+      <div class="tl"><span class="tl-d">Day 11</span> LinkedIn DM (share relevant insight)</div>
+      <div class="tl"><span class="tl-d">Day 13</span> Final email (direct ask or referral request)</div>
+      <div class="tl"><span class="tl-d">Day 14</span> Final call (last attempt or pivot to new contact at same account)</div>
+    </div>
+
+    <div class="p">
+      <div class="p-l">Tech Stack</div>
+      <div class="sr"><span class="k">CRM</span><span class="v">Salesforce / HubSpot (experienced in both)</span></div>
+      <div class="sr"><span class="k">Sequence</span><span class="v">Outreach / Salesloft</span></div>
+      <div class="sr"><span class="k">Prospect</span><span class="v">LinkedIn Sales Nav, Apollo, ZoomInfo</span></div>
+      <div class="sr"><span class="k">Intel</span><span class="v">Crunchbase, BuiltWith, 10-Ks, earnings transcripts</span></div>
+      <div class="sr"><span class="k">Enrich</span><span class="v">Clearbit, Lusha for direct dials</span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     SLIDE 4 — AE HANDOFF
+     ══════════════════════════════════════ -->
+<section class="slide" id="s4">
+  <div class="tag">04 · Meetings & AE Handoff</div>
+  <div class="title">Silver Platter Handoffs</div>
+  <div class="sub">The AE walks in prepared, the prospect feels heard, and the deal is already in motion.</div>
+
+  <div class="g4 rv">
+    <div class="ho">
+      <div class="n">1</div>
+      <h4>Deep Discovery</h4>
+      <p>BANT + the emotional driver. I don't just qualify — I understand why this matters to them personally.</p>
+    </div>
+    <div class="ho">
+      <div class="n">2</div>
+      <h4>Intelligence Brief</h4>
+      <p>Company context, persona, pain in their words, competitive landscape, recommended demo angle.</p>
+    </div>
+    <div class="ho">
+      <div class="n">3</div>
+      <h4>Warm Introduction</h4>
+      <p>I join the first 5 min — restate the pain, transfer credibility, set the frame. Then step out.</p>
+    </div>
+    <div class="ho">
+      <div class="n">4</div>
+      <h4>Follow-Through</h4>
+      <p>Thank-you email within 1 hour. Reinforce next steps. Keep momentum alive.</p>
+    </div>
+  </div>
+
+  <div class="g2 rv">
+    <div class="p">
+      <div class="p-l">Qualification Criteria</div>
+      <ul class="ch">
+        <li>Company fits ICP (Segment 1 or 2)</li>
+        <li>Decision-maker or strong influencer identified</li>
+        <li>Specific pain point articulated in their own words</li>
         <li>Timeline within 6 months</li>
         <li>No disqualifiers (size, geo, competitive lock-in)</li>
       </ul>
     </div>
 
-    <div class="handoff-note">
-      <div class="note-title">Why This Matters for Pliant's US Launch</div>
-      <p>In a new market with no brand awareness, AEs can't afford to waste qualified meetings on bad handoffs. My job is to make every meeting count. I've done this at scale — at Cheetah Capital, I ran handoffs across 1,600+ accounts in regulated financial environments. Clean handoffs weren't optional; they were the difference between a closed deal and a compliance nightmare.</p>
+    <div class="ins am">
+      <div class="ins-l">My Handoff Standard</div>
+      <p>At Cheetah Capital, I managed start-to-finish relationships across 1,600+ accounts. I learned that a meeting isn't just a calendar invite — it's a promise to the AE that this person is real, the pain is real, and the opportunity is worth their time. My CRM notes aren't checkboxes. They're briefings. The AE should feel like they already had a 10-minute prep call before they walk in.</p>
     </div>
   </div>
 </section>
 
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- SLIDE 5 — MEASURING SUCCESS -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="slide" id="slide-5">
-  <div class="section-tag">05 · Measuring Success</div>
-  <div class="section-title">What Gets Measured Gets Done</div>
-  <div class="section-subtitle">Inputs, conversion rates, and feedback loops.</div>
+<!-- ══════════════════════════════════════
+     SLIDE 5 — MEASURING SUCCESS
+     ══════════════════════════════════════ -->
+<section class="slide" id="s5">
+  <div class="tag">05 · Measuring Success</div>
+  <div class="title">What Gets Measured Gets Done</div>
+  <div class="sub">Data-driven inputs. Results-oriented outputs. Constant feedback loops.</div>
 
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-label">Input Metrics (Weekly)</div>
-      <div class="metric-row"><span class="metric-label">Outbound calls</span><span class="metric-value">250+</span></div>
-      <div class="metric-row"><span class="metric-label">Emails sent</span><span class="metric-value">175+</span></div>
-      <div class="metric-row"><span class="metric-label">LinkedIn touches</span><span class="metric-value">125+</span></div>
-      <div class="metric-row"><span class="metric-label">Accounts researched</span><span class="metric-value">20+</span></div>
+  <div class="g2 rv">
+    <div class="p">
+      <div class="p-l">Input Metrics (Weekly)</div>
+      <div class="mr"><span class="ml">Outbound calls</span><span class="mv">250+</span></div>
+      <div class="mr"><span class="ml">Emails sent</span><span class="mv">175+</span></div>
+      <div class="mr"><span class="ml">LinkedIn touches</span><span class="mv">125+</span></div>
+      <div class="mr"><span class="ml">Accounts researched</span><span class="mv">20+</span></div>
     </div>
 
-    <div class="card">
-      <div class="card-label">Output Metrics (Monthly)</div>
-      <div class="metric-row"><span class="metric-label">Meetings booked</span><span class="metric-value">12–15 → 15–20</span></div>
-      <div class="metric-row"><span class="metric-label">Qualified opportunities</span><span class="metric-value">8–10</span></div>
-      <div class="metric-row"><span class="metric-label">Pipeline generated</span><span class="metric-value">$200–350K+</span></div>
-      <div class="metric-row"><span class="metric-label">Meeting → Opp rate</span><span class="metric-value">65%+</span></div>
-    </div>
-  </div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-label">Conversion Funnel</div>
-      <div class="metric-row"><span class="metric-label">Calls → Conversations</span><span class="metric-value">15–20%</span></div>
-      <div class="metric-row"><span class="metric-label">Conversations → Meetings</span><span class="metric-value">25–30%</span></div>
-      <div class="metric-row"><span class="metric-label">Meetings → Qualified Opps</span><span class="metric-value">60–70%</span></div>
-      <div class="metric-row"><span class="metric-label">Email Open Rate</span><span class="metric-value">45%+</span></div>
-    </div>
-
-    <div class="card">
-      <div class="card-label">Feedback Loops</div>
-      <div class="timeline-item"><span class="timeline-day" style="color: var(--accent-amber);">Loop 1</span> Weekly 1:1 with HoS — metrics + coaching</div>
-      <div class="timeline-item"><span class="timeline-day" style="color: var(--accent-amber);">Loop 2</span> AE feedback on handoff quality (scored 1–5)</div>
-      <div class="timeline-item"><span class="timeline-day" style="color: var(--accent-amber);">Loop 3</span> A/B test emails + call openers biweekly</div>
-      <div class="timeline-item"><span class="timeline-day" style="color: var(--accent-amber);">Loop 4</span> Monthly ICP refinement based on conversion data</div>
+    <div class="p">
+      <div class="p-l">Output Metrics (Monthly at Full Ramp)</div>
+      <div class="mr"><span class="ml">Meetings booked</span><span class="mv">15–20</span></div>
+      <div class="mr"><span class="ml">Qualified opportunities</span><span class="mv">10–13</span></div>
+      <div class="mr"><span class="ml">Pipeline generated</span><span class="mv">$300–500K+</span></div>
+      <div class="mr"><span class="ml">Meeting → Opp rate</span><span class="mv">65%+</span></div>
     </div>
   </div>
 
-  <div class="math-block">
-    <div class="math-title">The Math</div>
-    <p>15 meetings/month × 65% qualification rate = ~10 qualified opps</p>
+  <div class="g2 rv">
+    <div class="p">
+      <div class="p-l">Conversion Funnel</div>
+      <div class="mr"><span class="ml">Calls → Conversations</span><span class="mv">15–20%</span></div>
+      <div class="mr"><span class="ml">Conversations → Meetings</span><span class="mv">25–30%</span></div>
+      <div class="mr"><span class="ml">Meetings → Qualified Opps</span><span class="mv">60–70%</span></div>
+      <div class="mr"><span class="ml">Email Reply Rate</span><span class="mv">8–12%</span></div>
+    </div>
+
+    <div class="p">
+      <div class="p-l">Feedback Loops</div>
+      <div class="tl"><span class="tl-d" style="color:var(--amber)">Loop 1</span> Weekly 1:1 with HoS — metrics review + coaching</div>
+      <div class="tl"><span class="tl-d" style="color:var(--amber)">Loop 2</span> AE feedback on handoff quality (scored 1–5 per opp)</div>
+      <div class="tl"><span class="tl-d" style="color:var(--amber)">Loop 3</span> A/B test emails + call openers biweekly</div>
+      <div class="tl"><span class="tl-d" style="color:var(--amber)">Loop 4</span> Monthly ICP refinement from conversion data + AE win/loss patterns</div>
+    </div>
+  </div>
+
+  <div class="math rv">
+    <div class="math-l">The Pipeline Math</div>
+    <p>15 meetings/month × 65% qualification rate = ~10 qualified opportunities</p>
     <p>10 qualified opps × $50K estimated avg ACV = $500K pipeline/month at full ramp</p>
-    <div class="result">= $1.5M in quarterly pipeline from a single BDR seat</div>
+    <div class="res">= $1.5M in quarterly pipeline from a single BDR seat</div>
+  </div>
+
+  <div class="ins bl rv" style="margin-top:1rem">
+    <div class="ins-l">My Accountability Commitment</div>
+    <p>If I'm not hitting 15 qualified meetings/month by day 90, I'll flag it myself and bring you a diagnosis with a fix — not excuses. I've run my own company. I know what accountability looks like when it's your money on the line. That's the standard I hold myself to regardless of whose name is on the door.</p>
   </div>
 </section>
 
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- SLIDE 6 — SAMPLE WORK -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="slide" id="slide-6">
-  <div class="section-tag">06 · Sample Work</div>
-  <div class="section-title">Mini Account Plan + Live Scripts</div>
-  <div class="section-subtitle">A real example of how I'd work a Tier 1 target.</div>
+<!-- ══════════════════════════════════════
+     SLIDE 6 — SAMPLE WORK
+     ══════════════════════════════════════ -->
+<section class="slide" id="s6">
+  <div class="tag">06 · Sample Work</div>
+  <div class="title">Mini Account Plan + Live Scripts</div>
+  <div class="sub">How I'd work a Tier 1 target — strategically, with the right message at the right time.</div>
 
-  <div class="account-plan">
-    <div class="account-plan-header">
+  <div class="acct rv">
+    <div class="acct-t">
       <h3>Navan</h3>
       <span>Travel & expense platform · $9.2B valuation</span>
     </div>
-    <div class="account-plan-body">
-      <div class="plan-row"><span class="key">Why</span><span class="val">High-volume travel bookings, complex multi-currency payments, thousands of virtual cards needed</span></div>
-      <div class="plan-row"><span class="key">Target</span><span class="val">VP of Finance / Head of Payments</span></div>
-      <div class="plan-row"><span class="key">Trigger</span><span class="val">$150M funding round + aggressive EMEA expansion</span></div>
-      <div class="plan-row"><span class="key">Pain</span><span class="val">Card spend across 30+ countries, manual multi-currency reconciliation eating finance team hours</span></div>
-      <div class="plan-row"><span class="key">Angle</span><span class="val">Pliant's 11-currency Visa platform + Pro API = programmatic card issuance at scale with real-time controls</span></div>
-      <div class="plan-row"><span class="key">Entry</span><span class="val">Multi-thread VP Finance + Head of Payments + CFO</span></div>
+    <div class="acct-b">
+      <div class="ar"><span class="k">Why</span><span class="v">High-volume travel bookings, complex multi-currency payments, thousands of virtual cards at scale</span></div>
+      <div class="ar"><span class="k">Target</span><span class="v">VP of Finance / Head of Payments</span></div>
+      <div class="ar"><span class="k">Trigger</span><span class="v">$150M funding round + aggressive EMEA expansion</span></div>
+      <div class="ar"><span class="k">Pain</span><span class="v">Card spend across 30+ countries, manual multi-currency reconciliation eating finance team hours</span></div>
+      <div class="ar"><span class="k">Angle</span><span class="v">Pliant's 11-currency Visa platform + Pro API = programmatic card issuance with real-time controls</span></div>
+      <div class="ar"><span class="k">Entry</span><span class="v">Multi-thread: VP Finance → Head of Payments → CFO</span></div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-label">Cold Call Opener</div>
-    <div class="script-block">
+  <div class="p rv">
+    <div class="p-l">Cold Call Opener</div>
+    <div class="qb">
       <p>Hi [Name], this is Chris Khoury with Pliant. Quick one — I noticed Navan just closed $150M and is pushing hard into EMEA. I'm guessing managing card spend across 30+ countries just became a much bigger headache.</p>
       <p>We're an API-first Visa card platform — issue cards in 11 currencies with real-time controls, so your finance team isn't drowning in multi-currency reconciliation every month.</p>
-      <p>Worth 15 minutes to see how we solve this for travel-tech companies at your scale?</p>
+      <p><strong>Worth 15 minutes to see how we solve this for travel-tech companies at your scale?</strong></p>
     </div>
   </div>
 
-  <div class="grid-2">
-    <div class="email-block">
-      <div class="email-header">
-        <span class="tag">Email 1</span>
-        <span class="subject">Navan's EMEA card infrastructure</span>
+  <div class="g2 rv">
+    <div class="em">
+      <div class="em-t">
+        <span class="em-tag">Email 1 — Pain-Based</span>
+        <span class="em-s">Navan's EMEA card infrastructure</span>
       </div>
-      <div class="email-body">
+      <div class="em-b">
         <p>Hi [Name],</p>
         <p>Congrats on the $150M raise — EMEA expansion is a big move.</p>
         <p>Quick question: as you scale card issuance across 30+ countries, how are you handling multi-currency reconciliation and real-time spend controls?</p>
         <p>We work with travel companies that were spending 20+ hours a month on manual reconciliation before switching to Pliant. We issue Visa cards in 11 currencies, all programmable via API — real-time controls, automated receipt matching, and complete transaction data for instant month-end close.</p>
-        <p>Worth a 15-minute call to see if there's a fit?</p>
+        <p>Worth a 15-minute call?</p>
         <p>Best,<br>Chris Khoury</p>
       </div>
     </div>
 
-    <div class="email-block">
-      <div class="email-header">
-        <span class="tag">Email 2</span>
-        <span class="subject">How a travel platform cut reconciliation by 80%</span>
+    <div class="em">
+      <div class="em-t">
+        <span class="em-tag">Email 2 — Social Proof</span>
+        <span class="em-s">How a travel platform cut reconciliation by 80%</span>
       </div>
-      <div class="email-body">
+      <div class="em-b">
         <p>Hi [Name],</p>
-        <p>Quick example: a travel platform processing thousands of daily transactions automated their entire card lifecycle through Pliant's API. Result — 80% less time on reconciliation and near-perfect transaction acceptance rates.</p>
-        <p>Given Navan's volume and international footprint, the operational savings would be significant. Open to a quick conversation?</p>
+        <p>Quick example: a travel platform processing thousands of daily transactions automated their entire card lifecycle through Pliant's API. Result — 80% less time on reconciliation and near-perfect transaction acceptance.</p>
+        <p>Given Navan's volume and international footprint, the operational savings would be significant.</p>
+        <p>Open to a quick conversation?</p>
         <p>Chris Khoury</p>
       </div>
     </div>
@@ -1122,175 +592,139 @@ body {
 </section>
 
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- SLIDE 7 — 90-DAY RAMP -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="slide" id="slide-7">
-  <div class="section-tag">07 · 90-Day Ramp Plan</div>
-  <div class="section-title">From Day 1 to Full Velocity</div>
-  <div class="section-subtitle">How I'll earn my seat and accelerate to AE track.</div>
+<!-- ══════════════════════════════════════
+     SLIDE 7 — 90-DAY RAMP
+     ══════════════════════════════════════ -->
+<section class="slide" id="s7">
+  <div class="tag">07 · 90-Day Ramp Plan</div>
+  <div class="title">From Day 1 to Full Velocity</div>
+  <div class="sub">How I'll earn my seat — and build the playbook for the team that comes after me.</div>
 
-  <div class="grid-3">
-    <div class="ramp-card">
-      <div class="ramp-header">
-        <div class="phase" style="color: var(--accent-cyan);">Days 1–30</div>
+  <div class="g3 rv">
+    <div class="ramp">
+      <div class="ramp-t">
+        <div class="ramp-ph" style="color:var(--cyan)">Days 1–30</div>
         <h3>Learn & Load</h3>
       </div>
-      <div class="ramp-body">
-        <div class="ramp-item">Master Pliant's product suite: Payment Apps, Pro API, CaaS</div>
-        <div class="ramp-item">Study top EU closed-won deals: what worked, who bought, objections</div>
-        <div class="ramp-item">Build 200-account TAL with tiering and contact mapping</div>
-        <div class="ramp-item">Launch first sequences by end of week 2</div>
-        <div class="ramp-item">First booked meetings by week 3</div>
-        <div class="ramp-item">Daily objection role-play with AEs and Leon</div>
-        <div class="ramp-target">Target: 5–8 meetings booked</div>
+      <div class="ramp-bd">
+        <div class="ramp-i">Master Pliant's product suite: Payment Apps, Pro API, CaaS — know the value cold</div>
+        <div class="ramp-i">Study top EU closed-won deals: what worked, who bought, what objections came up</div>
+        <div class="ramp-i">Build 200-account TAL with tiering, contact mapping, and trigger events</div>
+        <div class="ramp-i">Launch first sequences by end of week 2</div>
+        <div class="ramp-i">First booked meetings by week 3</div>
+        <div class="ramp-i">Daily objection role-play with AEs and Leon</div>
       </div>
+      <div class="ramp-tgt" style="color:var(--cyan)">Target: 5–8 meetings</div>
     </div>
 
-    <div class="ramp-card">
-      <div class="ramp-header">
-        <div class="phase" style="color: var(--accent-amber);">Days 31–60</div>
+    <div class="ramp">
+      <div class="ramp-t">
+        <div class="ramp-ph" style="color:var(--amber)">Days 31–60</div>
         <h3>Optimize & Scale</h3>
       </div>
-      <div class="ramp-body">
-        <div class="ramp-item">A/B test subject lines, call openers, and LinkedIn messaging</div>
-        <div class="ramp-item">Hit daily activity targets consistently (50 calls, 35 emails, 25 LI)</div>
-        <div class="ramp-item">Run discovery calls independently with light AE oversight</div>
-        <div class="ramp-item">Build reusable sequence templates for both ICP segments</div>
-        <div class="ramp-item">Track and improve AE feedback scores on handoff quality</div>
-        <div class="ramp-item">Start contributing to the US outbound playbook</div>
-        <div class="ramp-target">Target: 10–12 meetings/month</div>
+      <div class="ramp-bd">
+        <div class="ramp-i">A/B test subject lines, call openers, and LinkedIn messaging</div>
+        <div class="ramp-i">Hit daily activity targets consistently — no off days</div>
+        <div class="ramp-i">Run discovery calls independently with light AE oversight</div>
+        <div class="ramp-i">Build reusable sequence templates for both ICP segments</div>
+        <div class="ramp-i">Track AE feedback scores and improve handoff quality weekly</div>
+        <div class="ramp-i">Start documenting the US outbound playbook</div>
       </div>
+      <div class="ramp-tgt" style="color:var(--amber)">Target: 10–12 meetings/month</div>
     </div>
 
-    <div class="ramp-card">
-      <div class="ramp-header">
-        <div class="phase" style="color: var(--accent-green);">Days 61–90</div>
+    <div class="ramp">
+      <div class="ramp-t">
+        <div class="ramp-ph" style="color:var(--green)">Days 61–90</div>
         <h3>Full Velocity</h3>
       </div>
-      <div class="ramp-body">
-        <div class="ramp-item">15+ qualified meetings per month</div>
-        <div class="ramp-item">$350K+ pipeline generated monthly</div>
-        <div class="ramp-item">Begin AE call shadows to build closing skills</div>
-        <div class="ramp-item">Handle all common objections independently</div>
-        <div class="ramp-item">Codify playbook and sequences for future BDR hires</div>
-        <div class="ramp-item">Demonstrate AE readiness through metrics and coaching feedback</div>
-        <div class="ramp-target">Target: 15+ meetings, AE shadow track begins</div>
+      <div class="ramp-bd">
+        <div class="ramp-i">15+ qualified meetings per month consistently</div>
+        <div class="ramp-i">$350K+ pipeline generated monthly</div>
+        <div class="ramp-i">Begin AE call shadows to build closing skills</div>
+        <div class="ramp-i">Handle all common objections independently</div>
+        <div class="ramp-i">Codify playbook and sequences for future BDR hires</div>
+        <div class="ramp-i">Demonstrate AE readiness through metrics and coaching feedback</div>
       </div>
+      <div class="ramp-tgt" style="color:var(--green)">Target: 15+ meetings · AE shadow begins</div>
     </div>
   </div>
 </section>
 
 
-<!-- ═══════════════════════════════════════════ -->
-<!-- SLIDE 8 — THE CLOSE -->
-<!-- ═══════════════════════════════════════════ -->
-<section class="slide" id="slide-8">
-  <div class="section-tag">08 · The Close</div>
-  <div class="section-title">Why You Should Hire Me</div>
-  <div class="section-subtitle">This isn't just a presentation — it's proof of how I work.</div>
+<!-- ══════════════════════════════════════
+     SLIDE 8 — THE CLOSE
+     ══════════════════════════════════════ -->
+<section class="slide" id="s8">
+  <div class="tag">08 · The Close</div>
+  <div class="title">Why You Should Hire Me</div>
+  <div class="sub">This isn't just a presentation — it's proof of how I operate.</div>
 
-  <div class="close-point">
-    <div class="close-num">01</div>
-    <div class="close-content">
-      <h4>I've Built Outbound from Zero. Twice.</h4>
-      <p>At Green Door Funding, I built the entire enterprise outbound strategy from nothing — $5M deployed across 400+ clients in 10 months. At Cheetah Capital, I scaled that to $148M across 1,600 businesses with a 120-partner ecosystem. I don't need a playbook handed to me. I write the playbook.</p>
+  <div class="cp rv">
+    <div class="cp-n">01</div>
+    <div>
+      <h4>I Treat Every Role Like I Own the Company</h4>
+      <p>For the past 5 years at Cheetah Capital, I was directly responsible for booking the meetings, building the relationships, and driving the revenue — because it was my company. That ownership mentality doesn't switch off when I join someone else's team. Every meeting I book for Pliant, I'll treat like my own money is on the line. Because in my mind, it is.</p>
     </div>
   </div>
 
-  <div class="close-point">
-    <div class="close-num">02</div>
-    <div class="close-content">
+  <div class="cp rv">
+    <div class="cp-n">02</div>
+    <div>
+      <h4>I Have the Results to Prove It</h4>
+      <p>$150M+ deployed. 1,600 businesses. 120+ partner ecosystem driving 65% of total revenue. Built from zero, twice — first at Green Door ($5M across 400 clients in 10 months), then scaled at Cheetah Capital. These aren't inherited pipelines. I built every one of these relationships through outbound, creativity, and relentless consistency.</p>
+    </div>
+  </div>
+
+  <div class="cp rv">
+    <div class="cp-n">03</div>
+    <div>
       <h4>I Sell Into the Exact Buyers Pliant Targets</h4>
-      <p>CFOs, COOs, VPs of Finance, Heads of Payments — I've been in those rooms. Multi-stakeholder deals in regulated financial environments are what I know. Pliant's sales motion isn't new to me; the product is — and I'll learn it fast.</p>
+      <p>CFOs, COOs, VPs of Finance, Heads of Payments — I've been in those rooms for years. Multi-stakeholder deals in regulated financial environments are what I know. Pliant's sales motion isn't new to me; the product is — and I'll learn it fast because I understand the buyer's world already.</p>
     </div>
   </div>
 
-  <div class="close-point">
-    <div class="close-num">03</div>
-    <div class="close-content">
-      <h4>I Understand What US Market Entry Takes</h4>
-      <p>Leon built Pliant across 7 European markets. I've built GTM from scratch in the US twice, in fintech and payments specifically. I know the landscape, the buyer psychology, the compliance nuances, and the pace required to establish a new market presence. That ramp time you'd spend training someone on the US market? I skip it.</p>
+  <div class="cp rv">
+    <div class="cp-n">04</div>
+    <div>
+      <h4>I Know What US Market Entry Takes</h4>
+      <p>Leon built Pliant across 7 European markets. I've built GTM from scratch in the US twice, in fintech and payments specifically. I know the buyer psychology, the compliance landscape, and the pace required. That ramp time you'd spend training someone on the US market? I skip it entirely.</p>
     </div>
   </div>
 
-  <div class="close-point">
-    <div class="close-num">04</div>
-    <div class="close-content">
+  <div class="cp rv">
+    <div class="cp-n">05</div>
+    <div>
       <h4>I Speak the Language — Literally</h4>
-      <p>Native English, proficient Arabic. As Pliant expands beyond Europe, MENA is a natural growth vector. I bring cultural fluency and language skills that open doors other BDRs can't.</p>
+      <p>Native English, proficient Arabic. As Pliant expands beyond Europe, MENA is a natural growth vector. I bring cultural fluency and language access that open doors other BDRs can't.</p>
     </div>
   </div>
 
-  <div class="close-point">
-    <div class="close-num">05</div>
-    <div class="close-content">
+  <div class="cp rv">
+    <div class="cp-n">06</div>
+    <div>
       <h4>BDR Is My Entry Point, Not My Ceiling</h4>
-      <p>I'm not stepping down — I'm stepping in. I want to prove I can generate at Pliant's level, learn the product deeply, and earn my way into a closing role within 12 months. You're not just hiring a BDR — you're investing in a future AE who already thinks like a revenue leader.</p>
+      <p>I'm not stepping down — I'm stepping in. I want to prove I can generate at Pliant's level, learn the product deeply, and earn my way into a closing role. You're not just hiring a BDR. You're investing in a future AE who already thinks like a founder.</p>
     </div>
   </div>
 
-  <div class="closing-banner">
-    <p>"I've earned this meeting the same way I'll earn every meeting for Pliant — with research, urgency, and a system that compounds. Let's build the US pipeline together."</p>
+  <div class="ban rv">
+    <p>"I've earned this meeting the same way I'll earn every meeting for Pliant — with research, strategic timing, extreme effort, and a system that compounds. Let's build the US pipeline together."</p>
+    <div class="sig">— Chris Khoury</div>
   </div>
 </section>
 
 
 <script>
-// ─── SLIDE NAVIGATION ───
-const slides = document.querySelectorAll('.slide');
-const navBtns = document.querySelectorAll('.nav-slides button');
-
-function goSlide(index) {
-  slides[index].scrollIntoView({ behavior: 'smooth' });
-}
-
-// Keyboard nav
-document.addEventListener('keydown', (e) => {
-  const current = getCurrentSlide();
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-    e.preventDefault();
-    if (current < slides.length - 1) goSlide(current + 1);
-  }
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-    e.preventDefault();
-    if (current > 0) goSlide(current - 1);
-  }
-});
-
-function getCurrentSlide() {
-  let closest = 0;
-  let minDist = Infinity;
-  slides.forEach((s, i) => {
-    const dist = Math.abs(s.getBoundingClientRect().top);
-    if (dist < minDist) { minDist = dist; closest = i; }
-  });
-  return closest;
-}
-
-// Update active nav button on scroll
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const idx = Array.from(slides).indexOf(entry.target);
-      navBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
-    }
-  });
-}, { threshold: 0.4 });
-
-slides.forEach(s => observer.observe(s));
-
-// Fade-in on scroll
-const fadeObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) entry.target.classList.add('visible');
-  });
-}, { threshold: 0.1 });
-
-document.querySelectorAll('.card, .segment-card, .ramp-card, .close-point, .math-block, .why-box, .handoff-note, .email-block, .account-plan, .script-block').forEach(el => {
-  el.classList.add('fade-in');
-  fadeObserver.observe(el);
-});
+const S=document.querySelectorAll('.slide'),P=document.querySelectorAll('.pill'),B=document.getElementById('pb');
+document.getElementById('pills').addEventListener('click',e=>{const p=e.target.closest('.pill');if(!p)return;S[+p.dataset.i].scrollIntoView({behavior:'smooth'})});
+document.addEventListener('keydown',e=>{const c=gc();if((e.key==='ArrowRight'||e.key==='ArrowDown')&&c<S.length-1){e.preventDefault();S[c+1].scrollIntoView({behavior:'smooth'})}if((e.key==='ArrowLeft'||e.key==='ArrowUp')&&c>0){e.preventDefault();S[c-1].scrollIntoView({behavior:'smooth'})}});
+function gc(){let c=0,m=1e9;S.forEach((s,i)=>{const d=Math.abs(s.getBoundingClientRect().top);if(d<m){m=d;c=i}});return c}
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const i=[...S].indexOf(e.target);P.forEach((p,j)=>p.classList.toggle('on',j===i))}})},{threshold:.35});
+S.forEach(s=>io.observe(s));
+window.addEventListener('scroll',()=>{const h=document.documentElement.scrollHeight-window.innerHeight;B.style.width=h>0?(window.scrollY/h*100)+'%':'0%'},{passive:true});
+const ro=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');ro.unobserve(e.target)}})},{threshold:.08});
+document.querySelectorAll('.rv').forEach(el=>ro.observe(el));
 </script>
 
 </body>
