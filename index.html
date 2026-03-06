@@ -1,385 +1,390 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Pliant Outbound Engine | [Your Name]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-base: #000000;
-            --bg-surface: #0A0A0A;
-            --bg-card: rgba(255, 255, 255, 0.02);
-            --border-subtle: rgba(255, 255, 255, 0.06);
-            --border-hover: rgba(255, 255, 255, 0.15);
-            --text-main: #EDEDED;
-            --text-muted: #888888;
-            --accent: #0070F3; /* Vercel Blue */
-            --accent-glow: rgba(0, 112, 243, 0.15);
-            --radius-md: 12px;
-            --radius-lg: 24px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+<title>How I'd Build Pliant's US Pipeline</title>
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-            background-image: 
-                radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 40%);
-        }
+<style>
 
-        /* Layout */
-        .app-container {
-            display: flex;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-            gap: 4rem;
-        }
+body{
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+background:#0f1117;
+color:white;
+margin:0;
+line-height:1.6;
+}
 
-        /* Sidebar Navigation */
-        .sidebar {
-            width: 280px;
-            position: sticky;
-            top: 2rem;
-            height: calc(100vh - 4rem);
-            display: flex;
-            flex-direction: column;
-        }
+.container{
+max-width:1100px;
+margin:auto;
+padding:40px 20px;
+}
 
-        .brand {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 3rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+h1{
+font-size:40px;
+margin-bottom:10px;
+}
 
-        .brand-pill {
-            background: #fff;
-            color: #000;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 99px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
+h2{
+margin-top:60px;
+font-size:28px;
+border-bottom:1px solid #2b2f3a;
+padding-bottom:10px;
+}
 
-        .nav-links {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
+p{
+color:#b5b9c7;
+}
 
-        .nav-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+.nav{
+position:sticky;
+top:0;
+background:#0f1117;
+border-bottom:1px solid #2b2f3a;
+padding:14px;
+display:flex;
+gap:20px;
+justify-content:center;
+}
 
-        .nav-links a:hover { color: var(--text-main); }
-        .nav-links a::before {
-            content: '';
-            display: block;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background: transparent;
-            transition: background 0.2s;
-        }
-        .nav-links a:hover::before { background: var(--accent); }
+.nav a{
+color:#9fa4b7;
+text-decoration:none;
+font-size:14px;
+}
 
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            padding-bottom: 8rem;
-        }
+.nav a:hover{
+color:white;
+}
 
-        .hero {
-            margin-bottom: 6rem;
-            padding-top: 2rem;
-        }
+.card{
+background:#161a23;
+padding:24px;
+border-radius:10px;
+margin-top:20px;
+border:1px solid #2a2f3c;
+}
 
-        h1 {
-            font-size: clamp(2.5rem, 4vw, 3.5rem);
-            font-weight: 700;
-            line-height: 1.1;
-            letter-spacing: -0.04em;
-            margin-bottom: 1.5rem;
-        }
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
 
-        .hero p {
-            font-size: 1.125rem;
-            color: var(--text-muted);
-            max-width: 600px;
-        }
+@media(max-width:800px){
+.grid{
+grid-template-columns:1fr;
+}
+}
 
-        /* Sequence Blocks */
-        .sequence-block {
-            margin-bottom: 6rem;
-            scroll-margin-top: 2rem;
-        }
+ul{
+padding-left:18px;
+}
 
-        .seq-header {
-            margin-bottom: 2rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--border-subtle);
-        }
+.highlight{
+color:#6ea8ff;
+}
 
-        .seq-header h2 {
-            font-size: 2rem;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            margin-bottom: 1rem;
-        }
+.metric{
+font-size:34px;
+font-weight:bold;
+margin-top:10px;
+}
 
-        .tags {
-            display: flex;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
+.footer{
+margin-top:80px;
+text-align:center;
+color:#7a8094;
+font-size:14px;
+}
 
-        .tag {
-            font-size: 0.75rem;
-            padding: 4px 12px;
-            border-radius: 6px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .tag strong { color: var(--text-main); }
-
-        /* Timeline Grid for Steps */
-        .steps-grid {
-            display: grid;
-            gap: 1.5rem;
-        }
-
-        .step-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            padding: 2rem;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .step-card:hover {
-            border-color: var(--border-hover);
-            transform: translateX(4px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        }
-
-        .step-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .step-meta {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .channel-badge {
-            background: #111;
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid var(--border-subtle);
-            color: var(--text-main);
-        }
-
-        .script-box {
-            background: #111;
-            border-left: 2px solid var(--accent);
-            padding: 1.5rem;
-            border-radius: 0 8px 8px 0;
-            margin: 1.5rem 0;
-            font-size: 0.95rem;
-        }
-
-        .script-box strong { color: #fff; }
-
-        .why-it-works {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .why-it-works svg { flex-shrink: 0; margin-top: 2px; }
-
-        /* Global CTA */
-        .fixed-cta {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: #fff;
-            color: #000;
-            padding: 1rem 2rem;
-            border-radius: 99px;
-            font-weight: 600;
-            text-decoration: none;
-            box-shadow: 0 4px 24px rgba(255,255,255,0.2);
-            transition: transform 0.2s ease;
-            z-index: 100;
-        }
-
-        .fixed-cta:hover { transform: scale(1.05); }
-
-        @media (max-width: 1024px) {
-            .app-container { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: static; margin-bottom: 2rem; }
-        }
-    </style>
+</style>
 </head>
+
 <body>
 
-    <a href="mailto:lfaulstroh@pliant.com?subject=The 30-Minute Review" class="fixed-cta">Schedule the Review →</a>
+<div class="nav">
+<a href="#icp">ICP</a>
+<a href="#accounts">Accounts</a>
+<a href="#triggers">Triggers</a>
+<a href="#system">System</a>
+<a href="#quality">Meeting Quality</a>
+<a href="#pipeline">Pipeline Math</a>
+<a href="#ramp">90 Day Plan</a>
+</div>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="brand">
-                Pliant <span class="brand-pill">BDR Execution</span>
-            </div>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2rem;">
-                A comprehensive portfolio of 6 advanced sequencing logics designed to convert Pliant's ICP.
-            </p>
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="#seq1">01. The Proof of Work</a></li>
-                    <li><a href="#seq2">02. Multi-Thread Surround</a></li>
-                    <li><a href="#seq3">03. The Risk Mitigator</a></li>
-                    <li><a href="#seq4">04. Hyper-Direct (Phone First)</a></li>
-                    <li><a href="#seq5">05. Business Judgment Check</a></li>
-                    <li><a href="#seq6">06. The Trigger Event</a></li>
-                </ul>
-            </nav>
-        </aside>
+<div class="container">
 
-        <main class="main-content">
-            <section class="hero">
-                <h1>Outbound logic engineered for predictable pipeline.</h1>
-                <p>Leon, hiring a BDR is a risk. You lose base salary, ramp time, and burned accounts if they fail. I eliminate that risk by bringing a pre-built, tested outbound engine to the floor on Day 1.</p>
-            </section>
+<h1>How I'd Build Pliant's US Pipeline</h1>
 
-            <section id="seq1" class="sequence-block">
-                <div class="seq-header">
-                    <h2>01. The Proof of Work Campaign</h2>
-                    <div class="tags">
-                        <span class="tag"><strong>Philosophy:</strong> Do the job to get the job.</span>
-                        <span class="tag"><strong>Best for:</strong> Analytical leaders.</span>
-                        <span class="tag"><strong>Focus:</strong> Artifact delivery.</span>
-                    </div>
-                    <p style="color: var(--text-muted);">Eliminates the risk of a bad hire by demonstrating competence before the interview. Requires heavy upfront research.</p>
-                </div>
-                
-                <div class="steps-grid">
-                    <div class="step-card">
-                        <div class="step-header">
-                            <div class="step-meta"><span>Step 1 / Day 1</span> <span class="channel-badge">Email</span></div>
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">Obj: Tease artifact</span>
-                        </div>
-                        <div class="script-box">
-                            <strong>Subj:</strong> Pliant's outbound pipeline<br><br>
-                            Leon, the biggest risk Pliant faces with a new BDR hire is a 90-day ramp where they burn through leads and generate zero pipeline.<br><br>
-                            I mitigate that. To prove it, I’ve mapped out 50 high-priority Pliant target accounts and drafted a sequencing logic specifically for them. Historically, I convert cold calls to booked meetings at 11%.<br><br>
-                            Are you open to a 30-minute review of my prospecting system to see if it aligns with your Q3 targets?
-                        </div>
-                        <div class="why-it-works">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                            Directly addresses hiring pain. Uses a micro-commitment (reviewing a system, not granting an interview).
-                        </div>
-                    </div>
+<p>
+Instead of submitting slides for the final stage exercise, I built the outbound system
+I would run if hired to generate US pipeline and protect AE time.
+</p>
 
-                    <div class="step-card">
-                        <div class="step-header">
-                            <div class="step-meta"><span>Step 2 / Day 1</span> <span class="channel-badge">Phone</span></div>
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">Obj: Drive inbox attention</span>
-                        </div>
-                        <div class="script-box">
-                            "Leon. [My Name]. I know I caught you in the middle of something. I just sent you an email about a target account list I built for Pliant. Do you have 30 seconds for me to give you the context, or should I let you go?"
-                        </div>
-                        <div class="why-it-works">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                            Permission-based opener respects executive time while creating intrigue.
-                        </div>
-                    </div>
-                </div>
-            </section>
+<p>
+The goal isn't activity.  
+The goal is <span class="highlight">qualified opportunities that convert.</span>
+</p>
 
-            <section id="seq6" class="sequence-block">
-                <div class="seq-header">
-                    <h2>06. The Trigger Event</h2>
-                    <div class="tags">
-                        <span class="tag"><strong>Philosophy:</strong> Relevance over personalization.</span>
-                        <span class="tag"><strong>Best for:</strong> Enterprise tier targets.</span>
-                        <span class="tag"><strong>Focus:</strong> Timely intervention.</span>
-                    </div>
-                    <p style="color: var(--text-muted);">Leverages a specific company event (funding, hiring, tech stack change) to immediately position Pliant as the required solution.</p>
-                </div>
-                
-                <div class="steps-grid">
-                    <div class="step-card">
-                        <div class="step-header">
-                            <div class="step-meta"><span>Step 1 / Day 1</span> <span class="channel-badge">Email</span></div>
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">Obj: Tie trigger to pain</span>
-                        </div>
-                        <div class="script-box">
-                            <strong>Subj:</strong> your recent push into EMEA<br><br>
-                            Leon, noticed Pliant is aggressively hiring AEs in London. <br><br>
-                            Usually, when growth teams expand regions, the existing BDR playbook breaks down because regional intent signals differ. The result is AEs starving for pipeline in month 3.<br><br>
-                            I built a specific EMEA-focused account map showing how I'd generate 15 ops in the first 60 days to feed that new floor.<br><br>
-                            Opposed to a brief look at the map?
-                        </div>
-                        <div class="why-it-works">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                            Shows deep research. Identifies a tertiary problem caused by a primary growth event.
-                        </div>
-                    </div>
+---
 
-                    <div class="step-card">
-                        <div class="step-header">
-                            <div class="step-meta"><span>Step 8 / Day 14</span> <span class="channel-badge">Email</span></div>
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">Obj: Professional Breakup</span>
-                        </div>
-                        <div class="script-box">
-                            <strong>Subj:</strong> closing the loop<br><br>
-                            Leon, assuming the EMEA expansion has you buried. I'll stop my outreach here.<br><br>
-                            If you find yourself needing a BDR who builds pipeline based on business intelligence rather than volume alone, you have my contact info. Cheers.
-                        </div>
-                        <div class="why-it-works">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                            Triggers loss aversion. Clean, confident exit without guilt-tripping.
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            </main>
-    </div>
+<h2 id="icp">Ideal Customer Profile</h2>
+
+<div class="grid">
+
+<div class="card">
+<h3>Enterprise / Mid Market</h3>
+
+<ul>
+<li>CFO</li>
+<li>VP Finance</li>
+<li>Head of Payments</li>
+<li>Procurement Leaders</li>
+</ul>
+
+<p>
+Industries:
+Travel, SaaS, Logistics, Digital Agencies
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>Embedded Finance Partners</h3>
+
+<ul>
+<li>Fintech Platforms</li>
+<li>ERP providers</li>
+<li>Expense tools</li>
+<li>Neobanks</li>
+</ul>
+
+<p>
+Goal: distribution through partners.
+</p>
+
+</div>
+
+</div>
+
+---
+
+<h2 id="accounts">Initial Target Accounts</h2>
+
+<div class="card">
+
+<ul>
+<li>Navan</li>
+<li>Rippling</li>
+<li>Ramp</li>
+<li>Brex</li>
+<li>Airbase</li>
+<li>Deel</li>
+<li>Coupa</li>
+<li>Bill.com</li>
+<li>Stripe</li>
+<li>Plaid</li>
+</ul>
+
+<p>
+Tiered by effort:
+
+Tier 1 → deep research  
+Tier 2 → semi personalized  
+Tier 3 → sequence
+</p>
+
+</div>
+
+---
+
+<h2 id="triggers">Trigger Signals</h2>
+
+<div class="grid">
+
+<div class="card">
+
+<ul>
+<li>New CFO</li>
+<li>Series B / C funding</li>
+<li>International expansion</li>
+</ul>
+
+</div>
+
+<div class="card">
+
+<ul>
+<li>ERP migration</li>
+<li>Payments infrastructure changes</li>
+<li>Product expansion</li>
+</ul>
+
+</div>
+
+</div>
+
+<p>
+Outbound works when <span class="highlight">timing meets relevance.</span>
+</p>
+
+---
+
+<h2 id="system">Prospecting System</h2>
+
+<div class="card">
+
+<ul>
+
+<li>Cold calls daily</li>
+
+<li>Personalized emails</li>
+
+<li>LinkedIn engagement</li>
+
+<li>Trigger based outreach</li>
+
+<li>Multi threading accounts</li>
+
+</ul>
+
+<p>
+Sequence length: 14 days  
+Touches: 8–10
+</p>
+
+</div>
+
+---
+
+<h2 id="quality">Meeting Quality Bar</h2>
+
+<div class="card">
+
+<p>
+Meetings only booked if:
+</p>
+
+<ul>
+
+<li>ICP confirmed</li>
+
+<li>Pain articulated in prospect's words</li>
+
+<li>Decision influence identified</li>
+
+<li>Timeline within 6 months</li>
+
+<li>Clear next step</li>
+
+</ul>
+
+<p>
+Goal: <span class="highlight">protect AE time.</span>
+</p>
+
+</div>
+
+---
+
+<h2 id="pipeline">Pipeline Math</h2>
+
+<div class="grid">
+
+<div class="card">
+<div class="metric">15–20</div>
+Meetings per month
+</div>
+
+<div class="card">
+<div class="metric">10+</div>
+Qualified opportunities
+</div>
+
+<div class="card">
+<div class="metric">$300k+</div>
+Pipeline created monthly
+</div>
+
+<div class="card">
+<div class="metric">65%</div>
+Meeting → opportunity rate
+</div>
+
+</div>
+
+---
+
+<h2 id="ramp">90 Day Ramp</h2>
+
+<div class="grid">
+
+<div class="card">
+
+<h3>Days 1–30</h3>
+
+<ul>
+
+<li>Product mastery</li>
+
+<li>Build target account list</li>
+
+<li>Launch sequences</li>
+
+<li>Book first meetings</li>
+
+</ul>
+
+</div>
+
+<div class="card">
+
+<h3>Days 31–60</h3>
+
+<ul>
+
+<li>Optimize messaging</li>
+
+<li>Increase outreach</li>
+
+<li>Improve qualification</li>
+
+</ul>
+
+</div>
+
+<div class="card">
+
+<h3>Days 61–90</h3>
+
+<ul>
+
+<li>15+ meetings/month</li>
+
+<li>$350k pipeline/month</li>
+
+<li>AE shadowing</li>
+
+</ul>
+
+</div>
+
+</div>
+
+---
+
+<div class="footer">
+
+Built by Chris Khoury  
+Final Stage Exercise
+
+</div>
+
+</div>
 
 </body>
 </html>
