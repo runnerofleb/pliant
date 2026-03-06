@@ -1,390 +1,3425 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-theme="dark" data-mode="builder">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>US Outbound Operating System — Candidate Build</title>
+  <meta name="description" content="Candidate-built US outbound operating system and five elite sequences to earn time with a senior leader." />
 
-<title>How I'd Build Pliant's US Pipeline</title>
+  <style>
+    /* ==========================================================================
+       US OUTBOUND OPERATING SYSTEM (single-file)
+       - No external dependencies
+       - Premium dark/light themes
+       - Accessible, responsive, print-friendly
+       ========================================================================== */
 
-<style>
+    :root{
+      /* Typography */
+      --font-sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
 
-body{
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
-background:#0f1117;
-color:white;
-margin:0;
-line-height:1.6;
-}
+      /* Dark theme (default) */
+      --bg0: #060812;
+      --bg1: #0B1022;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.04);
+      --stroke: rgba(255,255,255,.10);
+      --stroke2: rgba(255,255,255,.08);
 
-.container{
-max-width:1100px;
-margin:auto;
-padding:40px 20px;
-}
+      --text: #EAF0FF;
+      --muted: rgba(234,240,255,.72);
+      --muted2: rgba(234,240,255,.55);
 
-h1{
-font-size:40px;
-margin-bottom:10px;
-}
+      --accent: #6EE7FF;
+      --accent2:#A78BFA;
+      --ok: #34D399;
+      --warn:#FBBF24;
+      --bad:#FB7185;
 
-h2{
-margin-top:60px;
-font-size:28px;
-border-bottom:1px solid #2b2f3a;
-padding-bottom:10px;
-}
+      --shadow: 0 18px 60px rgba(0,0,0,.42);
+      --shadow2: 0 10px 26px rgba(0,0,0,.34);
 
-p{
-color:#b5b9c7;
-}
+      --r12: 12px;
+      --r16: 16px;
+      --r20: 20px;
+      --r26: 26px;
 
-.nav{
-position:sticky;
-top:0;
-background:#0f1117;
-border-bottom:1px solid #2b2f3a;
-padding:14px;
-display:flex;
-gap:20px;
-justify-content:center;
-}
+      --focus: rgba(110,231,255,.9);
+      --max: 1220px;
+    }
 
-.nav a{
-color:#9fa4b7;
-text-decoration:none;
-font-size:14px;
-}
+    html[data-theme="light"]{
+      --bg0: #F6F7FB;
+      --bg1: #FFFFFF;
+      --card: rgba(17,24,39,.06);
+      --card2: rgba(17,24,39,.04);
+      --stroke: rgba(17,24,39,.12);
+      --stroke2: rgba(17,24,39,.10);
+      --text: #0B1022;
+      --muted: rgba(11,16,34,.72);
+      --muted2: rgba(11,16,34,.56);
+      --shadow: 0 16px 44px rgba(17,24,39,.12);
+      --shadow2: 0 10px 24px rgba(17,24,39,.10);
+      --focus: rgba(37,99,235,.9);
+    }
 
-.nav a:hover{
-color:white;
-}
+    *{ box-sizing:border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: var(--font-sans);
+      color: var(--text);
+      line-height: 1.45;
+      background:
+        radial-gradient(1100px 700px at 18% -12%, rgba(110,231,255,.22), transparent 58%),
+        radial-gradient(980px 680px at 78% -10%, rgba(167,139,250,.20), transparent 60%),
+        radial-gradient(900px 650px at 70% 110%, rgba(52,211,153,.15), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
 
-.card{
-background:#161a23;
-padding:24px;
-border-radius:10px;
-margin-top:20px;
-border:1px solid #2a2f3c;
-}
+    /* Subtle noise overlay (SVG data URI) */
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      pointer-events:none;
+      opacity:.16;
+      mix-blend-mode: overlay;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/></filter><rect width='420' height='420' filter='url(%23n)' opacity='.22'/></svg>");
+    }
 
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:20px;
-}
+    a{ color:inherit; text-decoration:none; }
+    p{ margin:0; }
 
-@media(max-width:800px){
-.grid{
-grid-template-columns:1fr;
-}
-}
+    .wrap{ max-width: var(--max); margin:0 auto; padding: 22px 18px 84px; position:relative; }
 
-ul{
-padding-left:18px;
-}
+    /* Skip link */
+    .skip{
+      position:absolute;
+      left:-999px; top:10px;
+      padding:10px 12px;
+      background: var(--bg1);
+      border:1px solid var(--stroke);
+      border-radius: var(--r12);
+      z-index:9999;
+      box-shadow: var(--shadow2);
+    }
+    .skip:focus{ left: 14px; }
 
-.highlight{
-color:#6ea8ff;
-}
+    /* Focus outlines */
+    :where(a, button, input, select, textarea, summary):focus-visible{
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
 
-.metric{
-font-size:34px;
-font-weight:bold;
-margin-top:10px;
-}
+    /* Topbar */
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(6,8,18,.82), rgba(6,8,18,.56));
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    html[data-theme="light"] .topbar{
+      background: linear-gradient(180deg, rgba(246,247,251,.9), rgba(246,247,251,.65));
+      border-bottom: 1px solid rgba(17,24,39,.06);
+    }
+    .topbar-inner{
+      max-width: var(--max);
+      margin:0 auto;
+      padding: 12px 18px;
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
 
-.footer{
-margin-top:80px;
-text-align:center;
-color:#7a8094;
-font-size:14px;
-}
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      min-width: 260px;
+    }
+    .logo{
+      width:38px; height:38px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background:
+        radial-gradient(12px 12px at 28% 28%, rgba(110,231,255,.95), transparent 60%),
+        radial-gradient(12px 12px at 72% 72%, rgba(167,139,250,.95), transparent 60%),
+        rgba(255,255,255,.05);
+      box-shadow: var(--shadow2);
+      display:grid; place-items:center;
+    }
+    .brand-title{
+      font-weight: 900;
+      letter-spacing: .3px;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .brand-sub{
+      font-size: 12.5px;
+      color: var(--muted2);
+      margin-top:2px;
+    }
 
-</style>
+    .nav{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .nav a{
+      font-size: 13px;
+      color: var(--muted);
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      transition: background .15s ease, border .15s ease, transform .15s ease;
+    }
+    .nav a:hover{
+      background: rgba(255,255,255,.06);
+      border-color: var(--stroke2);
+      transform: translateY(-1px);
+      color: var(--text);
+    }
+
+    .actions{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      padding: 9px 11px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor:pointer;
+      display:inline-flex;
+      gap: 8px;
+      align-items:center;
+      transition: transform .15s ease, background .15s ease, border .15s ease;
+      user-select:none;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.08);
+      border-color: rgba(110,231,255,.22);
+    }
+    .btn.primary{
+      border-color: rgba(110,231,255,.38);
+      background: linear-gradient(180deg, rgba(110,231,255,.18), rgba(110,231,255,.06));
+    }
+    .btn.ghost{
+      background: transparent;
+    }
+
+    kbd{
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--stroke2);
+      border-radius: 999px;
+      padding: 2px 7px;
+    }
+
+    .progressbar{
+      height: 3px;
+      background: rgba(255,255,255,.06);
+    }
+    .progressbar > div{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(110,231,255,.95), rgba(167,139,250,.92));
+      transition: width .25s ease;
+    }
+
+    /* Sections */
+    .section{ padding-top: 18px; }
+    .section-head{
+      margin-top: 10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap: 14px;
+      flex-wrap:wrap;
+    }
+    h1,h2,h3,h4{ margin: 0; }
+    h1{
+      font-size: 28px;
+      letter-spacing: .2px;
+      line-height: 1.12;
+    }
+    h2{
+      font-size: 18px;
+      letter-spacing: .2px;
+    }
+    .muted{ color: var(--muted); }
+    .muted2{ color: var(--muted2); }
+    .small{ font-size: 12.5px; }
+
+    /* Cards */
+    .card{
+      border: 1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border-radius: var(--r20);
+      box-shadow: var(--shadow2);
+      overflow:hidden;
+    }
+    .card.padded{ padding: 14px; }
+    .card-head{
+      padding: 13px 14px 12px;
+      border-bottom: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.03);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
+    }
+    .card-body{ padding: 14px; }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.03);
+      border-radius: 999px;
+      padding: 4px 9px;
+      white-space: nowrap;
+    }
+    .dot{
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+    .dot.ok{ background: var(--ok); }
+    .dot.warn{ background: var(--warn); }
+    .dot.bad{ background: var(--bad); }
+
+    /* Hero */
+    .hero{
+      border-radius: var(--r26);
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(900px 520px at 15% 10%, rgba(110,231,255,.18), transparent 60%),
+        radial-gradient(900px 520px at 85% 20%, rgba(167,139,250,.14), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .hero-inner{
+      padding: 16px 16px 14px;
+      display:flex;
+      gap: 14px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .hero-sub{
+      margin-top: 8px;
+      max-width: 900px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .hero-pills{
+      margin-top: 12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+    }
+
+    .grid{
+      display:grid;
+      gap: 12px;
+    }
+    .grid.metrics{
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      padding: 0 16px 16px;
+    }
+    @media (max-width: 980px){
+      .grid.metrics{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    .metric{
+      padding: 12px 12px;
+      border-radius: var(--r16);
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.03);
+    }
+    .metric .num{
+      font-size: 22px;
+      font-weight: 950;
+      letter-spacing: .2px;
+    }
+    .metric .lbl{
+      margin-top: 6px;
+      color: var(--muted2);
+      font-size: 12.5px;
+    }
+
+    /* Compare table */
+    .table-wrap{ overflow:auto; }
+    table{
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    th, td{
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--stroke2);
+      vertical-align: top;
+    }
+    th{
+      text-align:left;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .22px;
+      background: rgba(255,255,255,.02);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    tr:hover td{
+      background: rgba(255,255,255,.03);
+    }
+    .rowBtn{
+      cursor:pointer;
+    }
+    .activeRow td{
+      background: rgba(110,231,255,.08);
+      border-bottom-color: rgba(110,231,255,.22);
+    }
+
+    /* Sequences layout */
+    .layout{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: 390px 1fr;
+      gap: 12px;
+      align-items:start;
+    }
+    @media (max-width: 1020px){
+      .layout{ grid-template-columns: 1fr; }
+    }
+
+    .seqList{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .seqCard{
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.03);
+      border-radius: var(--r20);
+      padding: 12px;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border .15s ease;
+    }
+    .seqCard:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.05);
+      border-color: rgba(110,231,255,.22);
+    }
+    .seqCard.active{
+      border-color: rgba(110,231,255,.35);
+      background: linear-gradient(180deg, rgba(110,231,255,.14), rgba(255,255,255,.03));
+    }
+    .seqName{ font-weight: 950; letter-spacing: .2px; }
+    .seqMeta{ margin-top: 5px; color: var(--muted); font-size: 12.5px; }
+    .chips{
+      margin-top: 10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap: 8px;
+    }
+    .chip{
+      font-size: 11.5px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.02);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* Controls */
+    .field{ display:grid; gap: 7px; margin-top: 10px; }
+    label{
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .22px;
+      color: var(--muted2);
+    }
+    input[type="text"], input[type="url"]{
+      width:100%;
+      padding: 10px 11px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      outline: none;
+      transition: border .15s ease, background .15s ease;
+      font-size: 13px;
+    }
+    input[type="text"]:focus, input[type="url"]:focus{
+      border-color: rgba(110,231,255,.35);
+      background: rgba(255,255,255,.05);
+    }
+
+    .toolRow{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+
+    /* Steps */
+    .detailTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    .detailTitle{
+      font-size: 16px;
+      font-weight: 950;
+      letter-spacing: .2px;
+    }
+
+    .stepChips{
+      margin-top: 10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap: 8px;
+    }
+    .stepChipBtn{
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 850;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border .15s ease, color .15s ease;
+      font-size: 12.5px;
+    }
+    .stepChipBtn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(110,231,255,.22);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+    }
+
+    details.step{
+      margin-top: 10px;
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.03);
+      border-radius: var(--r20);
+      overflow:hidden;
+      transition: border .15s ease, background .15s ease;
+    }
+    details.step[open]{
+      border-color: rgba(110,231,255,.28);
+      background: rgba(255,255,255,.04);
+    }
+    summary{
+      list-style:none;
+      cursor:pointer;
+      padding: 12px 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
+      user-select:none;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+    summary::-webkit-details-marker{ display:none; }
+    .sumLeft{ display:flex; flex-direction:column; gap: 5px; width: 100%; }
+    .sumTop{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.02);
+      color: var(--muted);
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+    .intent{
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.02);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .stepTitle{
+      font-weight: 950;
+      letter-spacing: .15px;
+    }
+    .sumBottom{
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .chev{
+      width: 40px; height: 40px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke2);
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.02);
+      color: var(--muted);
+      transition: transform .15s ease;
+      flex: 0 0 auto;
+    }
+    details[open] .chev{ transform: rotate(90deg); }
+
+    .stepBody{
+      padding: 12px;
+      border-top: 1px solid var(--stroke2);
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 10px;
+    }
+    @media (max-width: 980px){
+      .stepBody{ grid-template-columns: 1fr; }
+    }
+
+    .box{
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.02);
+      border-radius: var(--r16);
+      padding: 12px;
+    }
+    .box h4{
+      margin:0 0 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .22px;
+      color: var(--muted2);
+    }
+    .box ul{ margin:0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+    .box p{ margin:0; color: var(--text); font-size: 13.5px; }
+
+    .msgHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
+      flex-wrap:wrap;
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .msg{
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      background: rgba(0,0,0,.22);
+      border: 1px solid var(--stroke2);
+      border-radius: 14px;
+      padding: 10px;
+      max-height: 320px;
+      overflow:auto;
+    }
+    html[data-theme="light"] .msg{ background: rgba(17,24,39,.06); }
+
+    .msgActions{
+      display:flex;
+      gap: 8px;
+      flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .hint{ margin-top: 10px; font-size: 12px; color: var(--muted); }
+
+    /* Flow / Mermaid section */
+    .flow{
+      margin-top: 12px;
+      border: 1px dashed rgba(110,231,255,.40);
+      background: rgba(110,231,255,.07);
+      border-radius: var(--r20);
+      padding: 12px;
+    }
+    .flowGrid{
+      margin-top: 10px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .flowGrid{ grid-template-columns: 1fr; }
+    }
+    .codeBlock{
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      white-space: pre;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke2);
+      background: rgba(0,0,0,.18);
+      overflow:auto;
+      margin:0;
+    }
+    html[data-theme="light"] .codeBlock{ background: rgba(17,24,39,.06); }
+
+    .svgWrap{
+      border: 1px solid var(--stroke2);
+      border-radius: 14px;
+      background: rgba(255,255,255,.03);
+      overflow:hidden;
+      padding: 10px;
+    }
+    .svgWrap svg{ width: 100%; height: auto; display:block; }
+
+    /* Artifacts */
+    .tabs{
+      margin-top: 12px;
+      display:flex;
+      gap: 8px;
+      flex-wrap:wrap;
+    }
+    .tabBtn{
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      padding: 9px 11px;
+      border-radius: 999px;
+      font-weight: 900;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border .15s ease, color .15s ease;
+      font-size: 13px;
+    }
+    .tabBtn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(110,231,255,.22);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+    }
+    .tabBtn[aria-selected="true"]{
+      border-color: rgba(110,231,255,.35);
+      background: linear-gradient(180deg, rgba(110,231,255,.14), rgba(255,255,255,.03));
+      color: var(--text);
+    }
+    .panel{
+      margin-top: 12px;
+      display:none;
+    }
+    .panel.active{ display:block; }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 980px){
+      .twoCol{ grid-template-columns: 1fr; }
+    }
+
+    .callout{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      border-radius: var(--r16);
+      padding: 12px;
+      color: var(--muted);
+    }
+
+    /* Footer */
+    .footer{
+      margin-top: 18px;
+      color: var(--muted2);
+      font-size: 12.5px;
+      text-align:center;
+    }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(17,24,39,.92);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 999px;
+      padding: 10px 14px;
+      box-shadow: var(--shadow2);
+      display:none;
+      z-index: 120;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+
+    /* Modal (command palette / export) */
+    .modalBackdrop{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      z-index: 200;
+      padding: 18px;
+    }
+    .modal{
+      max-width: 760px;
+      margin: 8vh auto 0;
+      border-radius: var(--r20);
+      border: 1px solid rgba(255,255,255,.18);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    html[data-theme="light"] .modal{
+      border-color: rgba(17,24,39,.14);
+    }
+    .modalHeader{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--stroke2);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
+      background: rgba(255,255,255,.03);
+    }
+    .modalBody{ padding: 14px; }
+
+    .cmdInput{
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+    .cmdList{
+      margin-top: 10px;
+      border: 1px solid var(--stroke2);
+      border-radius: 14px;
+      overflow:hidden;
+    }
+    .cmdItem{
+      padding: 10px 12px;
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      align-items:center;
+      border-bottom: 1px solid var(--stroke2);
+      cursor:pointer;
+      background: rgba(255,255,255,.02);
+    }
+    .cmdItem:last-child{ border-bottom: 0; }
+    .cmdItem:hover{ background: rgba(255,255,255,.05); }
+    .cmdLeft{ display:flex; gap: 10px; align-items:center; }
+    .cmdKey{
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--stroke2);
+      background: rgba(255,255,255,.02);
+      border-radius: 999px;
+      padding: 2px 8px;
+      white-space: nowrap;
+    }
+
+    /* Builder/executive mode toggles */
+    html[data-mode="exec"] .controlOnly{ display:none !important; }
+    html[data-mode="exec"] .nav a{ pointer-events:auto; }
+    html[data-mode="exec"] .progressbar{ display:none; }
+
+    /* Print */
+    @media print{
+      body::before{ display:none; }
+      .topbar, .controlOnly, .toast, .modalBackdrop{ display:none !important; }
+      body{ background: #fff; color:#111; }
+      .card, .hero{ box-shadow:none; }
+      .msg{ max-height:none; }
+      details.step{ break-inside: avoid; }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none !important; scroll-behavior:auto !important; }
+    }
+  </style>
 </head>
 
 <body>
-
-<div class="nav">
-<a href="#icp">ICP</a>
-<a href="#accounts">Accounts</a>
-<a href="#triggers">Triggers</a>
-<a href="#system">System</a>
-<a href="#quality">Meeting Quality</a>
-<a href="#pipeline">Pipeline Math</a>
-<a href="#ramp">90 Day Plan</a>
-</div>
-
-<div class="container">
-
-<h1>How I'd Build Pliant's US Pipeline</h1>
-
-<p>
-Instead of submitting slides for the final stage exercise, I built the outbound system
-I would run if hired to generate US pipeline and protect AE time.
-</p>
-
-<p>
-The goal isn't activity.  
-The goal is <span class="highlight">qualified opportunities that convert.</span>
-</p>
-
----
-
-<h2 id="icp">Ideal Customer Profile</h2>
-
-<div class="grid">
-
-<div class="card">
-<h3>Enterprise / Mid Market</h3>
-
-<ul>
-<li>CFO</li>
-<li>VP Finance</li>
-<li>Head of Payments</li>
-<li>Procurement Leaders</li>
-</ul>
-
-<p>
-Industries:
-Travel, SaaS, Logistics, Digital Agencies
-</p>
-
-</div>
-
-<div class="card">
-
-<h3>Embedded Finance Partners</h3>
-
-<ul>
-<li>Fintech Platforms</li>
-<li>ERP providers</li>
-<li>Expense tools</li>
-<li>Neobanks</li>
-</ul>
-
-<p>
-Goal: distribution through partners.
-</p>
-
-</div>
-
-</div>
-
----
-
-<h2 id="accounts">Initial Target Accounts</h2>
-
-<div class="card">
-
-<ul>
-<li>Navan</li>
-<li>Rippling</li>
-<li>Ramp</li>
-<li>Brex</li>
-<li>Airbase</li>
-<li>Deel</li>
-<li>Coupa</li>
-<li>Bill.com</li>
-<li>Stripe</li>
-<li>Plaid</li>
-</ul>
-
-<p>
-Tiered by effort:
-
-Tier 1 → deep research  
-Tier 2 → semi personalized  
-Tier 3 → sequence
-</p>
-
-</div>
-
----
-
-<h2 id="triggers">Trigger Signals</h2>
-
-<div class="grid">
-
-<div class="card">
-
-<ul>
-<li>New CFO</li>
-<li>Series B / C funding</li>
-<li>International expansion</li>
-</ul>
-
-</div>
-
-<div class="card">
-
-<ul>
-<li>ERP migration</li>
-<li>Payments infrastructure changes</li>
-<li>Product expansion</li>
-</ul>
-
-</div>
-
-</div>
-
-<p>
-Outbound works when <span class="highlight">timing meets relevance.</span>
-</p>
-
----
-
-<h2 id="system">Prospecting System</h2>
-
-<div class="card">
-
-<ul>
-
-<li>Cold calls daily</li>
-
-<li>Personalized emails</li>
-
-<li>LinkedIn engagement</li>
-
-<li>Trigger based outreach</li>
-
-<li>Multi threading accounts</li>
-
-</ul>
-
-<p>
-Sequence length: 14 days  
-Touches: 8–10
-</p>
-
-</div>
-
----
-
-<h2 id="quality">Meeting Quality Bar</h2>
-
-<div class="card">
-
-<p>
-Meetings only booked if:
-</p>
-
-<ul>
-
-<li>ICP confirmed</li>
-
-<li>Pain articulated in prospect's words</li>
-
-<li>Decision influence identified</li>
-
-<li>Timeline within 6 months</li>
-
-<li>Clear next step</li>
-
-</ul>
-
-<p>
-Goal: <span class="highlight">protect AE time.</span>
-</p>
-
-</div>
-
----
-
-<h2 id="pipeline">Pipeline Math</h2>
-
-<div class="grid">
-
-<div class="card">
-<div class="metric">15–20</div>
-Meetings per month
-</div>
-
-<div class="card">
-<div class="metric">10+</div>
-Qualified opportunities
-</div>
-
-<div class="card">
-<div class="metric">$300k+</div>
-Pipeline created monthly
-</div>
-
-<div class="card">
-<div class="metric">65%</div>
-Meeting → opportunity rate
-</div>
-
-</div>
-
----
-
-<h2 id="ramp">90 Day Ramp</h2>
-
-<div class="grid">
-
-<div class="card">
-
-<h3>Days 1–30</h3>
-
-<ul>
-
-<li>Product mastery</li>
-
-<li>Build target account list</li>
-
-<li>Launch sequences</li>
-
-<li>Book first meetings</li>
-
-</ul>
-
-</div>
-
-<div class="card">
-
-<h3>Days 31–60</h3>
-
-<ul>
-
-<li>Optimize messaging</li>
-
-<li>Increase outreach</li>
-
-<li>Improve qualification</li>
-
-</ul>
-
-</div>
-
-<div class="card">
-
-<h3>Days 61–90</h3>
-
-<ul>
-
-<li>15+ meetings/month</li>
-
-<li>$350k pipeline/month</li>
-
-<li>AE shadowing</li>
-
-</ul>
-
-</div>
-
-</div>
-
----
-
-<div class="footer">
-
-Built by Chris Khoury  
-Final Stage Exercise
-
-</div>
-
-</div>
-
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar" role="banner">
+    <div class="topbar-inner">
+      <div class="brand" aria-label="Site brand">
+        <div class="logo" aria-hidden="true">
+          <!-- Simple embedded SVG mark -->
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M3 10.2C3 7.35 5.35 5 8.2 5h6.8" stroke="rgba(234,240,255,.85)" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M15 7.8c0 2.85-2.35 5.2-5.2 5.2H3" stroke="rgba(234,240,255,.65)" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">US Outbound Operating System</div>
+          <div class="brand-sub">Candidate-built · five sequences · artifacts + scripts</div>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="#overview">Overview</a>
+        <a href="#sequences">Sequences</a>
+        <a href="#artifacts">Artifacts</a>
+        <a href="#pages">GitHub Pages</a>
+      </nav>
+
+      <div class="actions controlOnly" aria-label="Actions">
+        <button class="btn ghost" id="cmdBtn" type="button" aria-label="Open command palette">
+          ⌘
+          <span class="small">Command</span>
+          <kbd>Ctrl/⌘ K</kbd>
+        </button>
+        <button class="btn ghost" id="execBtn" type="button" aria-label="Toggle executive mode">
+          👁️ <span class="small">Exec</span>
+        </button>
+        <button class="btn ghost" id="themeBtn" type="button" aria-label="Toggle theme">
+          🌗 <span class="small">Theme</span>
+        </button>
+        <button class="btn" id="exportBtn" type="button" aria-label="Export active sequence to Markdown">
+          ⬇ Export
+        </button>
+        <button class="btn primary" id="printBtn" type="button" aria-label="Print or save as PDF">
+          🖨 Print
+        </button>
+      </div>
+    </div>
+    <div class="progressbar" aria-hidden="true"><div id="progressFill"></div></div>
+  </header>
+
+  <main id="main" class="wrap">
+    <section id="overview" class="section" aria-label="Overview">
+      <div class="hero">
+        <div class="hero-inner">
+          <div>
+            <h1>How I’d build US pipeline — without wasting AE time</h1>
+            <div class="hero-sub">
+              This is a candidate-built mini-site that packages: (1) a US outbound operating system (ICP → targets → triggers → multi-channel motion → qualification → pipeline math),
+              and (2) five elite sequences designed to earn a 20-minute pressure-test meeting with a senior leader.
+            </div>
+
+            <div class="hero-pills">
+              <span class="pill"><span class="dot"></span>Pattern interrupt</span>
+              <span class="pill"><span class="dot ok"></span>Proof artifacts</span>
+              <span class="pill"><span class="dot warn"></span>Decision forcing</span>
+              <span class="pill"><span class="dot ok"></span>AE-protective quality bar</span>
+              <span class="pill"><span class="dot"></span>Repeatable system</span>
+            </div>
+          </div>
+
+          <div class="card padded" style="max-width: 420px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+              <div>
+                <div class="pill"><span class="dot ok"></span>Executive summary</div>
+                <div style="margin-top:10px; font-weight:950; letter-spacing:.2px;">What you’ll see in 3 minutes</div>
+                <div class="small muted" style="margin-top:6px;">
+                  A clear outbound system + five paths to earn time via pressure-testing (not “asking for a chat”).
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:10px" class="small muted">
+              <ul style="margin:0; padding-left:18px;">
+                <li>Two ICP motions + trigger library</li>
+                <li>Tiered target list and outreach system</li>
+                <li>Meeting quality bar + AE handoff standard</li>
+                <li>Pipeline math + 30/60/90 ramp</li>
+                <li>Five meeting-earning sequences (copy/export)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid metrics" aria-label="Outcome targets">
+          <div class="metric">
+            <div class="num">12–18</div>
+            <div class="lbl">qualified meetings / month (full ramp)</div>
+          </div>
+          <div class="metric">
+            <div class="num">8–12</div>
+            <div class="lbl">qualified opps / month (target range)</div>
+          </div>
+          <div class="metric">
+            <div class="num">50%+</div>
+            <div class="lbl">meeting → opp conversion (AE-protective)</div>
+          </div>
+          <div class="metric">
+            <div class="num">1 OS</div>
+            <div class="lbl">repeatable playbook (not heroics)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sequences" class="section" aria-label="Outreach sequences">
+      <div class="section-head">
+        <div>
+          <h2>Five sequences to earn a pressure-test meeting</h2>
+          <div class="small muted" style="margin-top:6px">
+            Each step includes objective, channel, exact script, why it works, and the “closer outcome.” Builder mode adds placeholders, copy, export, search, and progress.
+          </div>
+        </div>
+        <div class="small muted2">
+          Shortcuts: <span class="pill">/ search</span> <span class="pill">Ctrl/⌘ K command</span> <span class="pill">T theme</span> <span class="pill">E export</span> <span class="pill">P print</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div class="card-head">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <div style="font-weight:950; letter-spacing:.2px;">Sequence comparison</div>
+            <div class="small muted">Click a row to activate a sequence below.</div>
+          </div>
+          <div class="pill"><span class="dot"></span><span id="activeLabel">Active: Operator Artifact</span></div>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table aria-label="Sequence comparison table">
+              <thead>
+                <tr>
+                  <th>Sequence</th>
+                  <th>Philosophy</th>
+                  <th>Best for</th>
+                  <th>Key differentiator</th>
+                  <th>Expected outcome</th>
+                </tr>
+              </thead>
+              <tbody id="compareBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="layout">
+        <aside aria-label="Sequence library and controls">
+          <div class="card">
+            <div class="card-head">
+              <div style="font-weight:950; letter-spacing:.2px;">Library</div>
+              <span class="pill"><span class="dot"></span><span id="seqCount">5 sequences</span></span>
+            </div>
+            <div class="card-body">
+              <div id="seqList" class="seqList" aria-label="Sequence list"></div>
+            </div>
+          </div>
+
+          <div class="card controlOnly" style="margin-top:12px;">
+            <div class="card-head">
+              <div style="font-weight:950; letter-spacing:.2px;">Global placeholders</div>
+              <span class="pill"><span class="dot ok"></span>Injected live</span>
+            </div>
+            <div class="card-body">
+              <div class="field">
+                <label for="ph_proof">[PROOF_METRIC]</label>
+                <input id="ph_proof" type="text" placeholder="e.g., Built outbound from 0 → 14–18 qualified meetings/month (50%+ meeting→opp)" />
+              </div>
+              <div class="field">
+                <label for="ph_cal">[CAL_LINK]</label>
+                <input id="ph_cal" type="url" placeholder="Optional calendar link (https://...)" />
+              </div>
+              <div class="field">
+                <label for="ph_account">[ACCOUNT]</label>
+                <input id="ph_account" type="text" placeholder="Example account name" />
+              </div>
+              <div class="field">
+                <label for="ph_trigger">[TRIGGER]</label>
+                <input id="ph_trigger" type="text" placeholder="Example trigger signal" />
+              </div>
+              <div class="callout small" style="margin-top:12px;">
+                Tip: keep emails under ~120 words and voicemails under ~20 seconds. This page shows word count and flags overages.
+              </div>
+            </div>
+          </div>
+
+          <div class="card controlOnly" style="margin-top:12px;">
+            <div class="card-head">
+              <div style="font-weight:950; letter-spacing:.2px;">Tools</div>
+              <span class="pill"><span class="dot"></span>Keyboard-first</span>
+            </div>
+            <div class="card-body">
+              <div class="field" style="margin-top:0;">
+                <label for="stepSearch">Search steps</label>
+                <input id="stepSearch" type="text" placeholder="risk, voicemail, micro, triggers, breakup…" />
+              </div>
+              <div class="toolRow">
+                <button class="btn" id="expandAllBtn" type="button">⤵ Expand all</button>
+                <button class="btn" id="collapseAllBtn" type="button">⤴ Collapse all</button>
+                <button class="btn" id="resetProgressBtn" type="button">↺ Reset progress</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <article aria-label="Active sequence detail">
+          <div class="card">
+            <div class="card-head">
+              <div class="detailTop">
+                <div>
+                  <div class="detailTitle" id="activeSeqName">Operator Artifact Sequence</div>
+                  <div class="small muted" id="activeSeqMeta">Artifact-first. Meeting becomes an internal plan review.</div>
+                </div>
+                <div class="controlOnly" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                  <span class="pill"><span class="dot ok"></span><span id="progressText">0% copied</span></span>
+                  <button class="btn" id="exportActiveBtn" type="button">⬇ Export active</button>
+                  <button class="btn primary" id="copyActiveBtn" type="button">Copy MD</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="stepChips" id="stepChips" aria-label="Step jump navigation"></div>
+              <div id="stepsWrap" aria-label="Steps list"></div>
+
+              <div class="flow" id="flowWrap" aria-label="Operator Artifact flowchart">
+                <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+                  <div>
+                    <div style="font-weight:950; letter-spacing:.2px;">Operator Artifact flow (Mermaid + rendered)</div>
+                    <div class="small muted">Mermaid source is shown verbatim; a lightweight renderer draws this one flowchart without external libraries.</div>
+                  </div>
+                  <span class="pill"><span class="dot ok"></span>flowchart LR</span>
+                </div>
+                <div class="flowGrid">
+                  <pre class="codeBlock" id="mermaidSource" aria-label="Mermaid source"></pre>
+                  <div class="svgWrap" id="mermaidRender" aria-label="Rendered flowchart"></div>
+                </div>
+              </div>
+
+              <div class="callout small" style="margin-top:12px;">
+                Executive framing that performs well: “20 minutes to pressure-test the system; if it doesn’t hold up, pass on me.”
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="artifacts" class="section" aria-label="Outbound artifacts">
+      <div class="section-head">
+        <div>
+          <h2>Outbound artifacts</h2>
+          <div class="small muted" style="margin-top:6px;">
+            These are the “work product” pages: ICP, targets, triggers, system, meeting quality, pipeline math, and ramp plan.
+          </div>
+        </div>
+        <div class="small muted2">Exec mode hides builder tools; artifacts stay readable.</div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Artifacts tabs" id="artifactTabs"></div>
+
+      <!-- Panels are rendered by JS -->
+      <div id="artifactPanels" aria-label="Artifacts panels"></div>
+    </section>
+
+    <section id="pages" class="section" aria-label="GitHub Pages setup">
+      <div class="section-head">
+        <div>
+          <h2>GitHub Pages mini-site preview</h2>
+          <div class="small muted" style="margin-top:6px;">
+            Compute your project URL, copy it, and share the executive view via <span class="pill">#exec</span>.
+          </div>
+        </div>
+      </div>
+
+      <div class="twoCol" style="margin-top:12px;">
+        <div class="card">
+          <div class="card-head">
+            <div style="font-weight:950; letter-spacing:.2px;">Compute your Pages URL</div>
+            <span class="pill"><span class="dot ok"></span>Copy-ready</span>
+          </div>
+          <div class="card-body">
+            <div class="field" style="margin-top:0;">
+              <label for="ghUser">GitHub username</label>
+              <input id="ghUser" type="text" placeholder="e.g., runnerofleb" />
+            </div>
+            <div class="field">
+              <label for="ghRepo">Repository name</label>
+              <input id="ghRepo" type="text" placeholder="e.g., pliant" />
+            </div>
+            <div class="field">
+              <label for="ghUrl">Computed URL</label>
+              <input id="ghUrl" type="text" readonly />
+            </div>
+            <div class="toolRow">
+              <button class="btn primary controlOnly" id="copyGhUrlBtn" type="button">Copy URL</button>
+              <button class="btn controlOnly" id="copyExecUrlBtn" type="button">Copy Exec URL</button>
+            </div>
+            <div class="small muted" style="margin-top:10px;">
+              Tip: share the exec view link (ends in <span class="pill">#exec</span>) so the leader sees the polished narrative without builder controls.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div style="font-weight:950; letter-spacing:.2px;">Setup checklist</div>
+            <span class="pill"><span class="dot"></span>2 minutes</span>
+          </div>
+          <div class="card-body small muted">
+            <ol style="margin:0; padding-left:18px;">
+              <li>Create/commit <span class="pill">index.html</span> in repo root.</li>
+              <li>Repo Settings → Pages → Deploy from branch.</li>
+              <li>Select branch <span class="pill">main</span> and folder <span class="pill">/(root)</span> → Save.</li>
+              <li>Wait for build; visit the URL above.</li>
+              <li>Share <span class="pill">Exec URL</span> with Leon.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        Built as a single-file, no-deps, shareable artifact. Builder mode for you; exec mode for them.
+      </div>
+    </section>
+
+    <div class="footer" style="margin-top:20px;">
+      © Candidate-built outbound OS · Designed for clarity, repeatability, and executive scanning.
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Modal: Command palette + Export -->
+  <div class="modalBackdrop controlOnly" id="modalBackdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Command palette and export" id="modal">
+      <div class="modalHeader">
+        <div style="font-weight:950; letter-spacing:.2px;" id="modalTitle">Command</div>
+        <button class="btn" id="closeModalBtn" type="button" aria-label="Close">Esc</button>
+      </div>
+      <div class="modalBody">
+        <input class="cmdInput" id="cmdInput" type="text" placeholder="Type a command… (e.g., 'export', 'exec', 'operator')" aria-label="Command input" />
+        <div class="cmdList" id="cmdList" aria-label="Command results"></div>
+
+        <div class="callout small" style="margin-top:12px;">
+          Pro tip: “pressure-test” framing turns the meeting into an evaluation session, not a favor request.
+        </div>
+
+        <div id="exportArea" style="margin-top:12px; display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div style="font-weight:950; letter-spacing:.2px;">Export Markdown</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn" id="copyExportBtn" type="button">Copy</button>
+              <button class="btn primary" id="downloadExportBtn" type="button">Download .md</button>
+            </div>
+          </div>
+          <pre class="codeBlock" id="exportMd" style="margin-top:10px; max-height: 360px; overflow:auto;"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    /* ==========================================================================
+       DATA
+       - Keep scripts short, executive, and intentional.
+       - Placeholders supported:
+         [PROOF_METRIC] [CAL_LINK] [ACCOUNT] [TRIGGER]
+       ========================================================================== */
+
+    const DATA = {
+      sequences: [
+        {
+          id: 'operator',
+          name: 'Operator Artifact Sequence',
+          philosophy: 'Artifact-first. The meeting is a pressure test of a real operating system.',
+          bestFor: 'Highest likelihood with busy executives.',
+          differentiator: 'One asset (the OS) + escalating proof snapshots.',
+          expected: 'Reply or routed review; meeting becomes the obvious next step.',
+          blurb: 'Build the OS first. Use outreach only to guide the leader to it and invite scrutiny.',
+          steps: [
+            step('op-1','Email','Frame: earn time by offering a pressure test (not a chat).','Frame',
+              'Quick experiment',
+`Leon —
+
+I’m in the final stage for the BDR role.
+
+Instead of slides, I built the US outbound operating system I’d run (ICP → target list → triggers → multi‑channel motion → meeting quality bar → pipeline math).
+
+If you can spare 20 minutes, I’d like you to pressure‑test it like an internal plan. If it doesn’t hold up, you should pass on me.
+
+Tue 10:30a ET or Wed 2:00p ET?
+
+— Chris`,
+              [
+                'Exec-friendly: front-loaded, scannable, no fluff.',
+                'Frames the meeting as evaluation (low-risk for them).',
+                'Signals operator mindset: system + repeatability.'
+              ],
+              'Curiosity + clear next step: review the system live.'
+            ),
+
+            step('op-2','Call','Permission-based opener → risk → value → close with two times.','Close',
+              '',
+`Opener:
+“Leon — Chris Khoury. Can I take 20 seconds, then you tell me yes/no?”
+
+Context:
+“I built the outbound operating system I’d run to generate US pipeline and protect AE time.”
+
+Risk:
+“The wrong first BDR doesn’t just miss quota — it burns 60–90 days of AE cycles on low-converting meetings.”
+
+Value:
+“The system is trigger-led, multi-threaded, and measured. At full ramp: 12–18 qualified meetings/month with an AE-protective bar.”
+
+Proof:
+“[PROOF_METRIC]”
+
+Close:
+“Worth 20 minutes Tue 10:30 ET or Wed 2:00 ET to pressure-test it?”`,
+              [
+                'Permission reduces resistance and earns attention.',
+                'Risk framing matches how leaders think (opportunity cost).',
+                'Two-option close increases booking rate.'
+              ],
+              'Booked meeting or explicit next action (“send artifact link / route owner”).'
+            ),
+
+            step('op-3','Voicemail','Leave a <20s message that references the artifact and asks for a decision.','Close',
+              '',
+`Leon — Chris Khoury.
+
+I built the outbound OS I’d run for US pipeline: targeting, triggers, quality bar, and math.
+
+If you’re open, I’d love 20 minutes to pressure-test it. I’ll email you the link.
+
+— Chris`,
+              [
+                'Short voicemails get listened to; long ones get deleted.',
+                'Mentions concrete components (signals substance).'
+              ],
+              'Supports email/call touches; increases recognition.'
+            ),
+
+            step('op-4','Email','Drop the artifact and tell them where to look.','Proof',
+              'The OS',
+`Leon —
+
+As promised, here’s the operating system (1 page):
+[CAL_LINK]
+
+If you skim one section, look at “Meeting Quality Bar + AE Handoff.” That’s where most new‑market outbound breaks.
+
+Open to a 20‑minute pressure test this week?
+
+— Chris`,
+              [
+                'Gives a path to skim (“look here”).',
+                'Shifts from claims → work product.'
+              ],
+              'Leader can evaluate you in <2 minutes.'
+            ),
+
+            step('op-5','LinkedIn DM','Create cross-channel familiarity and reinforce the artifact.','Engage',
+              '',
+`Leon — Chris here (BDR finalist). Built the US outbound OS I’d run in the role and sent it over. If you’d like, I can walk you through it in 20 minutes and you can tear it apart.`,
+              [
+                'Cross-channel familiarity boosts response rates.',
+                'Keeps tone calm and high-status.'
+              ],
+              'Increases probability of reply / accepted invite.'
+            ),
+
+            step('op-6','Email','Micro-commitment to earn a reply and tailor the plan.','Engage',
+              'A/B',
+`Quick A/B:
+
+In the first 30 US days, would you bias toward:
+
+A) 3–5 enterprise logo wins (credibility + conversion)
+B) 1–2 platform/partner wedges (distribution)
+
+Reply with A or B — I’ll tune the plan accordingly.
+
+— Chris`,
+              [
+                'A/B replies are easier than “yes/no meeting.”',
+                'Engagement increases later booking likelihood.'
+              ],
+              'Reply creates a conversation thread.'
+            ),
+
+            step('op-7','Email','Proof snapshot: small target set + trigger angles.','Proof',
+              'Week one targets',
+`Leon —
+
+To make it tangible: here are 6 accounts I’d start with and the trigger angle I’d lead with:
+
+1) [ACCOUNT] — [TRIGGER]
+2) Navan — international expansion
+3) Ramp — new finance leader
+4) Rippling — ERP migration
+5) Deel — rapid hiring + spend controls
+6) Coupa — supplier payments initiative
+
+If you want, I can walk you through tiering + openers in 20 minutes.
+
+— Chris`,
+              [
+                'Concrete targeting proves you can execute Monday morning.',
+                'Triggers show timing-based relevance (not fluff personalization).'
+              ],
+              'Raises credibility; makes meeting feel inevitable.'
+            ),
+
+            step('op-8','Email','Decision forcing: book, delegate, or pass.','Close',
+              'Close the loop',
+`Leon —
+
+I’ll close the loop on my side after this.
+
+Should we:
+A) book 20 minutes to pressure‑test the OS, or
+B) have me route it to the right owner?
+
+Either answer helps.
+
+— Chris`,
+              [
+                'Binary choice reduces ghosting.',
+                'Maintains high status (not needy).'
+              ],
+              'Forces a decision without nagging.'
+            ),
+          ]
+        },
+
+        {
+          id: 'pressure',
+          name: 'Executive Pressure-Test Funnel',
+          philosophy: 'Fast path to yes: crisp framing + two-option closes + proof.',
+          bestFor: 'Time-poor leaders who ignore drip sequences.',
+          differentiator: 'Every touch adds new information or forces a decision.',
+          expected: 'Meeting booked quickly or explicit no/route.',
+          blurb: 'Short, direct, and executive: system → proof → decision.',
+          steps: [
+            step('pr-1','Email','Make the meeting a low-risk decision session.','Frame',
+              '20 minutes',
+`Leon —
+
+I’m a finalist for the BDR role.
+
+I built the US outbound system I’d run to create qualified pipeline and protect AE calendars (ICP, triggers, cadence, quality bar, pipeline math).
+
+If it doesn’t feel repeatable, you should pass on me.
+
+Pressure-test it for 20 minutes — Tue 10:30a ET or Wed 2:00p ET?
+
+— Chris`,
+              [
+                'Leader sees a system, not “enthusiasm.”',
+                'Two times makes yes easy.'
+              ],
+              'Meeting framed as evaluation; reduces friction.'
+            ),
+
+            step('pr-2','Call','Short permission opener; book a slot or get routed.','Close',
+              '',
+`“Leon — Chris. 20 seconds then you tell me yes/no?
+
+I built the outbound OS I’d run for US pipeline. It’s trigger-led and AE-protective.
+
+If you can give me 20 minutes, you can poke holes in it. If it holds up, you’ve found the hire.
+
+Tue 10:30 or Wed 2?”`,
+              [
+                'Permission-based opener earns attention.',
+                '“Poke holes” signals confidence.'
+              ],
+              'Booked or routed to the right owner.'
+            ),
+
+            step('pr-3','Email','6-bullet exec summary (one screen).','Proof',
+              'System summary',
+`Leon —
+
+System summary (one screen):
+
+• ICP: two motions (enterprise finance + platform distribution)
+• Targeting: tiered list + trigger library
+• Cadence: 10–12 touches / 14 days / multi-threaded
+• Calls: 2 call windows/day + voicemail only on high-intent
+• Quality bar: no meeting unless pain + fit + next step are clear
+• Handoff: AE brief + agenda + stakeholders + next step locked
+
+If you’re open, I’ll walk you through it in 20 minutes.
+
+— Chris`,
+              [
+                'Skimmable summaries get read.',
+                'Signals clarity and repeatability.'
+              ],
+              'Removes “too busy to read” excuse.'
+            ),
+
+            step('pr-4','Voicemail','Tight follow-up that references the summary.','Close',
+              '',
+`Leon — Chris Khoury. I sent a one-screen summary of the US outbound system I’d run.
+
+If you’re open, I’d like 20 minutes to pressure-test it.
+
+Tue 10:30 or Wed 2 works?
+
+— Chris`,
+              [
+                'Creates recognition across channels.',
+                'Keeps the ask binary and time-boxed.'
+              ],
+              'Pushes toward a scheduled slot.'
+            ),
+
+            step('pr-5','Email','Show your AE-protective meeting bar in one block.','Proof',
+              'Quality bar',
+`Leon —
+
+My meeting bar is simple: I don’t book it unless we have
+
+1) ICP fit
+2) pain stated in their words
+3) reason now
+4) stakeholders identified
+5) next step beyond call #1
+
+If any are missing, I keep working the account.
+
+Want to pressure-test the full system live?
+
+— Chris`,
+              [
+                'Protecting AE time is a VP-level priority.',
+                'Signals judgment over activity.'
+              ],
+              'Builds trust; reduces fear of calendar noise.'
+            ),
+
+            step('pr-6','Email','Proof snapshot: 6 accounts + triggers.','Proof',
+              'Targets + triggers',
+`Leon —
+
+Sample week-one set (account → trigger):
+
+1) [ACCOUNT] — [TRIGGER]
+2) Navan — international expansion
+3) Deel — rapid hiring + spend controls
+4) Rippling — ERP migration
+5) Ramp — new finance leader
+6) Coupa — payments initiative
+
+If you’d like, I’ll walk you through the tiering logic in 20 minutes.
+
+— Chris`,
+              [
+                'Execution proof beats assertion.',
+                'Shows you already did the work.'
+              ],
+              'Increases credibility; makes meeting the obvious next step.'
+            ),
+
+            step('pr-7','Email','Breakup with a choice and an easy out.','Close',
+              'Close?',
+`Leon —
+
+Last note from me.
+
+Should we:
+A) book 20 minutes to review the system, or
+B) should I stop here?
+
+Either answer is helpful.
+
+— Chris`,
+              [
+                'Forces a decision without pressure.',
+                'Maintains high status.'
+              ],
+              'Yes/no instead of silence.'
+            ),
+          ]
+        },
+
+        {
+          id: 'teach',
+          name: 'Teach → Earn Insight Ladder',
+          philosophy: 'Earn mindshare with short insights; ask only after trust is built.',
+          bestFor: 'Skeptical leaders who ignore meeting asks.',
+          differentiator: 'Value drip: risk → plan → triggers → proof → decision.',
+          expected: 'Higher trust; meeting becomes “logical next step.”',
+          blurb: 'Teach in 60–90 word notes. Then convert to a pressure-test meeting.',
+          steps: [
+            step('te-1','Email','Get permission to send insights (low-pressure).','Frame',
+              'I’ll earn it',
+`Leon —
+
+Instead of asking for time upfront, I’ll earn it.
+
+Over the next week I’ll send a few short notes on how I’d build US pipeline in this BDR seat (risk, first 30 days, triggers, quality bar).
+
+If the thinking is useful, we’ll book 20 minutes. If not, I’ll stop.
+
+— Chris`,
+              [
+                'Sets expectations and reduces annoyance.',
+                'Positions you as value-first.'
+              ],
+              'Permission to follow up without “just checking in.”'
+            ),
+
+            step('te-2','Email','Insight: wrong first BDR burns time + creates false signal.','Value',
+              'Insight: first hire',
+`Leon —
+
+The biggest cost of a weak first BDR hire isn’t salary.
+
+It’s 60–90 days of false signal: meetings that don’t convert, AE cycles wasted, and leadership thinking “outbound doesn’t work.”
+
+The fix is a strict quality bar + trigger-based timing from day one.
+
+— Chris`,
+              [
+                'Speaks to executive risk and opportunity cost.',
+                'Signals maturity beyond activity metrics.'
+              ],
+              'Leader sees you as an operator, not a template sender.'
+            ),
+
+            step('te-3','Email','Insight: first 30 days should validate conversion before scaling.','Value',
+              'Insight: first 30 days',
+`Leon —
+
+First 30 days: prove conversion before scaling volume.
+
+Days 1–10: tight Tier 1 list; test 2–3 angles until replies + calls show a winner.
+Days 11–30: scale the winning angle to Tier 2; keep Tier 1 highly tailored.
+
+Volume comes after evidence.
+
+— Chris`,
+              [
+                'Shows disciplined experimentation.',
+                'Matches “repeatable approach” evaluation.'
+              ],
+              'Trust in your ramp logic.'
+            ),
+
+            step('te-4','Email','Insight: exec replies come from timing (triggers).','Value',
+              'Insight: triggers',
+`Leon —
+
+Exec replies are mostly timing.
+
+Triggers that consistently beat personalization:
+• new finance leader
+• ERP migration
+• international expansion
+• rapid hiring + cost controls
+• new payments initiative
+
+The play: hit the right accounts when urgency is real.
+
+— Chris`,
+              [
+                'Modern outbound = timing + relevance.',
+                'Explains how you reach senior stakeholders.'
+              ],
+              'Increases belief you can reach their ICP.'
+            ),
+
+            step('te-5','Email','Insight: multi-threading prevents single-thread stalls.','Value',
+              'Insight: multi-thread',
+`Leon —
+
+In enterprise, single-threading is the silent killer.
+
+My rule: within 7 days, map and touch 3 roles:
+• economic owner
+• day-to-day operator
+• technical/operations counterpart
+
+That’s how meetings convert into real opportunities.
+
+— Chris`,
+              [
+                'Demonstrates enterprise operating experience.',
+                'Protects conversion downstream.'
+              ],
+              'Signals you understand deal dynamics.'
+            ),
+
+            step('te-6','Email','Proof snapshot: small target set + triggers.','Proof',
+              'Proof snapshot',
+`Leon —
+
+To keep this real, here’s a small week-one set (account → trigger):
+
+1) [ACCOUNT] — [TRIGGER]
+2) Navan — international expansion
+3) Rippling — ERP migration
+4) Deel — rapid hiring + spend controls
+5) Ramp — new finance leader
+
+Full tiering + openers are in the OS.
+
+— Chris`,
+              [
+                'Work product beats claims.',
+                'Makes the system tangible.'
+              ],
+              'Credibility jump.'
+            ),
+
+            step('te-7','Email','Insight: meeting quality bar (AE protection).','Value',
+              'Insight: quality',
+`Leon —
+
+Meetings only count if an AE would thank you for them.
+
+I don’t book unless:
+1) ICP fit
+2) pain in their words
+3) reason now
+4) stakeholder map started
+5) next step defined
+
+Otherwise I keep working the account.
+
+— Chris`,
+              [
+                'Signals AE empathy and conversion focus.',
+                'Reduces “calendar noise” fear.'
+              ],
+              'Builds trust with the growth leader.'
+            ),
+
+            step('te-8','Email','Insight: pipeline math and ramp expectations.','Value',
+              'Insight: math',
+`Leon —
+
+At full ramp, the math I operate by:
+
+• 10–12 touches/account over 14 days
+• target: 12–18 qualified meetings/month
+• goal: 8–12 qualified opps/month (with strict bar)
+
+I track inputs → outputs weekly and adjust fast.
+
+— Chris`,
+              [
+                'Predictability > hustle.',
+                'Shows measurement discipline.'
+              ],
+              'Leader sees you as manageable and coachable.'
+            ),
+
+            step('te-9','Email','Convert to a pressure-test meeting.','Close',
+              'Pressure-test?',
+`Leon —
+
+If you’re open, I’d love 20 minutes to walk you through the full system end-to-end and have you poke holes in it.
+
+If it doesn’t feel repeatable, you should pass on me.
+
+Tue 10:30a ET or Wed 2:00p ET?
+
+— Chris`,
+              [
+                'Low-risk framing; binary outcome.',
+                'Meeting is a logical next step after value.'
+              ],
+              'Meeting booked.'
+            ),
+          ]
+        },
+
+        {
+          id: 'premortem',
+          name: 'Peer Operator Pre‑Mortem',
+          philosophy: 'Use a pre‑mortem memo to surface failure modes and safeguards.',
+          bestFor: 'When you want to sound like a peer operator, not an applicant.',
+          differentiator: 'Pre‑mortem → safeguards → invite critique.',
+          expected: 'Higher respect; clearer decision (book / delegate / pass).',
+          blurb: 'Treat outbound like an internal plan review. Show you’ve thought through how it fails.',
+          steps: [
+            step('pm-1','Email','Start with a pre‑mortem: how outbound fails + safeguards.','Frame',
+              'Pre‑mortem',
+`Leon —
+
+I’ll keep this direct.
+
+I wrote a short pre‑mortem on why new-market outbound fails (and how I’d prevent it): weak ICP, no trigger timing, and low-quality meetings that burn AE time.
+
+I built safeguards into the operating system I’d run in this seat.
+
+Open to 20 minutes to pressure-test it?
+
+— Chris`,
+              [
+                'Pre‑mortems signal judgment and realism.',
+                'Frames you as a peer thinking about failure modes.'
+              ],
+              'Leader becomes curious: “what are the safeguards?”'
+            ),
+
+            step('pm-2','Call','Invite critique; book the review.','Close',
+              '',
+`“Leon — Chris. I sent a short pre‑mortem on outbound failure modes.
+
+I built the system with safeguards for ICP, trigger timing, and meeting quality.
+
+Can we do 20 minutes so you can pressure-test it like an internal plan?
+
+Tue 10:30 or Wed 2?”`,
+              [
+                'Calm, peer tone increases respect.',
+                'Critique invitation lowers resistance.'
+              ],
+              'Booked meeting or routed to correct owner.'
+            ),
+
+            step('pm-3','Email','Show the “safeguards” in one block.','Proof',
+              'Safeguards',
+`Leon —
+
+Safeguards I run so outbound doesn’t become noise:
+
+• ICP gates (who we exclude matters)
+• trigger library (reason now)
+• multi-thread rules (3 roles touched)
+• meeting quality bar (no AE calendar waste)
+• scorecard + weekly iteration
+
+If you want, I’ll walk through each in 20 minutes.
+
+— Chris`,
+              [
+                'Turns fear (“noise”) into controls (“safeguards”).',
+                'Signals repeatability.'
+              ],
+              'Leader sees system, not optimism.'
+            ),
+
+            step('pm-4','Email','AE handoff standard: what the AE receives.','Proof',
+              'AE handoff',
+`Leon —
+
+AE handoff standard (what the AE gets before the meeting):
+
+• account context + trigger
+• who said what (quotes)
+• stakeholders touched + who’s missing
+• proposed agenda + desired outcome
+• confirmed next step
+
+This is how meetings turn into real pipeline.
+
+— Chris`,
+              [
+                'AEs trust BDRs who protect their time.',
+                'Shows you think downstream.'
+              ],
+              'Increases internal confidence you won’t waste cycles.'
+            ),
+
+            step('pm-5','LinkedIn DM','Micro question: what constraint matters most?','Engage',
+              '',
+`Leon — quick calibration:
+
+In the first 30 days, what matters more?
+A) fastest conversion to qualified opps
+B) building distribution leverage
+
+Reply A or B — I’ll tailor the operating plan accordingly.`,
+              [
+                'Micro-commitment increases engagement.',
+                'Signals you adapt with input.'
+              ],
+              'Reply creates conversation thread.'
+            ),
+
+            step('pm-6','Email','Show weekly scorecard (inputs → outputs).','Proof',
+              'Scorecard',
+`Leon —
+
+Weekly scorecard I run:
+
+Inputs:
+• accounts touched / week
+• calls connected
+• positive replies
+
+Outputs:
+• qualified meetings
+• meeting → opp conversion
+• opp quality notes from AEs
+
+Goal is predictable improvement, not random spikes.
+
+— Chris`,
+              [
+                'Leaders want predictability and feedback loops.',
+                'Shows coachability.'
+              ],
+              'Builds trust in measurement discipline.'
+            ),
+
+            step('pm-7','Email','Decision close: book / delegate / pass.','Close',
+              'Where should this live?',
+`Leon —
+
+If you’re open, I’d still value 20 minutes to pressure-test the system live.
+
+If you’re not the right owner, who should review it (AE lead / Head of Sales / RevOps)?
+
+If neither, tell me “pass” and I’ll step back.
+
+— Chris`,
+              [
+                'Clean decision tree reduces ghosting.',
+                'Maintains status and respect.'
+              ],
+              'Meeting booked, delegated, or closed cleanly.'
+            ),
+          ]
+        },
+
+        {
+          id: 'case',
+          name: 'Mini Case Study Hypothesis',
+          philosophy: 'Bring a hypothesis and ask the leader to validate assumptions.',
+          bestFor: 'Standout differentiation when you need “wow” without hype.',
+          differentiator: 'Memo-style thinking + test set + validation meeting.',
+          expected: 'High curiosity; meeting framed as refinement, not selling.',
+          blurb: 'Executives like validating hypotheses; you look like an operator.',
+          steps: [
+            step('cs-1','Email','Send a tight hypothesis memo (no attachment needed).','Frame',
+              'US hypothesis',
+`Leon —
+
+I wrote a 1‑page “US outbound hypothesis” memo based on what tends to work in new‑market builds:
+
+1) Start with two ICP motions (enterprise finance + platform distribution)
+2) Use trigger‑based timing to earn exec replies
+3) Enforce an AE‑protective meeting quality bar
+4) Track a simple scorecard weekly and iterate fast
+
+I’m not asking you to agree — I’m asking for 20 minutes to validate assumptions so I can refine the plan.
+
+Tue 10:30a ET or Wed 2:00p ET?
+
+— Chris`,
+              [
+                'Meeting framed as validation (lower resistance).',
+                'Signals structured thinking.'
+              ],
+              'Leader engages because it feels like an internal working session.'
+            ),
+
+            step('cs-2','Call','Ask to validate assumptions (not “can I have time”).','Close',
+              '',
+`“Leon — Chris. I sent a one-page US outbound hypothesis.
+
+I’m not asking you to buy it — I’m asking for 20 minutes to validate assumptions so I can refine the plan quickly.
+
+Tue 10:30 or Wed 2?”`,
+              [
+                'Validation framing is hard to ignore.',
+                'Calm confidence increases respect.'
+              ],
+              'Meeting booked or routed.'
+            ),
+
+            step('cs-3','Email','Micro: which assumption is most uncertain?','Engage',
+              'Pressure test',
+`Leon — quick calibration:
+
+Which assumption would you pressure-test first?
+
+A) ICP prioritization
+B) triggers / reason-now
+C) meeting quality bar
+D) partner motion timing
+
+Reply with a letter — I’ll tailor the plan accordingly.
+
+— Chris`,
+              [
+                'One-letter micro-commitment.',
+                'Invites executive judgment.'
+              ],
+              'Engagement and direction.'
+            ),
+
+            step('cs-4','Email','Turn hypothesis into action with a small test set.','Proof',
+              'Test set',
+`Leon —
+
+If we were validating the motion in week one, here’s the test set (6 accounts + trigger angle):
+
+1) [ACCOUNT] — [TRIGGER]
+2) Navan — international expansion
+3) Ramp — new finance leader
+4) Rippling — ERP migration
+5) Deel — rapid hiring + spend controls
+6) Coupa — supplier payments initiative
+
+Happy to walk through why these first.
+
+— Chris`,
+              [
+                'Makes the plan tangible.',
+                'Shows you can execute immediately.'
+              ],
+              'Credibility jump.'
+            ),
+
+            step('cs-5','LinkedIn DM','Light touch: “I can share the memo here.”','Engage',
+              '',
+`Leon — I put the 1-page hypothesis into a simple OS format so it’s easy to skim. If you’d like, I can walk you through it in 20 minutes and you can poke holes.`,
+              [
+                'Cross-channel familiarity.',
+                'Maintains calm, non-salesy tone.'
+              ],
+              'Increases reply probability.'
+            ),
+
+            step('cs-6','Email','Show your first-week execution calendar.','Proof',
+              'Week-one plan',
+`Leon —
+
+Week one execution plan (high level):
+
+Mon–Tue: Tier 1 research + first calls
+Wed: trigger-based email + multi-thread expansion
+Thu: call blocks + follow-up
+Fri: review conversion + refine angle
+
+I run weekly retros so the system improves fast.
+
+— Chris`,
+              [
+                'Signals you run a process, not random activity.',
+                'Shows tempo and iteration.'
+              ],
+              'Leader sees operational maturity.'
+            ),
+
+            step('cs-7','Email','Ask (with calendar link optional).','Close',
+              '20 minutes?',
+`Leon —
+
+Open to 20 minutes to validate the plan live?
+
+If easier, here’s my link: [CAL_LINK]
+
+Either way is fine — I’ll work around your schedule.
+
+— Chris`,
+              [
+                'Keeps ask simple.',
+                'Optional scheduling link removes friction.'
+              ],
+              'Meeting booked.'
+            ),
+
+            step('cs-8','Email','Close loop if silent.','Close',
+              'Close the loop',
+`Leon —
+
+Last note from me.
+
+Should we:
+A) book 20 minutes to validate the plan, or
+B) should I close this out?
+
+Either answer is helpful.
+
+— Chris`,
+              [
+                'Decision forcing without pressure.',
+                'Respectful and direct.'
+              ],
+              'Yes/no instead of silence.'
+            ),
+          ]
+        }
+      ],
+
+      artifacts: {
+        tabs: [
+          { id:'icp', title:'ICP' },
+          { id:'targets', title:'Target accounts' },
+          { id:'triggers', title:'Triggers' },
+          { id:'system', title:'Prospecting system' },
+          { id:'quality', title:'Meeting quality' },
+          { id:'math', title:'Pipeline math' },
+          { id:'ramp', title:'90-day ramp' }
+        ],
+        icp: {
+          motions: [
+            {
+              title: 'Motion A: Enterprise finance buyers',
+              bullets: [
+                'Personas: CFO, VP Finance, Controller, Head of Procurement, Head of Payments',
+                'Where it wins: complex spend + vendor payments, multi-entity ops, high audit/controls needs',
+                'Multi-thread: economic owner + operator + finance ops/IT counterpart'
+              ]
+            },
+            {
+              title: 'Motion B: Platform / distribution motion',
+              bullets: [
+                'Personas: GM/VP Product, Head of Partnerships, Payments/Finance lead at platforms',
+                'Where it wins: distribution leverage (one platform → many downstream customers)',
+                'Entry point: product roadmap or payments initiative + partner wedge'
+              ]
+            }
+          ]
+        },
+        targets: {
+          notes: 'Sample list below is illustrative. Replace with your real tiered list.',
+          rows: [
+            { company:'Navan', tier:'1', motion:'A', trigger:'international expansion', stakeholders:'CFO, VP Finance, Procure' },
+            { company:'Ramp', tier:'1', motion:'A', trigger:'new finance leader', stakeholders:'CFO, Controller, FP&A' },
+            { company:'Rippling', tier:'1', motion:'A', trigger:'ERP migration', stakeholders:'VP Finance, Ops, IT' },
+            { company:'Deel', tier:'2', motion:'A', trigger:'rapid hiring', stakeholders:'VP Finance, Procurement' },
+            { company:'Coupa', tier:'2', motion:'A', trigger:'payments initiative', stakeholders:'Procurement, Finance Ops' },
+            { company:'Stripe', tier:'1', motion:'B', trigger:'platform partner motion', stakeholders:'Partnerships, Product' },
+            { company:'Plaid', tier:'2', motion:'B', trigger:'embedded finance expansion', stakeholders:'BD, Partnerships' },
+            { company:'Marqeta', tier:'2', motion:'B', trigger:'issuing partnerships', stakeholders:'BD, Product' },
+          ]
+        },
+        triggers: {
+          blocks: [
+            { title:'Trigger signals (enterprise)', items:['New CFO/VP Finance','ERP/finance system migration','International expansion','Rapid hiring + cost controls','New payments initiative']},
+            { title:'Trigger signals (platform)', items:['New partner program','Payments roadmap update','Distribution push into new vertical','New pricing / packaging','Public partnership announcement']},
+          ]
+        },
+        system: {
+          daily: [
+            '90 mins: Tier 1 research + multi-thread mapping',
+            '2 call blocks: 60–75 mins each (local-time windows)',
+            '45–60 mins: trigger-based emails + follow-ups',
+            '15 mins: CRM hygiene + next-day planning'
+          ],
+          weekly: [
+            'Monday: refresh triggers + rebuild top 30 list',
+            'Wednesday: iterate messaging based on reply/call learnings',
+            'Friday: 30-min retro (what worked / kill what didn’t)'
+          ],
+          cadence: [
+            '10–12 touches over 14 days',
+            'Email + call + voicemail (only high intent) + LinkedIn',
+            'Multi-thread by day 7 (3 roles touched)'
+          ]
+        },
+        quality: {
+          bar: [
+            'ICP fit confirmed explicitly',
+            'Pain stated in prospect’s words',
+            'Reason now tied to a trigger',
+            'Stakeholder map started (who’s in/out)',
+            'Next step beyond call #1 defined'
+          ],
+          handoffTemplate: [
+            'Trigger + why now (1 sentence)',
+            'What they said (quotes)',
+            'Stakeholders touched + missing roles',
+            'Proposed agenda + desired outcome',
+            'Committed next step'
+          ]
+        },
+        math: {
+          defaults: {
+            accountsPerWeek: 40,
+            connectRate: 0.08,
+            positiveReplyRate: 0.06,
+            meetingRateFromPositives: 0.35,
+            oppRateFromMeetings: 0.55
+          }
+        },
+        ramp: {
+          days30: [
+            'Validate ICP + message on Tier 1',
+            'First qualified meetings + early opps',
+            'Document triggers + openers that work'
+          ],
+          days60: [
+            'Consistent weekly meeting output',
+            'Tighten qualification + handoff loop with AEs',
+            'Scale to Tier 2 with proven angles'
+          ],
+          days90: [
+            'Full velocity (12–18 meetings/month)',
+            'Stable meeting→opp conversion with AE trust',
+            'Playbook packaged and repeatable'
+          ]
+        }
+      }
+    };
+
+    function step(id, channel, objective, intent, subject, body, whyWorks, closerOutcome){
+      return { id, channel, objective, intent, subject, body, whyWorks, closerOutcome };
+    }
+
+    /* ==========================================================================
+       STATE + HELPERS
+       ========================================================================== */
+
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    const state = {
+      activeId: 'operator',
+      search: '',
+      placeholders: {
+        PROOF_METRIC: 'Built outbound from 0 → 14–18 qualified meetings/month (50%+ meeting→opp).',
+        CAL_LINK: '',
+        ACCOUNT: 'ExampleCo',
+        TRIGGER: 'new CFO'
+      },
+      copied: new Set(), // stores step ids that have been copied
+      mode: 'builder',
+      theme: 'dark',
+      ghUser: '',
+      ghRepo: ''
+    };
+
+    function safeLocalStorage(){
+      try { return window.localStorage; } catch { return null; }
+    }
+    const LS = safeLocalStorage();
+
+    function loadPersisted(){
+      if(!LS) return;
+      const raw = LS.getItem('outbound_os_state_v1');
+      if(!raw) return;
+      try{
+        const parsed = JSON.parse(raw);
+        if(parsed && typeof parsed === 'object'){
+          if(parsed.activeId) state.activeId = parsed.activeId;
+          if(parsed.search !== undefined) state.search = parsed.search;
+          if(parsed.placeholders) state.placeholders = { ...state.placeholders, ...parsed.placeholders };
+          if(parsed.theme) state.theme = parsed.theme;
+          if(parsed.mode) state.mode = parsed.mode;
+          if(parsed.copied && Array.isArray(parsed.copied)) state.copied = new Set(parsed.copied);
+          if(parsed.ghUser) state.ghUser = parsed.ghUser;
+          if(parsed.ghRepo) state.ghRepo = parsed.ghRepo;
+        }
+      }catch{}
+    }
+    function persist(){
+      if(!LS) return;
+      const payload = {
+        activeId: state.activeId,
+        search: state.search,
+        placeholders: state.placeholders,
+        theme: state.theme,
+        mode: state.mode,
+        copied: Array.from(state.copied),
+        ghUser: state.ghUser,
+        ghRepo: state.ghRepo
+      };
+      LS.setItem('outbound_os_state_v1', JSON.stringify(payload));
+    }
+
+    function setTheme(theme){
+      state.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      persist();
+    }
+    function setMode(mode){
+      state.mode = mode;
+      document.documentElement.setAttribute('data-mode', mode);
+      persist();
+    }
+
+    function getActive(){
+      return DATA.sequences.find(s => s.id === state.activeId) || DATA.sequences[0];
+    }
+
+    function applyPlaceholders(text){
+      if(!text) return '';
+      return text
+        .replaceAll('[PROOF_METRIC]', state.placeholders.PROOF_METRIC || '')
+        .replaceAll('[CAL_LINK]', state.placeholders.CAL_LINK || '')
+        .replaceAll('[ACCOUNT]', state.placeholders.ACCOUNT || '')
+        .replaceAll('[TRIGGER]', state.placeholders.TRIGGER || '');
+    }
+
+    function wordCount(text){
+      const m = (text || '').match(/[A-Za-z0-9’']+/g);
+      return m ? m.length : 0;
+    }
+
+    // Simple reading-speed estimate: 150 wpm ~ 2.5 words/sec
+    function secondsEstimate(text){
+      return Math.round((wordCount(text) / 2.5) * 10) / 10;
+    }
+
+    function toast(msg){
+      const el = $('#toast');
+      el.textContent = msg;
+      el.style.display = 'block';
+      window.clearTimeout(toast._t);
+      toast._t = window.setTimeout(() => el.style.display='none', 1200);
+    }
+
+    async function copyToClipboard(text){
+      const t = text || '';
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText(t);
+          toast('Copied ✅');
+          return true;
+        }
+      }catch{}
+      // Fallback
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = t;
+        ta.setAttribute('readonly','');
+        ta.style.position='fixed';
+        ta.style.left='-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        toast(ok ? 'Copied ✅' : 'Copy failed');
+        return ok;
+      }catch{
+        toast('Copy failed');
+        return false;
+      }
+    }
+
+    function updateProgress(){
+      const active = getActive();
+      const steps = filteredSteps(active);
+      const total = Math.max(steps.length, 1);
+      const done = steps.filter(s => state.copied.has(s.id)).length;
+      const pct = Math.min(100, Math.round((done/total)*100));
+      $('#progressFill').style.width = pct + '%';
+      $('#progressText').textContent = pct + '% copied';
+    }
+
+    function filteredSteps(seq){
+      const q = (state.search || '').trim().toLowerCase();
+      if(!q) return seq.steps;
+      return seq.steps.filter(s => {
+        const hay = [
+          s.channel, s.objective, s.intent, s.subject, s.body,
+          ...(s.whyWorks||[]), s.closerOutcome
+        ].join(' ').toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    function scrollToStep(stepId){
+      const el = document.getElementById('step_' + stepId);
+      if(el){
+        el.open = true;
+        el.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
+    }
+
+    /* ==========================================================================
+       RENDER: Compare table + sequence list + steps + artifacts
+       ========================================================================== */
+
+    function renderCompare(){
+      const body = $('#compareBody');
+      body.innerHTML = '';
+      DATA.sequences.forEach(seq => {
+        const tr = document.createElement('tr');
+        tr.className = 'rowBtn' + (seq.id === state.activeId ? ' activeRow' : '');
+        tr.addEventListener('click', () => {
+          state.activeId = seq.id;
+          persist();
+          renderAll();
+          document.getElementById('sequences').scrollIntoView({ behavior:'smooth', block:'start' });
+        });
+
+        tr.appendChild(td(`<strong>${escapeHtml(seq.name)}</strong>`));
+        tr.appendChild(td(escapeHtml(seq.philosophy)));
+        tr.appendChild(td(escapeHtml(seq.bestFor)));
+        tr.appendChild(td(escapeHtml(seq.differentiator)));
+        tr.appendChild(td(escapeHtml(seq.expected)));
+        body.appendChild(tr);
+      });
+
+      $('#activeLabel').textContent = 'Active: ' + getActive().name;
+    }
+
+    function renderSeqList(){
+      const wrap = $('#seqList');
+      wrap.innerHTML = '';
+      DATA.sequences.forEach(seq => {
+        const div = document.createElement('div');
+        div.className = 'seqCard' + (seq.id === state.activeId ? ' active' : '');
+        div.addEventListener('click', () => {
+          state.activeId = seq.id;
+          persist();
+          renderAll();
+        });
+
+        const name = document.createElement('div');
+        name.className = 'seqName';
+        name.textContent = seq.name;
+
+        const meta = document.createElement('div');
+        meta.className = 'seqMeta';
+        meta.textContent = seq.blurb;
+
+        const chips = document.createElement('div');
+        chips.className = 'chips';
+        chips.innerHTML = `
+          <span class="chip">${escapeHtml(seq.bestFor)}</span>
+          <span class="chip">${escapeHtml(seq.differentiator)}</span>
+        `;
+
+        div.appendChild(name);
+        div.appendChild(meta);
+        div.appendChild(chips);
+        wrap.appendChild(div);
+      });
+    }
+
+    function renderActiveHeader(){
+      const seq = getActive();
+      $('#activeSeqName').textContent = seq.name;
+      $('#activeSeqMeta').textContent = seq.blurb;
+      $('#seqCount').textContent = `${DATA.sequences.length} sequences`;
+    }
+
+    function renderStepChips(){
+      const seq = getActive();
+      const steps = filteredSteps(seq);
+      const wrap = $('#stepChips');
+      wrap.innerHTML = '';
+      steps.forEach((s, idx) => {
+        const b = document.createElement('button');
+        b.className = 'stepChipBtn';
+        b.type = 'button';
+        b.textContent = `Step ${idx+1}`;
+        b.addEventListener('click', () => scrollToStep(s.id));
+        wrap.appendChild(b);
+      });
+    }
+
+    function renderSteps(){
+      const seq = getActive();
+      const steps = filteredSteps(seq);
+      const wrap = $('#stepsWrap');
+      wrap.innerHTML = '';
+
+      steps.forEach((s, idx) => {
+        const details = document.createElement('details');
+        details.className = 'step';
+        details.id = 'step_' + s.id;
+
+        const summary = document.createElement('summary');
+
+        const sumLeft = document.createElement('div');
+        sumLeft.className = 'sumLeft';
+
+        const sumTop = document.createElement('div');
+        sumTop.className = 'sumTop';
+
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.innerHTML = `<span class="dot ${s.intent === 'Close' ? 'warn' : (s.intent === 'Proof' ? 'ok' : '')}"></span>${escapeHtml(`S${idx+1}`)}`;
+
+        const intent = document.createElement('span');
+        intent.className = 'intent';
+        intent.textContent = s.intent;
+
+        const channel = document.createElement('span');
+        channel.className = 'intent';
+        channel.textContent = s.channel;
+
+        const title = document.createElement('span');
+        title.className = 'stepTitle';
+        title.textContent = s.objective;
+
+        sumTop.appendChild(tag);
+        sumTop.appendChild(channel);
+        sumTop.appendChild(intent);
+        sumTop.appendChild(title);
+
+        const sumBottom = document.createElement('div');
+        sumBottom.className = 'sumBottom';
+        sumBottom.textContent = 'Objective: ' + s.objective;
+
+        sumLeft.appendChild(sumTop);
+        sumLeft.appendChild(sumBottom);
+
+        const chev = document.createElement('div');
+        chev.className = 'chev';
+        chev.textContent = '›';
+
+        summary.appendChild(sumLeft);
+        summary.appendChild(chev);
+
+        const body = document.createElement('div');
+        body.className = 'stepBody';
+
+        const left = document.createElement('div');
+        left.className = 'box';
+        left.innerHTML = `
+          <h4>Why this works</h4>
+          <ul>${(s.whyWorks||[]).map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+          <div style="height:10px"></div>
+          <h4>Closer outcome</h4>
+          <p>${escapeHtml(s.closerOutcome || '')}</p>
+        `;
+
+        const right = document.createElement('div');
+        right.className = 'box';
+
+        const subj = applyPlaceholders(s.subject || '');
+        const msg = applyPlaceholders(s.body || '');
+
+        // Compliance indicators
+        const isEmail = s.channel.toLowerCase().includes('email');
+        const isVoicemail = s.channel.toLowerCase().includes('voicemail');
+        const msgWords = wordCount(msg);
+        const msgSecs = secondsEstimate(msg);
+
+        let status = '';
+        if(isEmail){
+          status = msgWords <= 120
+            ? `<span class="pill"><span class="dot ok"></span>${msgWords} words</span>`
+            : `<span class="pill"><span class="dot bad"></span>${msgWords} words (over)</span>`;
+        } else if(isVoicemail){
+          status = msgSecs <= 20
+            ? `<span class="pill"><span class="dot ok"></span>${msgSecs}s est.</span>`
+            : `<span class="pill"><span class="dot bad"></span>${msgSecs}s est. (over)</span>`;
+        } else {
+          status = `<span class="pill"><span class="dot"></span>${msgWords} words</span>`;
+        }
+
+        const header = document.createElement('div');
+        header.className = 'msgHeader';
+        header.innerHTML = `
+          <div><strong>Subject:</strong> ${escapeHtml(subj || (isEmail ? '(none)' : '(script)'))}</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">${status}</div>
+        `;
+
+        const pre = document.createElement('pre');
+        pre.className = 'msg';
+        pre.textContent = msg || '';
+
+        const actions = document.createElement('div');
+        actions.className = 'msgActions controlOnly';
+
+        const copyBody = document.createElement('button');
+        copyBody.className = 'btn primary';
+        copyBody.type = 'button';
+        copyBody.textContent = 'Copy body';
+        copyBody.addEventListener('click', async () => {
+          const ok = await copyToClipboard(msg || '');
+          if(ok){ state.copied.add(s.id); persist(); updateProgress(); }
+        });
+
+        const copySubject = document.createElement('button');
+        copySubject.className = 'btn';
+        copySubject.type = 'button';
+        copySubject.textContent = 'Copy subject';
+        copySubject.addEventListener('click', async () => {
+          const ok = await copyToClipboard(subj || '');
+          if(ok){ state.copied.add(s.id); persist(); updateProgress(); }
+        });
+
+        actions.appendChild(copyBody);
+        actions.appendChild(copySubject);
+
+        const hint = document.createElement('div');
+        hint.className = 'hint';
+        hint.textContent = 'Customize: swap [ACCOUNT]/[TRIGGER] with real targets; keep structure identical.';
+
+        right.appendChild(header);
+        right.appendChild(pre);
+        right.appendChild(actions);
+        right.appendChild(hint);
+
+        body.appendChild(left);
+        body.appendChild(right);
+
+        details.appendChild(summary);
+        details.appendChild(body);
+
+        wrap.appendChild(details);
+      });
+
+      updateProgress();
+
+      // Flowchart visibility
+      const flow = $('#flowWrap');
+      flow.style.display = (state.activeId === 'operator') ? 'block' : 'none';
+    }
+
+    function renderMermaid(){
+      const src = `flowchart LR
+  A[Pattern interrupt email] --> B[Call: permission + risk + value]
+  B --> C[Artifact drop]
+  C --> D[Micro-commitment]
+  D --> E[Proof snapshot: targets + triggers]
+  E --> F[Decision close]`;
+
+      $('#mermaidSource').textContent = src;
+
+      // Minimal flowchart renderer for the subset used above (no external dependencies).
+      const svg = renderMermaidLite(src);
+      const wrap = $('#mermaidRender');
+      wrap.innerHTML = '';
+      wrap.appendChild(svg);
+    }
+
+    function renderArtifacts(){
+      // Tabs
+      const tabsWrap = $('#artifactTabs');
+      const panelsWrap = $('#artifactPanels');
+      tabsWrap.innerHTML = '';
+      panelsWrap.innerHTML = '';
+
+      const tabs = DATA.artifacts.tabs;
+      const activeTabId = (window.location.hash || '').replace('#','').startsWith('art_')
+        ? (window.location.hash || '').replace('#art_','')
+        : tabs[0].id;
+
+      tabs.forEach((t, idx) => {
+        const b = document.createElement('button');
+        b.className = 'tabBtn';
+        b.type = 'button';
+        b.setAttribute('role','tab');
+        b.id = `tab_${t.id}`;
+        b.setAttribute('aria-controls', `panel_${t.id}`);
+        b.setAttribute('aria-selected', String(t.id === activeTabId));
+        b.tabIndex = (t.id === activeTabId) ? 0 : -1;
+        b.textContent = t.title;
+
+        b.addEventListener('click', () => {
+          setArtifactTab(t.id);
+        });
+
+        tabsWrap.appendChild(b);
+
+        const panel = document.createElement('div');
+        panel.className = 'panel' + (t.id === activeTabId ? ' active' : '');
+        panel.id = `panel_${t.id}`;
+        panel.setAttribute('role','tabpanel');
+        panel.setAttribute('aria-labelledby', `tab_${t.id}`);
+
+        panel.appendChild(renderArtifactPanel(t.id));
+        panelsWrap.appendChild(panel);
+      });
+
+      function setArtifactTab(id){
+        // Update aria + visibility
+        DATA.artifacts.tabs.forEach(t => {
+          const tab = document.getElementById(`tab_${t.id}`);
+          const panel = document.getElementById(`panel_${t.id}`);
+          const on = (t.id === id);
+          tab.setAttribute('aria-selected', String(on));
+          tab.tabIndex = on ? 0 : -1;
+          panel.classList.toggle('active', on);
+        });
+        // Soft hash for deep linking without breaking scrolling
+        history.replaceState(null, '', '#art_' + id);
+      }
+    }
+
+    function renderArtifactPanel(id){
+      const root = document.createElement('div');
+
+      if(id === 'icp'){
+        root.appendChild(cardBlock('ICP: two motions', [
+          htmlBlock(`
+            <div class="twoCol">
+              ${DATA.artifacts.icp.motions.map(m => `
+                <div class="box">
+                  <h4>${escapeHtml(m.title)}</h4>
+                  <ul>${m.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>
+                </div>
+              `).join('')}
+            </div>
+            <div class="callout small" style="margin-top:12px;">
+              The outreach system is the same; the messaging + triggers differ by motion.
+            </div>
+          `)
+        ]));
+      }
+
+      if(id === 'targets'){
+        const note = document.createElement('div');
+        note.className = 'callout small';
+        note.textContent = DATA.artifacts.targets.notes;
+        root.appendChild(note);
+
+        const tableCard = document.createElement('div');
+        tableCard.className = 'card';
+        tableCard.style.marginTop = '12px';
+        tableCard.innerHTML = `
+          <div class="card-head">
+            <div style="font-weight:950; letter-spacing:.2px;">Sample target list</div>
+            <span class="pill"><span class="dot"></span>Tiered</span>
+          </div>
+          <div class="card-body">
+            <div class="field" style="margin-top:0;">
+              <label for="acctSearch">Search accounts</label>
+              <input id="acctSearch" type="text" placeholder="type to filter…" />
+            </div>
+            <div class="table-wrap" style="margin-top:10px;">
+              <table aria-label="Target accounts table">
+                <thead>
+                  <tr>
+                    <th>Company</th><th>Tier</th><th>Motion</th><th>Trigger</th><th>Multi-thread</th>
+                  </tr>
+                </thead>
+                <tbody id="acctBody"></tbody>
+              </table>
+            </div>
+            <div class="small muted" style="margin-top:10px;">Replace sample rows with your real Tier 1–3 list and triggers.</div>
+          </div>
+        `;
+        root.appendChild(tableCard);
+
+        // Populate with filtering
+        setTimeout(() => {
+          const input = $('#acctSearch');
+          const body = $('#acctBody');
+
+          const render = () => {
+            const q = (input.value || '').trim().toLowerCase();
+            body.innerHTML = '';
+            DATA.artifacts.targets.rows
+              .filter(r => !q || [r.company,r.tier,r.motion,r.trigger,r.stakeholders].join(' ').toLowerCase().includes(q))
+              .forEach(r => {
+                const tr = document.createElement('tr');
+                tr.appendChild(td(escapeHtml(r.company)));
+                tr.appendChild(td(escapeHtml(r.tier)));
+                tr.appendChild(td(escapeHtml(r.motion)));
+                tr.appendChild(td(escapeHtml(r.trigger)));
+                tr.appendChild(td(escapeHtml(r.stakeholders)));
+                body.appendChild(tr);
+              });
+          };
+          input.addEventListener('input', render);
+          render();
+        }, 0);
+      }
+
+      if(id === 'triggers'){
+        root.appendChild(cardBlock('Trigger library', [
+          htmlBlock(`
+            <div class="twoCol">
+              ${DATA.artifacts.triggers.blocks.map(b => `
+                <div class="box">
+                  <h4>${escapeHtml(b.title)}</h4>
+                  <ul>${b.items.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>
+                </div>
+              `).join('')}
+            </div>
+            <div class="callout small" style="margin-top:12px;">
+              Rule: a good first line explains “why now” before “who we are.”
+            </div>
+          `)
+        ]));
+      }
+
+      if(id === 'system'){
+        root.appendChild(cardBlock('Prospecting system', [
+          htmlBlock(`
+            <div class="twoCol">
+              <div class="box">
+                <h4>Daily rhythm</h4>
+                <ul>${DATA.artifacts.system.daily.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+              </div>
+              <div class="box">
+                <h4>Weekly rhythm</h4>
+                <ul>${DATA.artifacts.system.weekly.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+              </div>
+            </div>
+            <div class="box" style="margin-top:12px;">
+              <h4>Cadence rules</h4>
+              <ul>${DATA.artifacts.system.cadence.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+            </div>
+          `)
+        ]));
+      }
+
+      if(id === 'quality'){
+        root.appendChild(cardBlock('Meeting quality + AE handoff', [
+          htmlBlock(`
+            <div class="twoCol">
+              <div class="box">
+                <h4>Meeting quality bar</h4>
+                <ul>${DATA.artifacts.quality.bar.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+              </div>
+              <div class="box">
+                <h4>AE handoff standard</h4>
+                <ul>${DATA.artifacts.quality.handoffTemplate.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+              </div>
+            </div>
+            <div class="callout small" style="margin-top:12px;">
+              This is how you keep AE trust while still scaling volume.
+            </div>
+          `)
+        ]));
+      }
+
+      if(id === 'math'){
+        const d = DATA.artifacts.math.defaults;
+
+        root.appendChild(cardBlock('Pipeline math (interactive)', [
+          htmlBlock(`
+            <div class="twoCol">
+              <div class="box">
+                <h4>Assumptions</h4>
+                <div class="field" style="margin-top:0;">
+                  <label>Accounts touched / week</label>
+                  <input id="m_accounts" type="text" value="${d.accountsPerWeek}" />
+                </div>
+                <div class="field">
+                  <label>Connect rate (0–1)</label>
+                  <input id="m_connect" type="text" value="${d.connectRate}" />
+                </div>
+                <div class="field">
+                  <label>Positive reply rate (0–1)</label>
+                  <input id="m_reply" type="text" value="${d.positiveReplyRate}" />
+                </div>
+                <div class="field">
+                  <label>Meeting rate from positives (0–1)</label>
+                  <input id="m_meet" type="text" value="${d.meetingRateFromPositives}" />
+                </div>
+                <div class="field">
+                  <label>Opp rate from meetings (0–1)</label>
+                  <input id="m_opp" type="text" value="${d.oppRateFromMeetings}" />
+                </div>
+              </div>
+
+              <div class="box">
+                <h4>Outputs</h4>
+                <p class="muted" id="m_out"></p>
+                <div class="callout small" style="margin-top:12px;">
+                  Use this as a weekly scorecard: if meetings are low, diagnose which input is failing.
+                </div>
+              </div>
+            </div>
+          `)
+        ]));
+
+        setTimeout(() => {
+          const parse = (x) => {
+            const n = Number(String(x).trim());
+            return Number.isFinite(n) ? n : 0;
+          };
+          const out = $('#m_out');
+
+          const calc = () => {
+            const accounts = parse($('#m_accounts').value);
+            const connect = parse($('#m_connect').value);
+            const reply = parse($('#m_reply').value);
+            const meet = parse($('#m_meet').value);
+            const opp = parse($('#m_opp').value);
+
+            const connects = accounts * connect;
+            const positives = accounts * reply;
+            const meetings = positives * meet;
+            const opps = meetings * opp;
+
+            out.textContent =
+              `Weekly estimate:
+• Connects: ${connects.toFixed(1)}
+• Positive replies: ${positives.toFixed(1)}
+• Meetings: ${meetings.toFixed(1)}
+• Qualified opps: ${opps.toFixed(1)}
+
+Monthly (×4) meetings: ${(meetings*4).toFixed(1)} · opps: ${(opps*4).toFixed(1)}`;
+          };
+
+          ['m_accounts','m_connect','m_reply','m_meet','m_opp'].forEach(id => {
+            $('#'+id).addEventListener('input', calc);
+          });
+          calc();
+        }, 0);
+      }
+
+      if(id === 'ramp'){
+        root.appendChild(cardBlock('90-day ramp', [
+          htmlBlock(`
+            <div class="twoCol">
+              <div class="box">
+                <h4>Days 1–30</h4>
+                <ul>${DATA.artifacts.ramp.days30.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+              </div>
+              <div class="box">
+                <h4>Days 31–60</h4>
+                <ul>${DATA.artifacts.ramp.days60.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+              </div>
+            </div>
+            <div class="box" style="margin-top:12px;">
+              <h4>Days 61–90</h4>
+              <ul>${DATA.artifacts.ramp.days90.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+            </div>
+          `)
+        ]));
+      }
+
+      return root;
+    }
+
+    function cardBlock(title, nodes){
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.marginTop = '12px';
+      card.innerHTML = `
+        <div class="card-head">
+          <div style="font-weight:950; letter-spacing:.2px;">${escapeHtml(title)}</div>
+          <span class="pill"><span class="dot ok"></span>Artifact</span>
+        </div>
+        <div class="card-body"></div>
+      `;
+      const body = card.querySelector('.card-body');
+      nodes.forEach(n => body.appendChild(n));
+      return card;
+    }
+
+    function htmlBlock(html){
+      const d = document.createElement('div');
+      d.innerHTML = html;
+      return d;
+    }
+
+    function td(html){
+      const cell = document.createElement('td');
+      cell.innerHTML = html;
+      return cell;
+    }
+
+    function escapeHtml(str){
+      return String(str ?? '')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
+
+    /* ==========================================================================
+       Mermaid-lite renderer (supports flowchart LR with A[Label] --> B[Label])
+       ========================================================================== */
+
+    function renderMermaidLite(source){
+      const lines = source.split('\n').map(s => s.trim()).filter(Boolean);
+      // Parse edges
+      const edges = [];
+      const nodes = new Map(); // id -> label
+      for(const line of lines){
+        if(line.startsWith('flowchart')) continue;
+        const m = line.match(/^([A-Za-z0-9_]+)\[(.+?)\]\s*-->\s*([A-Za-z0-9_]+)\[(.+?)\]$/);
+        if(!m) continue;
+        const [, a, al, b, bl] = m;
+        if(!nodes.has(a)) nodes.set(a, al);
+        if(!nodes.has(b)) nodes.set(b, bl);
+        edges.push([a,b]);
+      }
+
+      const order = Array.from(nodes.keys()); // appearance order
+      const W = 980, H = 220;
+      const pad = 22;
+      const nodeW = 160, nodeH = 44;
+      const gap = Math.max(26, Math.floor((W - pad*2 - nodeW) / Math.max(1, order.length-1)));
+
+      // Build positions left -> right (LR)
+      const pos = new Map();
+      order.forEach((id, i) => {
+        const x = pad + i * gap;
+        const y = Math.round(H/2 - nodeH/2);
+        pos.set(id, {x,y});
+      });
+
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS,'svg');
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      svg.setAttribute('role','img');
+      svg.setAttribute('aria-label','Operator Artifact flowchart');
+
+      // defs: arrow
+      const defs = document.createElementNS(svgNS,'defs');
+      const marker = document.createElementNS(svgNS,'marker');
+      marker.setAttribute('id','arrow');
+      marker.setAttribute('markerWidth','10');
+      marker.setAttribute('markerHeight','8');
+      marker.setAttribute('refX','9');
+      marker.setAttribute('refY','4');
+      marker.setAttribute('orient','auto');
+      const path = document.createElementNS(svgNS,'path');
+      path.setAttribute('d','M0,0 L10,4 L0,8 Z');
+      path.setAttribute('fill','rgba(110,231,255,.95)');
+      marker.appendChild(path);
+      defs.appendChild(marker);
+
+      // soft gradient for nodes
+      const lg = document.createElementNS(svgNS,'linearGradient');
+      lg.setAttribute('id','nodeGrad');
+      lg.setAttribute('x1','0'); lg.setAttribute('x2','1');
+      lg.setAttribute('y1','0'); lg.setAttribute('y2','1');
+      const s1 = document.createElementNS(svgNS,'stop');
+      s1.setAttribute('offset','0%'); s1.setAttribute('stop-color','rgba(110,231,255,.18)');
+      const s2 = document.createElementNS(svgNS,'stop');
+      s2.setAttribute('offset','100%'); s2.setAttribute('stop-color','rgba(167,139,250,.14)');
+      lg.appendChild(s1); lg.appendChild(s2);
+      defs.appendChild(lg);
+
+      svg.appendChild(defs);
+
+      // edges
+      edges.forEach(([a,b]) => {
+        const pa = pos.get(a), pb = pos.get(b);
+        if(!pa || !pb) return;
+        const x1 = pa.x + nodeW;
+        const y1 = pa.y + nodeH/2;
+        const x2 = pb.x;
+        const y2 = pb.y + nodeH/2;
+
+        const line = document.createElementNS(svgNS,'path');
+        const mid = (x1 + x2) / 2;
+        line.setAttribute('d', `M ${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`);
+        line.setAttribute('fill','none');
+        line.setAttribute('stroke','rgba(110,231,255,.55)');
+        line.setAttribute('stroke-width','2');
+        line.setAttribute('marker-end','url(#arrow)');
+        svg.appendChild(line);
+      });
+
+      // nodes
+      order.forEach((id) => {
+        const p = pos.get(id);
+        const g = document.createElementNS(svgNS,'g');
+
+        const rect = document.createElementNS(svgNS,'rect');
+        rect.setAttribute('x', p.x);
+        rect.setAttribute('y', p.y);
+        rect.setAttribute('width', nodeW);
+        rect.setAttribute('height', nodeH);
+        rect.setAttribute('rx','14');
+        rect.setAttribute('fill','url(#nodeGrad)');
+        rect.setAttribute('stroke','rgba(255,255,255,.18)');
+        rect.setAttribute('stroke-width','1');
+
+        const text = document.createElementNS(svgNS,'text');
+        text.setAttribute('x', p.x + nodeW/2);
+        text.setAttribute('y', p.y + nodeH/2 + 4);
+        text.setAttribute('text-anchor','middle');
+        text.setAttribute('font-size','12');
+        text.setAttribute('font-family','ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial');
+        text.setAttribute('fill','rgba(234,240,255,.92)');
+        text.textContent = nodes.get(id);
+
+        g.appendChild(rect);
+        g.appendChild(text);
+        svg.appendChild(g);
+      });
+
+      return svg;
+    }
+
+    /* ==========================================================================
+       EXPORT
+       ========================================================================== */
+
+    function exportMarkdown(includeArtifacts=false){
+      const seq = getActive();
+      const lines = [];
+
+      lines.push(`# ${seq.name}`);
+      lines.push('');
+      lines.push(`**Philosophy:** ${seq.philosophy}`);
+      lines.push(`**Best for:** ${seq.bestFor}`);
+      lines.push(`**Key differentiator:** ${seq.differentiator}`);
+      lines.push(`**Expected outcome:** ${seq.expected}`);
+      lines.push('');
+      lines.push(`**Placeholders**`);
+      lines.push(`- PROOF_METRIC: ${state.placeholders.PROOF_METRIC}`);
+      lines.push(`- CAL_LINK: ${state.placeholders.CAL_LINK || '(none)'}`);
+      lines.push(`- ACCOUNT: ${state.placeholders.ACCOUNT}`);
+      lines.push(`- TRIGGER: ${state.placeholders.TRIGGER}`);
+      lines.push('');
+      lines.push('---');
+      lines.push('');
+
+      seq.steps.forEach((s, idx) => {
+        const subj = applyPlaceholders(s.subject || '');
+        const msg = applyPlaceholders(s.body || '');
+        lines.push(`## Step ${idx+1} — ${s.channel} (${s.intent})`);
+        lines.push('');
+        lines.push(`**Objective:** ${s.objective}`);
+        lines.push('');
+        lines.push(`**Why it works:**`);
+        (s.whyWorks||[]).forEach(w => lines.push(`- ${w}`));
+        lines.push('');
+        lines.push(`**Closer outcome:** ${s.closerOutcome}`);
+        lines.push('');
+        if(subj) lines.push(`**Subject:** ${subj}\n`);
+        lines.push('```text');
+        lines.push(msg.trim());
+        lines.push('```');
+        lines.push('');
+      });
+
+      if(includeArtifacts){
+        lines.push('---\n');
+        lines.push('# Outbound artifacts');
+        lines.push('');
+        lines.push('## ICP');
+        DATA.artifacts.icp.motions.forEach(m => {
+          lines.push(`- ${m.title}`);
+          m.bullets.forEach(b => lines.push(`  - ${b}`));
+        });
+        lines.push('');
+      }
+
+      return lines.join('\n');
+    }
+
+    function downloadText(filename, text){
+      const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ==========================================================================
+       COMMAND PALETTE
+       ========================================================================== */
+
+    const COMMANDS = () => {
+      const seqs = DATA.sequences.map(s => ({
+        title: `Switch: ${s.name}`,
+        key: 'seq',
+        action: () => { state.activeId = s.id; persist(); renderAll(); closeModal(); }
+      }));
+
+      return [
+        { title:'Go: Overview', key:'nav', action:() => jump('#overview') },
+        { title:'Go: Sequences', key:'nav', action:() => jump('#sequences') },
+        { title:'Go: Artifacts', key:'nav', action:() => jump('#artifacts') },
+        { title:'Go: GitHub Pages', key:'nav', action:() => jump('#pages') },
+
+        { title:'Toggle: Executive mode', key:'mode', action:() => { toggleExec(); closeModal(); } },
+        { title:'Toggle: Theme', key:'theme', action:() => { toggleTheme(); closeModal(); } },
+
+        { title:'Action: Expand all steps', key:'steps', action:() => { expandAll(); closeModal(); } },
+        { title:'Action: Collapse all steps', key:'steps', action:() => { collapseAll(); closeModal(); } },
+
+        { title:'Action: Export active to Markdown', key:'export', action:() => openExport() },
+        { title:'Action: Print / Save PDF', key:'print', action:() => { window.print(); closeModal(); } },
+
+        ...seqs
+      ];
+    };
+
+    function openModal(){
+      const b = $('#modalBackdrop');
+      b.style.display = 'block';
+      b.setAttribute('aria-hidden','false');
+      $('#cmdInput').value = '';
+      $('#modalTitle').textContent = 'Command';
+      $('#exportArea').style.display = 'none';
+      renderCmdList('');
+      setTimeout(() => $('#cmdInput').focus(), 0);
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(){
+      const b = $('#modalBackdrop');
+      b.style.display = 'none';
+      b.setAttribute('aria-hidden','true');
+      document.body.style.overflow = '';
+    }
+
+    function renderCmdList(q){
+      const wrap = $('#cmdList');
+      wrap.innerHTML = '';
+      const query = (q||'').trim().toLowerCase();
+      const cmds = COMMANDS().filter(c => !query || c.title.toLowerCase().includes(query));
+      cmds.slice(0, 10).forEach(cmd => {
+        const row = document.createElement('div');
+        row.className = 'cmdItem';
+        row.addEventListener('click', cmd.action);
+
+        const left = document.createElement('div');
+        left.className = 'cmdLeft';
+        left.innerHTML = `<span class="cmdKey">${escapeHtml(cmd.key)}</span><span>${escapeHtml(cmd.title)}</span>`;
+
+        const right = document.createElement('div');
+        right.className = 'muted2 small';
+        right.textContent = 'Enter';
+
+        row.appendChild(left);
+        row.appendChild(right);
+        wrap.appendChild(row);
+      });
+
+      if(cmds.length === 0){
+        const empty = document.createElement('div');
+        empty.className = 'cmdItem';
+        empty.style.cursor = 'default';
+        empty.textContent = 'No matches.';
+        wrap.appendChild(empty);
+      }
+    }
+
+    function openExport(){
+      $('#modalTitle').textContent = 'Export';
+      const md = exportMarkdown(false);
+      $('#exportMd').textContent = md;
+      $('#exportArea').style.display = 'block';
+    }
+
+    /* ==========================================================================
+       ACTIONS
+       ========================================================================== */
+
+    function expandAll(){
+      $$('#stepsWrap details.step').forEach(d => d.open = true);
+    }
+    function collapseAll(){
+      $$('#stepsWrap details.step').forEach(d => d.open = false);
+    }
+
+    function toggleTheme(){
+      setTheme(state.theme === 'dark' ? 'light' : 'dark');
+    }
+    function toggleExec(){
+      setMode(state.mode === 'builder' ? 'exec' : 'builder');
+    }
+
+    function jump(hash){
+      closeModal();
+      const el = document.querySelector(hash);
+      if(el){
+        el.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
+    }
+
+    /* ==========================================================================
+       GITHUB PAGES URL BUILDER
+       ========================================================================== */
+
+    function computeGhUrl(){
+      const user = (state.ghUser || '').trim();
+      const repo = (state.ghRepo || '').trim();
+      const out = $('#ghUrl');
+
+      if(user && repo){
+        out.value = `https://${user}.github.io/${repo}/`;
+      } else {
+        out.value = '';
+      }
+    }
+
+    /* ==========================================================================
+       INITIALIZE + RENDER
+       ========================================================================== */
+
+    function renderAll(){
+      renderCompare();
+      renderSeqList();
+      renderActiveHeader();
+      renderStepChips();
+      renderSteps();
+      renderMermaid();
+      renderArtifacts();
+      updateProgress();
+    }
+
+    function bindUI(){
+      // Mode from hash
+      if(String(window.location.hash || '').includes('exec')){
+        setMode('exec');
+      }
+
+      // Theme init (stored or system preference)
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if(!state.theme) state.theme = prefersDark ? 'dark' : 'light';
+      setTheme(state.theme || (prefersDark ? 'dark' : 'light'));
+      setMode(state.mode || 'builder');
+
+      // Compare label
+      $('#activeLabel').textContent = 'Active: ' + getActive().name;
+
+      // Placeholder inputs
+      $('#ph_proof').value = state.placeholders.PROOF_METRIC || '';
+      $('#ph_cal').value = state.placeholders.CAL_LINK || '';
+      $('#ph_account').value = state.placeholders.ACCOUNT || '';
+      $('#ph_trigger').value = state.placeholders.TRIGGER || '';
+
+      $('#ph_proof').addEventListener('input', (e) => { state.placeholders.PROOF_METRIC = e.target.value; persist(); renderSteps(); });
+      $('#ph_cal').addEventListener('input', (e) => { state.placeholders.CAL_LINK = e.target.value; persist(); renderSteps(); });
+      $('#ph_account').addEventListener('input', (e) => { state.placeholders.ACCOUNT = e.target.value; persist(); renderSteps(); });
+      $('#ph_trigger').addEventListener('input', (e) => { state.placeholders.TRIGGER = e.target.value; persist(); renderSteps(); });
+
+      // Search
+      $('#stepSearch').value = state.search || '';
+      $('#stepSearch').addEventListener('input', (e) => {
+        state.search = e.target.value;
+        persist();
+        renderStepChips();
+        renderSteps();
+      });
+
+      // Buttons
+      $('#themeBtn').addEventListener('click', toggleTheme);
+      $('#execBtn').addEventListener('click', toggleExec);
+      $('#exportBtn').addEventListener('click', () => { openModal(); openExport(); });
+      $('#printBtn').addEventListener('click', () => window.print());
+
+      $('#expandAllBtn').addEventListener('click', expandAll);
+      $('#collapseAllBtn').addEventListener('click', collapseAll);
+
+      $('#resetProgressBtn').addEventListener('click', () => {
+        state.copied = new Set();
+        persist();
+        updateProgress();
+        toast('Progress reset');
+      });
+
+      $('#exportActiveBtn').addEventListener('click', () => { openModal(); openExport(); });
+      $('#copyActiveBtn').addEventListener('click', async () => {
+        const md = exportMarkdown(false);
+        await copyToClipboard(md);
+      });
+
+      // Command palette
+      $('#cmdBtn').addEventListener('click', openModal);
+      $('#closeModalBtn').addEventListener('click', closeModal);
+      $('#modalBackdrop').addEventListener('click', (e) => {
+        if(e.target === $('#modalBackdrop')) closeModal();
+      });
+      $('#cmdInput').addEventListener('input', (e) => renderCmdList(e.target.value));
+      $('#cmdInput').addEventListener('keydown', (e) => {
+        if(e.key === 'Escape'){ closeModal(); }
+      });
+
+      // Export controls
+      $('#copyExportBtn').addEventListener('click', async () => {
+        await copyToClipboard($('#exportMd').textContent || '');
+      });
+      $('#downloadExportBtn').addEventListener('click', () => {
+        const name = getActive().id + '-sequence.md';
+        downloadText(name, $('#exportMd').textContent || '');
+        toast('Downloaded ✅');
+      });
+
+      // GitHub Pages URL builder inputs
+      $('#ghUser').value = state.ghUser || '';
+      $('#ghRepo').value = state.ghRepo || '';
+      $('#ghUser').addEventListener('input', (e) => { state.ghUser = e.target.value; persist(); computeGhUrl(); });
+      $('#ghRepo').addEventListener('input', (e) => { state.ghRepo = e.target.value; persist(); computeGhUrl(); });
+      computeGhUrl();
+
+      $('#copyGhUrlBtn').addEventListener('click', async () => {
+        await copyToClipboard($('#ghUrl').value || '');
+      });
+      $('#copyExecUrlBtn').addEventListener('click', async () => {
+        const base = $('#ghUrl').value || '';
+        await copyToClipboard(base ? (base + '#exec') : '');
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        const isMac = navigator.platform.toLowerCase().includes('mac');
+        const cmdK = (isMac && e.metaKey && e.key.toLowerCase() === 'k') || (!isMac && e.ctrlKey && e.key.toLowerCase() === 'k');
+        if(cmdK){
+          e.preventDefault();
+          openModal();
+          return;
+        }
+
+        if(e.key === '/' && document.activeElement !== $('#stepSearch') && state.mode === 'builder'){
+          e.preventDefault();
+          $('#stepSearch').focus();
+          return;
+        }
+
+        if(e.key === 'Escape'){
+          closeModal();
+          return;
+        }
+
+        if(state.mode === 'builder'){
+          if(e.key.toLowerCase() === 't' && !e.ctrlKey && !e.metaKey){
+            toggleTheme();
+          }
+          if(e.key.toLowerCase() === 'e' && !e.ctrlKey && !e.metaKey){
+            openModal(); openExport();
+          }
+          if(e.key.toLowerCase() === 'p' && !e.ctrlKey && !e.metaKey){
+            window.print();
+          }
+        }
+      });
+    }
+
+    function renderOnce(){
+      loadPersisted();
+
+      // Hash routing for exec
+      const h = String(window.location.hash || '');
+      if(h.includes('exec')) state.mode = 'exec';
+
+      // If no stored theme, pick system preference
+      if(!state.theme){
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        state.theme = prefersDark ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', state.theme);
+      document.documentElement.setAttribute('data-mode', state.mode);
+
+      renderAll();
+      bindUI();
+    }
+
+    renderOnce();
+  </script>
 </body>
 </html>
