@@ -1,300 +1,384 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pliant Outbound Strategy | [Your Name]</title>
+    <title>The Pliant Outbound Engine | [Your Name]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #050505;
-            --bg-surface: rgba(255, 255, 255, 0.03);
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(255, 255, 255, 0.2);
-            --text-main: #FFFFFF;
-            --text-muted: #A1A1AA;
-            --accent: #3B82F6;
-            --accent-glow: rgba(59, 130, 246, 0.5);
-            --radius-md: 16px;
+            --bg-base: #000000;
+            --bg-surface: #0A0A0A;
+            --bg-card: rgba(255, 255, 255, 0.02);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --text-main: #EDEDED;
+            --text-muted: #888888;
+            --accent: #0070F3; /* Vercel Blue */
+            --accent-glow: rgba(0, 112, 243, 0.15);
+            --radius-md: 12px;
             --radius-lg: 24px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-base);
             color: var(--text-main);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+                radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 40%);
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 4rem 2rem;
-        }
-
-        /* Nav / Header */
-        header {
+        /* Layout */
+        .app-container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6rem;
-            animation: fadeInDown 0.8s ease-out;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            gap: 4rem;
         }
 
-        .logo {
-            font-size: 0.875rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: var(--text-muted);
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            position: sticky;
+            top: 2rem;
+            height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 3rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .logo span {
-            color: var(--text-main);
+        .brand-pill {
+            background: #fff;
+            color: #000;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 600;
+            text-transform: uppercase;
         }
 
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(16, 185, 129, 0.1);
-            color: #34D399;
-            padding: 6px 12px;
-            border-radius: 999px;
-            font-size: 0.75rem;
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
             font-weight: 500;
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            background-color: #34D399;
+        .nav-links a:hover { color: var(--text-main); }
+        .nav-links a::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 4px;
             border-radius: 50%;
-            box-shadow: 0 0 8px #34D399;
+            background: transparent;
+            transition: background 0.2s;
+        }
+        .nav-links a:hover::before { background: var(--accent); }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding-bottom: 8rem;
         }
 
-        /* Hero Section */
         .hero {
-            text-align: left;
-            margin-bottom: 5rem;
-            animation: fadeInUp 0.8s ease-out;
+            margin-bottom: 6rem;
+            padding-top: 2rem;
         }
 
         h1 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
             font-weight: 700;
             line-height: 1.1;
+            letter-spacing: -0.04em;
             margin-bottom: 1.5rem;
-            letter-spacing: -0.02em;
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #FFFFFF 0%, #A1A1AA 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
         .hero p {
-            font-size: 1.25rem;
+            font-size: 1.125rem;
             color: var(--text-muted);
             max-width: 600px;
-            margin-bottom: 2.5rem;
         }
 
-        /* Bento Grid */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 5rem;
+        /* Sequence Blocks */
+        .sequence-block {
+            margin-bottom: 6rem;
+            scroll-margin-top: 2rem;
         }
 
-        .card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg);
-            padding: 2.5rem;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            animation: fadeInUp 0.8s ease-out backwards;
+        .seq-header {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .card:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
-        }
-
-        /* Specific Card Placements */
-        .card-large { grid-column: span 12; }
-        .card-half { grid-column: span 6; }
-        
-        @media (max-width: 768px) {
-            .card-half { grid-column: span 12; }
-        }
-
-        .card-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: var(--radius-md);
-            background: rgba(255,255,255,0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border-subtle);
-        }
-
-        .card h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
-
-        .card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        /* Metric Highlights */
-        .metric {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-
-        /* CTA Section */
-        .cta-section {
-            text-align: center;
-            padding: 4rem;
-            background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg);
-            animation: fadeInUp 0.8s ease-out 0.4s backwards;
-        }
-
-        .cta-section h2 {
+        .seq-header h2 {
             font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
             margin-bottom: 1rem;
         }
 
-        .cta-section p {
+        .tags {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
             color: var(--text-muted);
-            margin-bottom: 2.5rem;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
+            font-weight: 500;
         }
 
-        .btn {
-            display: inline-flex;
+        .tag strong { color: var(--text-main); }
+
+        /* Timeline Grid for Steps */
+        .steps-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .step-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-card:hover {
+            border-color: var(--border-hover);
+            transform: translateX(4px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .step-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .channel-badge {
+            background: #111;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+        }
+
+        .script-box {
+            background: #111;
+            border-left: 2px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+        }
+
+        .script-box strong { color: #fff; }
+
+        .why-it-works {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .why-it-works svg { flex-shrink: 0; margin-top: 2px; }
+
+        /* Global CTA */
+        .fixed-cta {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #fff;
+            color: #000;
             padding: 1rem 2rem;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #fff;
-            background: var(--text-main);
-            color: var(--bg-base);
             border-radius: 99px;
+            font-weight: 600;
             text-decoration: none;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: none;
+            box-shadow: 0 4px 24px rgba(255,255,255,0.2);
+            transition: transform 0.2s ease;
+            z-index: 100;
         }
 
-        .btn:hover {
-            transform: scale(1.05);
-            background: #E4E4E7;
-        }
+        .fixed-cta:hover { transform: scale(1.05); }
 
-        /* Animations */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        @media (max-width: 1024px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: static; margin-bottom: 2rem; }
         }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Delays for staggered grid load */
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <div class="logo">Pliant <span>× [Your Last Name]</span></div>
-            <div class="status-badge">
-                <div class="status-dot"></div>
-                Ready to Deploy
+    <a href="mailto:lfaulstroh@pliant.com?subject=The 30-Minute Review" class="fixed-cta">Schedule the Review →</a>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                Pliant <span class="brand-pill">BDR Execution</span>
             </div>
-        </header>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2rem;">
+                A comprehensive portfolio of 6 advanced sequencing logics designed to convert Pliant's ICP.
+            </p>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#seq1">01. The Proof of Work</a></li>
+                    <li><a href="#seq2">02. Multi-Thread Surround</a></li>
+                    <li><a href="#seq3">03. The Risk Mitigator</a></li>
+                    <li><a href="#seq4">04. Hyper-Direct (Phone First)</a></li>
+                    <li><a href="#seq5">05. Business Judgment Check</a></li>
+                    <li><a href="#seq6">06. The Trigger Event</a></li>
+                </ul>
+            </nav>
+        </aside>
 
-        <main>
+        <main class="main-content">
             <section class="hero">
-                <h1 class="gradient-text">Stop rolling the dice<br>on BDR ramp times.</h1>
-                <p>Leon — The average BDR takes 90 days to generate viable pipeline. I’ve pre-built a repeatable outbound engine specifically for Pliant's ICP so I can execute on Day 1.</p>
+                <h1>Outbound logic engineered for predictable pipeline.</h1>
+                <p>Leon, hiring a BDR is a risk. You lose base salary, ramp time, and burned accounts if they fail. I eliminate that risk by bringing a pre-built, tested outbound engine to the floor on Day 1.</p>
             </section>
 
-            <section class="bento-grid">
-                <div class="card card-large delay-1">
-                    <div class="card-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <section id="seq1" class="sequence-block">
+                <div class="seq-header">
+                    <h2>01. The Proof of Work Campaign</h2>
+                    <div class="tags">
+                        <span class="tag"><strong>Philosophy:</strong> Do the job to get the job.</span>
+                        <span class="tag"><strong>Best for:</strong> Analytical leaders.</span>
+                        <span class="tag"><strong>Focus:</strong> Artifact delivery.</span>
                     </div>
-                    <h3>The 30-Minute Review</h3>
-                    <p>I'm not here to pitch a resume. I'm here to pitch a system. Book 30 minutes with me, and I will present a 6-slide breakdown of exactly how I will build a portfolio of opportunities for your AEs to close.</p>
+                    <p style="color: var(--text-muted);">Eliminates the risk of a bad hire by demonstrating competence before the interview. Requires heavy upfront research.</p>
                 </div>
-
-                <div class="card card-half delay-2">
-                    <span class="metric">12%</span>
-                    <h3>Connect-to-Meeting Rate</h3>
-                    <p>My targeting strategy isn't based on spray-and-pray automated spam. It relies on advanced intent signals, tiering, and micro-commitments to predictably convert cold calls into qualified AE pipeline.</p>
-                </div>
-
-                <div class="card card-half delay-3">
-                    <div class="card-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
+                
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-meta"><span>Step 1 / Day 1</span> <span class="channel-badge">Email</span></div>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Obj: Tease artifact</span>
+                        </div>
+                        <div class="script-box">
+                            <strong>Subj:</strong> Pliant's outbound pipeline<br><br>
+                            Leon, the biggest risk Pliant faces with a new BDR hire is a 90-day ramp where they burn through leads and generate zero pipeline.<br><br>
+                            I mitigate that. To prove it, I’ve mapped out 50 high-priority Pliant target accounts and drafted a sequencing logic specifically for them. Historically, I convert cold calls to booked meetings at 11%.<br><br>
+                            Are you open to a 30-minute review of my prospecting system to see if it aligns with your Q3 targets?
+                        </div>
+                        <div class="why-it-works">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Directly addresses hiring pain. Uses a micro-commitment (reviewing a system, not granting an interview).
+                        </div>
                     </div>
-                    <h3>Frictionless AE Handoffs</h3>
-                    <p>A booked meeting is useless if the AE walks in blind. My system includes a rigid qualification framework and a pre-call intelligence brief ensuring AEs only spend time on revenue-generating conversations.</p>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-meta"><span>Step 2 / Day 1</span> <span class="channel-badge">Phone</span></div>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Obj: Drive inbox attention</span>
+                        </div>
+                        <div class="script-box">
+                            "Leon. [My Name]. I know I caught you in the middle of something. I just sent you an email about a target account list I built for Pliant. Do you have 30 seconds for me to give you the context, or should I let you go?"
+                        </div>
+                        <div class="why-it-works">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Permission-based opener respects executive time while creating intrigue.
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <section class="cta-section">
-                <h2>The 10-Minute Eject Button</h2>
-                <p>Schedule a 30-minute review. If I don't prove my business judgment and outbound rigor in the first 10 minutes, you have my full permission to end the call early.</p>
-                <a href="mailto:lfaulstroh@pliant.com?subject=The 30-Minute Review&body=Leon, reviewed your pipeline logic page. Let's talk." class="btn">
-                    Schedule the Review
-                </a>
+            <section id="seq6" class="sequence-block">
+                <div class="seq-header">
+                    <h2>06. The Trigger Event</h2>
+                    <div class="tags">
+                        <span class="tag"><strong>Philosophy:</strong> Relevance over personalization.</span>
+                        <span class="tag"><strong>Best for:</strong> Enterprise tier targets.</span>
+                        <span class="tag"><strong>Focus:</strong> Timely intervention.</span>
+                    </div>
+                    <p style="color: var(--text-muted);">Leverages a specific company event (funding, hiring, tech stack change) to immediately position Pliant as the required solution.</p>
+                </div>
+                
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-meta"><span>Step 1 / Day 1</span> <span class="channel-badge">Email</span></div>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Obj: Tie trigger to pain</span>
+                        </div>
+                        <div class="script-box">
+                            <strong>Subj:</strong> your recent push into EMEA<br><br>
+                            Leon, noticed Pliant is aggressively hiring AEs in London. <br><br>
+                            Usually, when growth teams expand regions, the existing BDR playbook breaks down because regional intent signals differ. The result is AEs starving for pipeline in month 3.<br><br>
+                            I built a specific EMEA-focused account map showing how I'd generate 15 ops in the first 60 days to feed that new floor.<br><br>
+                            Opposed to a brief look at the map?
+                        </div>
+                        <div class="why-it-works">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Shows deep research. Identifies a tertiary problem caused by a primary growth event.
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-header">
+                            <div class="step-meta"><span>Step 8 / Day 14</span> <span class="channel-badge">Email</span></div>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Obj: Professional Breakup</span>
+                        </div>
+                        <div class="script-box">
+                            <strong>Subj:</strong> closing the loop<br><br>
+                            Leon, assuming the EMEA expansion has you buried. I'll stop my outreach here.<br><br>
+                            If you find yourself needing a BDR who builds pipeline based on business intelligence rather than volume alone, you have my contact info. Cheers.
+                        </div>
+                        <div class="why-it-works">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Triggers loss aversion. Clean, confident exit without guilt-tripping.
+                        </div>
+                    </div>
+                </div>
             </section>
-        </main>
+            
+            </main>
     </div>
 
 </body>
