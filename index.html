@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Earn the Meeting — Sequence Playbook</title>
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --panel:#111827;
+      --panel2:#0f172a;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --brand:#60a5fa;
+      --brand2:#a78bfa;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --border:#1f2937;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    [data-theme="light"]{
+      --bg:#f6f7fb;
+      --panel:#ffffff;
+      --panel2:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --brand:#2563eb;
+      --brand2:#7c3aed;
+      --ok:#059669;
+      --warn:#d97706;
+      --bad:#e11d48;
+      --border:#e5e7eb;
+      --shadow: 0 10px 30px rgba(17,24,39,.12);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(96,165,250,.18), transparent 60%),
+        radial-gradient(1200px 600px at 80% 0%, rgba(167,139,250,.14), transparent 60%),
+        var(--bg);
+      line-height:1.45;
+    }
+    a{color:inherit}
+    .wrap{max-width:1180px;margin:0 auto;padding:28px 18px 80px}
+    header{
+      display:flex; gap:18px; align-items:flex-start; justify-content:space-between;
+      padding:18px; border:1px solid var(--border); border-radius:var(--radius);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), transparent);
+      box-shadow:var(--shadow);
+    }
+    .title{
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .title h1{
+      margin:0; font-size:22px; letter-spacing:.2px;
+    }
+    .title p{margin:0;color:var(--muted); max-width:720px}
+    .pillrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .pill{
+      font-size:12px; color:var(--muted);
+      border:1px solid var(--border);
+      padding:6px 10px; border-radius:999px;
+      background:rgba(255,255,255,.04);
+    }
+    .actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end}
+    button{
+      cursor:pointer; border:1px solid var(--border);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 12px; border-radius:12px;
+      transition:.15s transform, .15s background;
+      font-weight:600;
+    }
+    button:hover{transform:translateY(-1px); background:rgba(255,255,255,.07)}
+    button.primary{
+      border-color:rgba(96,165,250,.45);
+      background:linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.08));
+    }
+    button.ghost{background:transparent}
+    .grid{
+      display:grid; grid-template-columns: 360px 1fr; gap:16px;
+      margin-top:16px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+    }
+    .panel{
+      border:1px solid var(--border); border-radius:var(--radius);
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0));
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .panel .hd{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background:rgba(255,255,255,.03);
+    }
+    .panel .hd h2{margin:0; font-size:14px; letter-spacing:.2px}
+    .panel .bd{padding:14px}
+    .subtle{color:var(--muted); font-size:12px}
+    .tabs{display:flex; gap:8px; flex-wrap:wrap}
+    .tab{
+      font-size:13px;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      cursor:pointer;
+      flex:1;
+      min-width: 120px;
+      text-align:center;
+      user-select:none;
+    }
+    .tab.active{
+      border-color:rgba(96,165,250,.5);
+      background:linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.06));
+    }
+
+    .seqmeta{
+      display:grid; grid-template-columns:1fr; gap:10px;
+      margin-top:12px;
+    }
+    .card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      background:rgba(255,255,255,.03);
+    }
+    .card h3{margin:0 0 6px; font-size:13px}
+    .card p{margin:0; color:var(--muted); font-size:12.5px}
+
+    .filters{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      margin-top:10px;
+    }
+    .input{
+      width:100%;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      padding:10px 12px; border-radius:12px;
+      outline:none;
+    }
+    .row{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:11px; padding:4px 8px; border-radius:999px;
+      border:1px solid var(--border); color:var(--muted);
+      background:rgba(255,255,255,.03);
+    }
+    .dot{width:7px;height:7px;border-radius:999px;background:var(--brand)}
+    .dot.ok{background:var(--ok)}
+    .dot.warn{background:var(--warn)}
+    .dot.bad{background:var(--bad)}
+
+    .steps{display:flex; flex-direction:column; gap:12px}
+    details.step{
+      border:1px solid var(--border);
+      border-radius:18px;
+      background:rgba(255,255,255,.03);
+      overflow:hidden;
+    }
+    details.step > summary{
+      list-style:none;
+      cursor:pointer;
+      padding:12px 14px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      user-select:none;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
+    }
+    details.step > summary::-webkit-details-marker{display:none}
+    .sumleft{display:flex; flex-direction:column; gap:4px}
+    .sumtop{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .k{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--muted);
+      border:1px solid var(--border);
+      padding:3px 8px;
+      border-radius:999px;
+    }
+    .ttl{font-weight:800; letter-spacing:.2px}
+    .mini{color:var(--muted); font-size:12px}
+    .sumright{display:flex; gap:8px; align-items:center}
+    .chev{
+      width:36px;height:36px;border-radius:12px;
+      border:1px solid var(--border);
+      display:grid; place-items:center;
+      color:var(--muted);
+      background:rgba(255,255,255,.02);
+      transition:.15s transform;
+    }
+    details[open] .chev{transform:rotate(90deg)}
+    .content{
+      padding:12px 14px 14px;
+      border-top:1px solid var(--border);
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 980px){
+      .content{grid-template-columns:1fr}
+    }
+    .box{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:12px;
+      background:rgba(255,255,255,.02);
+    }
+    .box h4{margin:0 0 8px; font-size:12px; color:var(--muted); letter-spacing:.2px; text-transform:uppercase}
+    .box .txt{font-size:13px}
+    .msg{
+      white-space:pre-wrap;
+      font-family:var(--mono);
+      font-size:12.5px;
+      line-height:1.45;
+      background:rgba(0,0,0,.25);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px;
+      overflow:auto;
+      max-height:280px;
+    }
+    [data-theme="light"] .msg{background:rgba(17,24,39,.06)}
+    .msg-actions{
+      display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;
+    }
+    .tiny{
+      font-size:11.5px; color:var(--muted);
+    }
+    .footer{
+      margin-top:18px;
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      font-size:12.5px;
+    }
+    .two-col{
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    }
+    @media (max-width: 980px){.two-col{grid-template-columns:1fr}}
+    .callout{
+      border:1px dashed rgba(96,165,250,.5);
+      background:rgba(96,165,250,.08);
+      padding:12px;
+      border-radius:16px;
+      color:var(--text);
+    }
+    .callout strong{color:var(--text)}
+    .muted{color:var(--muted)}
+    .toast{
+      position:fixed; bottom:16px; left:50%;
+      transform:translateX(-50%);
+      background:rgba(17,24,39,.92);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;
+      padding:10px 14px;
+      box-shadow:var(--shadow);
+      display:none;
+      z-index:9999;
+      font-size:13px;
+    }
+    [data-theme="light"] .toast{background:rgba(17,24,39,.92)}
+    .tag{
+      display:inline-flex; gap:6px; align-items:center;
+      padding:3px 8px; border-radius:999px;
+      border:1px solid var(--border);
+      font-size:11px; color:var(--muted);
+      background:rgba(255,255,255,.02);
+    }
+    .tag b{color:var(--text)}
+  </style>
+</head>
+
+<body data-theme="dark">
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Earn the Meeting — Sequence Options (In Depth)</h1>
+        <p>
+          A single-page playbook to present three top-tier outreach sequences to earn time with a senior leader
+          (Leon). Each step includes objective, channel, message/script, why it works, and the “closer” outcome.
+        </p>
+        <div class="pillrow">
+          <span class="pill">Pattern Interrupt</span>
+          <span class="pill">Risk Framing</span>
+          <span class="pill">Quantified Value</span>
+          <span class="pill">Proof Assets</span>
+          <span class="pill">Micro-commitments</span>
+          <span class="pill">Binary / Two-option closes</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="ghost" id="themeBtn" title="Toggle theme">🌗 Theme</button>
+        <button class="ghost" id="expandAllBtn" title="Expand all steps">⤵ Expand</button>
+        <button class="ghost" id="collapseAllBtn" title="Collapse all steps">⤴ Collapse</button>
+        <button class="primary" id="printBtn" title="Print / Save PDF">🖨 Print</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Sequence selector / meta -->
+      <section class="panel">
+        <div class="hd">
+          <h2>Choose a sequence</h2>
+          <span class="subtle" id="seqCount"></span>
+        </div>
+        <div class="bd">
+          <div class="tabs" id="tabs"></div>
+
+          <div class="seqmeta" id="seqMeta"></div>
+
+          <div class="filters">
+            <input id="search" class="input" placeholder="Search steps (e.g., 'micro', 'risk', 'voicemail', 'TAL', 'proof')"/>
+            <div class="row">
+              <span class="badge"><span class="dot ok"></span>Closer step</span>
+              <span class="badge"><span class="dot"></span>Value/credibility</span>
+              <span class="badge"><span class="dot warn"></span>Decision forcing</span>
+            </div>
+          </div>
+
+          <div class="footer">
+            <div class="two-col">
+              <div>
+                <b>How to use</b><br/>
+                Pick a sequence → skim the meta → expand steps → copy scripts/messages into your deck.
+              </div>
+              <div>
+                <b>Pro tip</b><br/>
+                Don’t “over-message.” Each touch must add new value, proof, or a decision.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Steps -->
+      <section class="panel">
+        <div class="hd">
+          <h2 id="seqTitle">Sequence</h2>
+          <span class="subtle" id="seqSub"></span>
+        </div>
+        <div class="bd">
+          <div class="callout" id="callout"></div>
+          <div style="height:10px"></div>
+          <div class="steps" id="steps"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied</div>
+
+<script>
+  // -----------------------------
+  // DATA
+  // -----------------------------
+  const sequences = [
+    {
+      id: "pressure-test",
+      name: "Sequence 1 — Executive Pressure-Test Funnel",
+      subtitle: "Fastest path to ‘yes’. Meeting framed as a low-risk decision session.",
+      philosophy: "Make the meeting feel like an internal review: short, measurable, binary. You’re not asking for time; you’re offering a pressure test of a system that protects AE time and creates qualified pipeline.",
+      bestFor: ["Fast recovery", "Busy execs", "Direct closers"],
+      risk: "Can feel aggressive if you ramble. Keep it crisp.",
+      steps: [
+        {
+          n: 1,
+          label: "Pattern-interrupt email (sets frame)",
+          channel: "Email",
+          objective: "Differentiate immediately. Position the meeting as a pressure-test of your operating system (not a ‘chat’).",
+          closer: false,
+          whyWorks: [
+            "Exec-friendly: short, specific, decision-oriented",
+            "Signals operator mindset: system, metrics, AE-time protection"
+          ],
+          closerOutcome: "Leon understands the format and why it’s worth his time.",
+          script: {
+            subject: "Leon — 20 minutes to pressure-test this",
+            body:
+`Leon —
+
+Rather than sending slides, I’m treating this the way I would outbound: earn time with the growth owner.
+
+I built the outbound system I’d run in the seat — ICP → targeting → multi-channel motion → qualification + handoff → pipeline math.
+
+If you give me 20 minutes, I’ll walk you through it end-to-end. If it doesn’t feel repeatable (and AE-friendly), you should pass on me.
+
+Thu AM or Fri PM?
+
+— Chris`
+          }
+        },
+        {
+          n: 2,
+          label: "Call #1 (45–60s structure)",
+          channel: "Phone Call",
+          objective: "Earn 30 seconds, establish risk/value/proof, close with two time options.",
+          closer: true,
+          whyWorks: [
+            "Permission-based opener reduces resistance",
+            "Risk framing matches exec thinking (cost of delay, AE cycles)",
+            "Two-option close increases booking rate"
+          ],
+          closerOutcome: "Book time or identify exact next step (send 6 bullets + hold).",
+          script: {
+            subject: "Call opener + close",
+            body:
+`Opener:
+“Leon — Chris Khoury. Quick one. Can I take 20 seconds, then you can tell me yes/no?”
+
+Risk:
+“The risk with this hire isn’t salary — it’s 3–6 months of dead pipeline and wasted AE cycles.”
+
+Value (quantified):
+“I run a repeatable system to 15–20 meetings/month at full ramp, ~10 qualified opps, with a strict quality bar.”
+
+Proof (one line):
+“I’ve built outbound engines from zero before — system-first, not heroics.”
+
+Close:
+“Worth 20 minutes Thu AM or Fri PM to pressure-test it?”`
+          }
+        },
+        {
+          n: 3,
+          label: "LinkedIn connect (thread continuity)",
+          channel: "LinkedIn",
+          objective: "Establish a second channel and make you ‘familiar’ before the next touch.",
+          closer: false,
+          whyWorks: [
+            "Cross-channel familiarity increases reply/pickup rates",
+            "Execs often check LI after a call/email"
+          ],
+          closerOutcome: "You become a recognizable thread, not a random follow-up.",
+          script: {
+            subject: "Connection note",
+            body:
+`Leon — Chris here (BDR finalist). I’m treating the final stage like outbound and earning time with the growth owner. I’ll send a 6-bullet system summary and follow up with two times.`
+          }
+        },
+        {
+          n: 4,
+          label: "6-bullet exec summary (skim = trust)",
+          channel: "Email",
+          objective: "Remove ‘too busy’ friction; show clarity and business judgment in one screen.",
+          closer: false,
+          whyWorks: [
+            "Skimmable summaries get read by execs",
+            "Signals structure + repeatability"
+          ],
+          closerOutcome: "Leon can evaluate you in <30 seconds; trust increases.",
+          script: {
+            subject: "US outbound system — 6 bullets",
+            body:
+`Leon —
+
+Here’s the system in 6 bullets:
+
+• ICP: enterprise finance + embedded finance platforms
+• Targeting: tiered list + trigger signals
+• Motion: multi-channel 10–14 day sequence
+• Quality bar: no meeting unless pain + fit + next step are real
+• Handoff: AE briefing + warm intro + follow-through
+• Math: 15–20 meetings/mo → ~10 qualified opps → $X pipeline
+
+If it’s worth it, I’ll walk you through it in 20 minutes. Tue 10:30 or Wed 2:00?
+
+— Chris`
+          }
+        },
+        {
+          n: 5,
+          label: "Micro-commitment (A/B)",
+          channel: "LinkedIn DM",
+          objective: "Get a one-letter reply; create buy-in and engagement.",
+          closer: false,
+          whyWorks: [
+            "Easy answers drive higher response rates",
+            "Engagement increases likelihood of accepting meeting"
+          ],
+          closerOutcome: "A reply makes the meeting feel like ‘continuing a conversation’.",
+          script: {
+            subject: "A/B question",
+            body:
+`Quick A/B:
+
+A) land 3–5 enterprise logos first
+B) prioritize 1–2 embedded finance partners first
+
+If you were running the US build, which would you bias toward (A or B)?`
+          }
+        },
+        {
+          n: 6,
+          label: "Proof drop (mini TAL + triggers)",
+          channel: "Email",
+          objective: "Shift from ‘talking’ to ‘already doing the job’ with a small proof artifact.",
+          closer: false,
+          whyWorks: [
+            "Work product beats claims",
+            "Triggers curiosity: ‘how did he pick these?’"
+          ],
+          closerOutcome: "Credibility jump; meeting becomes obvious next step.",
+          script: {
+            subject: "Week-one target list (10) + triggers",
+            body:
+`Leon —
+
+To make this real: here are 10 accounts I’d start with week one + the trigger I’d anchor outreach on for each.
+
+1) [Account] — [Trigger]
+...
+10) [Account] — [Trigger]
+
+If you’re open, I’ll walk you through the system behind this in 20 minutes. Tue 10:30 or Wed 2:00?
+
+— Chris`
+          }
+        },
+        {
+          n: 7,
+          label: "Final close (two times + easy out)",
+          channel: "Phone Call",
+          objective: "Force decision politely; protect your status (not needy).",
+          closer: true,
+          whyWorks: [
+            "‘Last attempt’ framing reduces annoyance",
+            "Two-option close drives action"
+          ],
+          closerOutcome: "Yes booked, or explicit ‘no’ (clean close).",
+          script: {
+            subject: "Last attempt script",
+            body:
+`“Leon — Chris. Last attempt from me this week so I’m not a recurring item.
+
+If you’re open, I’d like 20 minutes to pressure-test the outbound system. If not, totally fine — I’ll step back.
+
+Tue 10:30 or Wed 2:00?”`
+          }
+        }
+      ]
+    },
+
+    {
+      id: "teach-earn",
+      name: "Sequence 2 — Teach → Earn Authority Ladder",
+      subtitle: "Highest trust build. You earn time by delivering insight in small bites.",
+      philosophy: "Don’t ask for the meeting upfront. Deliver 4–6 high-signal insights, prove judgment + operator thinking, then make the meeting the natural next step (‘pressure-test live’).",
+      bestFor: ["Rebuilding trust", "Execs who ignore asks", "Longer cycles"],
+      risk: "Requires discipline (short insights). Don’t turn into essays.",
+      steps: [
+        {
+          n: 1,
+          label: "Frame email: ‘I’ll earn this’",
+          channel: "Email",
+          objective: "Get permission to follow up. Set expectation of short insights over a week.",
+          closer: false,
+          whyWorks: [
+            "Low pressure; high-status",
+            "Positions you as value-first"
+          ],
+          closerOutcome: "Leon expects follow-ups and doesn’t label them as spam.",
+          script: {
+            subject: "I’ll earn this, not ask for it",
+            body:
+`Leon — Chris here.
+
+Instead of asking for time up front, I’m going to earn it the way I would with any senior leader: by sending a few short, high-signal insights over the next week.
+
+If the thinking is valuable, we’ll book 20 minutes. If not, I’ll stop there.
+
+First one lands tomorrow.
+
+— Chris`
+          }
+        },
+        {
+          n: 2,
+          label: "Insight #1: hidden cost of a weak first BDR",
+          channel: "Email",
+          objective: "Demonstrate business judgment: AE time, false signal, pipeline delay.",
+          closer: false,
+          whyWorks: [
+            "Execs think in opportunity cost",
+            "Signals maturity beyond activity metrics"
+          ],
+          closerOutcome: "He starts to see you as an operator, not a candidate.",
+          script: {
+            subject: "Insight #1 — the hidden cost of ‘good enough’",
+            body:
+`Leon —
+
+The first BDR hire in a new market sets the pipeline standard.
+
+‘Good enough’ BDRs create calendar volume that doesn’t convert → AE time drain → 60–90 days of false signal.
+
+The fix isn’t more activity. It’s a quality bar:
+• strict ICP fit
+• trigger-based outreach (reason now)
+• qualification that creates real next steps
+
+— Chris`
+          }
+        },
+        {
+          n: 3,
+          label: "Insight #2: first 30 days (prove conversion before scaling)",
+          channel: "Email",
+          objective: "Show you scale only after you validate ICP + message.",
+          closer: false,
+          whyWorks: [
+            "Signals discipline + learning loops",
+            "Execs trust pilots that prove conversion"
+          ],
+          closerOutcome: "He trusts your ramp plan and your judgment.",
+          script: {
+            subject: "Insight #2 — prove conversion before scaling volume",
+            body:
+`Leon —
+
+First 30 days should be about proof of conversion, not maximum activity.
+
+Days 1–10: tight Tier 1 list + test 2–3 angles until replies and convos show a clear winner.
+Days 11–30: scale the winning angle to Tier 2, keep Tier 1 fully custom, enforce quality bar.
+
+— Chris`
+          }
+        },
+        {
+          n: 4,
+          label: "Micro-commitment question (A/B)",
+          channel: "Email or LinkedIn",
+          objective: "Get engagement. One-letter reply.",
+          closer: false,
+          whyWorks: [
+            "Micro-commitments increase later compliance",
+            "Execs like quick directional input"
+          ],
+          closerOutcome: "Reply = buy-in; sequence becomes ‘dialogue’.",
+          script: {
+            subject: "Quick A/B (one letter reply)",
+            body:
+`A) enterprise logos first
+B) platform partners first
+
+Which would you bias toward in the first 30 days — A or B?`
+          }
+        },
+        {
+          n: 5,
+          label: "Insight #3: trigger-based outbound (earn exec replies)",
+          channel: "Email",
+          objective: "Teach how you win attention without spray-and-pray.",
+          closer: false,
+          whyWorks: [
+            "Execs respond to timing, not personalization",
+            "Shows you can reach senior stakeholders"
+          ],
+          closerOutcome: "He believes you can do outbound at his level.",
+          script: {
+            subject: "Insight #3 — exec replies come from timing",
+            body:
+`Leon —
+
+Senior leaders don’t reply to personalization — they reply to timing.
+
+Five triggers that consistently earn exec responses:
+• new finance leader
+• ERP migration
+• international expansion
+• rapid hiring + cost controls
+• product/payment initiative
+
+The play is touch the right accounts when urgency is real.
+
+— Chris`
+          }
+        },
+        {
+          n: 6,
+          label: "Proof snapshot: mini TAL (10 accounts + triggers)",
+          channel: "Email",
+          objective: "Deliver receipts, not claims.",
+          closer: false,
+          whyWorks: [
+            "Work product earns trust",
+            "Makes meeting ‘obvious next step’"
+          ],
+          closerOutcome: "Credibility jump; he sees initiative and execution.",
+          script: {
+            subject: "Proof snapshot — week-one targets",
+            body:
+`Leon —
+
+Here are 10 accounts I’d start with week one + the trigger for each:
+1) [Account] — [Trigger]
+...
+10) [Account] — [Trigger]
+
+If helpful, I can share the full tiered list and openers.
+
+— Chris`
+          }
+        },
+        {
+          n: 7,
+          label: "Insight #4: meeting quality bar (protect AE time)",
+          channel: "Email",
+          objective: "Show you optimize for conversion and AE trust.",
+          closer: false,
+          whyWorks: [
+            "AE-time protection is a VP-level priority",
+            "Signals high standards"
+          ],
+          closerOutcome: "He trusts you won’t create noise.",
+          script: {
+            subject: "Insight #4 — no calendar noise",
+            body:
+`Leon —
+
+I don’t book the meeting unless we have:
+1) ICP fit
+2) pain in their words
+3) reason now
+4) next step beyond the first call
+5) right stakeholders identified
+
+If any are missing, I keep working the account until it’s real.
+
+— Chris`
+          }
+        },
+        {
+          n: 8,
+          label: "Insight #5: pipeline math + day 30/60/90",
+          channel: "Email",
+          objective: "Make outcomes predictable and measurable.",
+          closer: false,
+          whyWorks: [
+            "Execs like models and expectations",
+            "Demonstrates accountability"
+          ],
+          closerOutcome: "He sees repeatability and realism.",
+          script: {
+            subject: "Insight #5 — pipeline math + ramp",
+            body:
+`Leon —
+
+At full ramp:
+• 15–20 meetings/mo
+• ~10 qualified opps/mo
+• $X pipeline/mo (ACV dependent)
+
+Day 30: ICP + message validated, first meetings
+Day 60: consistent weekly production
+Day 90: full velocity + documented playbook
+
+— Chris`
+          }
+        },
+        {
+          n: 9,
+          label: "Meeting ask: ‘pressure-test live’",
+          channel: "Email",
+          objective: "Convert trust into a yes with a low-risk framing.",
+          closer: true,
+          whyWorks: [
+            "Meeting becomes ‘logical next step’",
+            "Binary outcome maintains high status"
+          ],
+          closerOutcome: "He books time to evaluate you.",
+          script: {
+            subject: "20 minutes to pressure-test the system?",
+            body:
+`Leon —
+
+If you’re open, I’d love 20 minutes to walk you through the full system end-to-end and have you poke holes in it.
+
+If it doesn’t feel repeatable, you should pass on me.
+
+Tue 10:30 or Wed 2:00?
+
+— Chris`
+          }
+        }
+      ]
+    },
+
+    {
+      id: "artifact-first",
+      name: "Sequence 3 — Artifact-First Proof Stack",
+      subtitle: "Most ‘unfair’. Lead with a small artifact that signals operator-level thinking.",
+      philosophy: "Executives respond to work product. Lead with a one-slide teaser and a mini target list. Curiosity does the selling; the meeting becomes a review, not a pitch.",
+      bestFor: ["Execs who ignore long text", "Visual proof", "Rapid credibility"],
+      risk: "Don’t attach a full deck. One artifact at a time.",
+      steps: [
+        {
+          n: 1,
+          label: "Send 1-slide teaser (no deck)",
+          channel: "Email",
+          objective: "Signal ‘this is real work’ and create curiosity.",
+          closer: false,
+          whyWorks: [
+            "Artifact beats claims",
+            "One-slide limit keeps curiosity alive"
+          ],
+          closerOutcome: "He sees professionalism and wants the rest.",
+          script: {
+            subject: "One slide that shows how I operate",
+            body:
+`Leon —
+
+Instead of a deck, I’m sending one slide that shows how I operate: meeting quality + AE handoff standard.
+
+If it resonates, I’ll walk you through the system behind it in 20 minutes.
+
+— Chris`
+          }
+        },
+        {
+          n: 2,
+          label: "Call referencing the artifact (context + close)",
+          channel: "Phone Call",
+          objective: "Increase pickup by referencing something he just received.",
+          closer: true,
+          whyWorks: [
+            "Context boosts answer rate",
+            "Execs respond to ‘did you see X?’"
+          ],
+          closerOutcome: "Book a review session.",
+          script: {
+            subject: "Call script",
+            body:
+`“Leon — Chris. Quick one. I just sent you a single slide on my AE handoff standard.
+
+That’s one piece of the system. I’d like 20 minutes to walk you through the rest (ICP, motion, pipeline math) and have you pressure-test it.
+
+Tue 10:30 or Wed 2:00?”`
+          }
+        },
+        {
+          n: 3,
+          label: "60-second system email (6 bullets)",
+          channel: "Email",
+          objective: "Make the ‘rest’ skimmable and credible.",
+          closer: false,
+          whyWorks: [
+            "Skimmable = read",
+            "Signals structure and repeatability"
+          ],
+          closerOutcome: "He can evaluate quickly; interest increases.",
+          script: {
+            subject: "The system in 60 seconds",
+            body:
+`Leon —
+
+System in 60 seconds:
+• ICP: enterprise finance + embedded finance
+• Targeting: tiered TAL + triggers
+• Motion: multi-channel sequence
+• Quality bar: no calendar noise
+• Handoff: AE briefing + warm intro + follow-through
+• Math: 15–20 meetings/mo → ~10 qualified opps → $X pipeline
+
+If it’s worth it, I’ll walk you through it in 20 minutes.
+
+— Chris`
+          }
+        },
+        {
+          n: 4,
+          label: "Mini TAL screenshot (first 10 accounts)",
+          channel: "Email",
+          objective: "Proof of execution; not theoretical.",
+          closer: false,
+          whyWorks: [
+            "Shows you already started",
+            "Raises perceived competence"
+          ],
+          closerOutcome: "Meeting becomes review of work already done.",
+          script: {
+            subject: "Week-one targets (10) + triggers",
+            body:
+`Leon —
+
+Here are 10 accounts I’d start with in week one + the trigger for each:
+1) [Account] — [Trigger]
+...
+10) [Account] — [Trigger]
+
+If helpful, I can show the full tiering logic live in 20 minutes.
+
+— Chris`
+          }
+        },
+        {
+          n: 5,
+          label: "Micro-commitment (A/B)",
+          channel: "LinkedIn DM",
+          objective: "Engage him with a one-letter reply.",
+          closer: false,
+          whyWorks: [
+            "Micro-commitments increase later compliance"
+          ],
+          closerOutcome: "He participates; likelihood of meeting increases.",
+          script: {
+            subject: "A/B question",
+            body:
+`Quick A/B:
+A) enterprise logos first
+B) platform partners first
+
+Which would you prioritize for the first 30 days — A or B?`
+          }
+        },
+        {
+          n: 6,
+          label: "Close: review session framing",
+          channel: "Email",
+          objective: "Book meeting as an internal review, not a pitch.",
+          closer: true,
+          whyWorks: [
+            "Low risk for exec",
+            "Binary outcome maintains status"
+          ],
+          closerOutcome: "Meeting booked.",
+          script: {
+            subject: "20-min review session?",
+            body:
+`Leon —
+
+If you’re open, I’d love 20 minutes to walk you through the full system like an internal doc review.
+
+If it doesn’t hold up under scrutiny, you should pass on me.
+
+Tue 10:30 or Wed 2:00?
+
+— Chris`
+          }
+        },
+        {
+          n: 7,
+          label: "Breakup / reroute",
+          channel: "Email",
+          objective: "Force a decision while staying respectful.",
+          closer: true,
+          whyWorks: [
+            "Decision forcing without annoyance",
+            "Maintains status"
+          ],
+          closerOutcome: "Yes, no, or delegate — but not silence forever.",
+          script: {
+            subject: "Close the loop",
+            body:
+`Leon —
+
+Last note from me.
+
+Should I:
+A) send the full framework and stop here, or
+B) grab 20 minutes next week to review it live?
+
+Either answer is helpful.
+
+— Chris`
+          }
+        }
+      ]
+    }
+  ];
+
+  // -----------------------------
+  // UI STATE
+  // -----------------------------
+  let activeSeq = sequences[0];
+  let expandedAll = false;
+
+  const elTabs = document.getElementById("tabs");
+  const elSeqMeta = document.getElementById("seqMeta");
+  const elSeqTitle = document.getElementById("seqTitle");
+  const elSeqSub = document.getElementById("seqSub");
+  const elSteps = document.getElementById("steps");
+  const elSearch = document.getElementById("search");
+  const elToast = document.getElementById("toast");
+  const elCallout = document.getElementById("callout");
+  const elCount = document.getElementById("seqCount");
+
+  function toast(msg){
+    elToast.textContent = msg;
+    elToast.style.display = "block";
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=> elToast.style.display="none", 1200);
+  }
+
+  function copy(text){
+    navigator.clipboard.writeText(text).then(()=> toast("Copied ✅")).catch(()=> toast("Copy failed"));
+  }
+
+  function renderTabs(){
+    elTabs.innerHTML = "";
+    sequences.forEach(seq=>{
+      const t = document.createElement("div");
+      t.className = "tab" + (seq.id===activeSeq.id ? " active" : "");
+      t.textContent = seq.name.replace("Sequence ", "Seq ");
+      t.onclick = () => {
+        activeSeq = seq;
+        expandedAll = false;
+        renderAll();
+      };
+      elTabs.appendChild(t);
+    });
+    elCount.textContent = `${sequences.length} sequences`;
+  }
+
+  function renderMeta(){
+    elSeqMeta.innerHTML = "";
+
+    const meta = [
+      {title:"Philosophy", text: activeSeq.philosophy},
+      {title:"Best for", text: activeSeq.bestFor.join(" · ")},
+      {title:"Watch out", text: activeSeq.risk},
+    ];
+
+    meta.forEach(m=>{
+      const c = document.createElement("div");
+      c.className = "card";
+      c.innerHTML = `<h3>${m.title}</h3><p>${m.text}</p>`;
+      elSeqMeta.appendChild(c);
+    });
+  }
+
+  function stepTags(step){
+    const tags = [];
+    if(step.channel.toLowerCase().includes("call")) tags.push({k:"Channel", v:"Call"});
+    if(step.channel.toLowerCase().includes("email")) tags.push({k:"Channel", v:"Email"});
+    if(step.channel.toLowerCase().includes("linkedin")) tags.push({k:"Channel", v:"LinkedIn"});
+    tags.push({k:"Outcome", v: step.closer ? "Booking / Decision" : "Value / Credibility"});
+    return tags;
+  }
+
+  function renderCallout(){
+    elSeqTitle.textContent = activeSeq.name;
+    elSeqSub.textContent = activeSeq.subtitle;
+
+    // A short “how to present this” block.
+    const present =
+      activeSeq.id === "pressure-test" ? `
+        <strong>How to present this sequence:</strong>
+        “I framed the meeting as a 20-minute pressure-test of my outbound operating system. Each touch added either
+        <b>clarity</b>, <b>proof</b>, or a <b>decision</b>. No generic follow-ups.”
+      ` :
+      activeSeq.id === "teach-earn" ? `
+        <strong>How to present this sequence:</strong>
+        “I didn’t ask for time upfront. I delivered 4–6 short insights that demonstrate judgment, then made the meeting the
+        natural next step: a live pressure-test.”
+      ` :
+      `
+        <strong>How to present this sequence:</strong>
+        “I led with work product (one slide, mini target list) to create curiosity. The meeting became a review of artifacts,
+        not a pitch.”
+      `;
+
+    elCallout.innerHTML = `
+      ${present}
+      <div class="muted" style="margin-top:8px">
+        <span class="tag"><b>Tip:</b> Keep each touch under ~120 words (email) and under ~20 seconds (voicemail).</span>
+      </div>
+    `;
+  }
+
+  function matchesSearch(step, q){
+    if(!q) return true;
+    const hay = [
+      step.label, step.channel, step.objective, step.closerOutcome,
+      ...(step.whyWorks||[]),
+      step.script?.subject||"", step.script?.body||""
+    ].join(" ").toLowerCase();
+    return hay.includes(q.toLowerCase());
+  }
+
+  function renderSteps(){
+    const q = elSearch.value.trim();
+    elSteps.innerHTML = "";
+
+    const steps = activeSeq.steps.filter(s => matchesSearch(s, q));
+    if(steps.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "card";
+      empty.innerHTML = `<h3>No steps match</h3><p>Try a different search term.</p>`;
+      elSteps.appendChild(empty);
+      return;
+    }
+
+    steps.forEach(step=>{
+      const d = document.createElement("details");
+      d.className = "step";
+      d.open = expandedAll;
+
+      const tags = stepTags(step)
+        .map(t=> `<span class="k">${t.k}: ${t.v}</span>`)
+        .join("");
+
+      const dotClass = step.closer ? "warn" : "ok";
+
+      d.innerHTML = `
+        <summary>
+          <div class="sumleft">
+            <div class="sumtop">
+              <span class="badge"><span class="dot ${dotClass}"></span>Step ${step.n}</span>
+              <span class="ttl">${step.label}</span>
+              ${tags}
+            </div>
+            <div class="mini">${step.channel} · ${step.objective}</div>
+          </div>
+          <div class="sumright">
+            <div class="chev">›</div>
+          </div>
+        </summary>
+
+        <div class="content">
+          <div class="box">
+            <h4>Objective</h4>
+            <div class="txt">${step.objective}</div>
+            <div style="height:10px"></div>
+            <h4>Why this works</h4>
+            <div class="txt">
+              <ul style="margin:0; padding-left:18px">
+                ${(step.whyWorks||[]).map(x=>`<li>${x}</li>`).join("")}
+              </ul>
+            </div>
+            <div style="height:10px"></div>
+            <h4>Closer outcome</h4>
+            <div class="txt">${step.closerOutcome}</div>
+          </div>
+
+          <div class="box">
+            <h4>Message / script</h4>
+            <div class="tiny"><b>Subject:</b> ${escapeHtml(step.script?.subject||"(n/a)")}</div>
+            <div class="msg" data-copy="${escapeAttr(step.script?.body||"")}">${escapeHtml(step.script?.body||"")}</div>
+            <div class="msg-actions">
+              <button class="primary" data-copybtn>Copy script</button>
+              <button class="ghost" data-insertbtn>Copy subject</button>
+            </div>
+            <div class="tiny muted">Customize: swap in 1 proof metric + keep the rest structure identical.</div>
+          </div>
+        </div>
+      `;
+
+      // Hook up copy buttons
+      d.querySelector("[data-copybtn]").onclick = () => copy(step.script?.body||"");
+      d.querySelector("[data-insertbtn]").onclick = () => copy(step.script?.subject||"");
+
+      elSteps.appendChild(d);
+    });
+  }
+
+  function escapeHtml(str){
+    return (str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+  }
+  function escapeAttr(str){
+    return (str||"").replaceAll('"','&quot;');
+  }
+
+  function renderAll(){
+    renderTabs();
+    renderMeta();
+    renderCallout();
+    renderSteps();
+  }
+
+  // -----------------------------
+  // EVENTS
+  // -----------------------------
+  elSearch.addEventListener("input", renderSteps);
+
+  document.getElementById("themeBtn").addEventListener("click", ()=>{
+    const body = document.body;
+    body.setAttribute("data-theme", body.getAttribute("data-theme")==="dark" ? "light" : "dark");
+  });
+
+  document.getElementById("expandAllBtn").addEventListener("click", ()=>{
+    expandedAll = true;
+    document.querySelectorAll("details.step").forEach(d=> d.open = true);
+  });
+
+  document.getElementById("collapseAllBtn").addEventListener("click", ()=>{
+    expandedAll = false;
+    document.querySelectorAll("details.step").forEach(d=> d.open = false);
+  });
+
+  document.getElementById("printBtn").addEventListener("click", ()=>{
+    window.print();
+  });
+
+  // -----------------------------
+  // INIT
+  // -----------------------------
+  renderAll();
+</script>
+</body>
+</html>
